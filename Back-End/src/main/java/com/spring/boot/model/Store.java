@@ -31,6 +31,12 @@ public class Store {
 
     private String storeLogoUrl;
 
+    private String primaryColor;
+
+    private String secondaryColor;
+
+    private String fontFamily;
+
     @Enumerated(EnumType.STRING)
     private StoreStatus storeStatus;
 
