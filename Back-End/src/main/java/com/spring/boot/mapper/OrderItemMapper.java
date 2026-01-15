@@ -1,0 +1,14 @@
+package com.spring.boot.mapper;
+
+import com.spring.boot.dto.OrderItemDto;
+import com.spring.boot.model.OrderItem;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+
+@Mapper(componentModel = "spring")
+public interface OrderItemMapper {
+
+    @Mapping(source = "product.id", target = "productId")
+    OrderItemDto toOrderItemDto(OrderItem orderItem);
+    OrderItem toOrderItemEntity(OrderItemDto orderItemDto);
+}
