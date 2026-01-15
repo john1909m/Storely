@@ -1,4 +1,4 @@
-package com.spring.boot.storely;
+package com.spring.boot;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
