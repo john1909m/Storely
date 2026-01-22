@@ -25,17 +25,17 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public CategoryDto addCategory(CategoryDto categoryDto, Long storeId) {
+    public CategoryDto addCategory(CategoryDto categoryDto) {
         return null;
     }
 
     @Override
-    public CategoryDto updateCategory(CategoryDto categoryDto, Long storeId) {
+    public CategoryDto updateCategory(CategoryDto categoryDto) {
         return null;
     }
 
     @Override
-    public CategoryDto deleteCategory(Long id, Long storeId) {
+    public CategoryDto deleteCategory(Long id) {
         return null;
     }
 }

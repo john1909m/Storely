@@ -8,9 +8,10 @@ import java.util.List;
 
 @Service
 public class CustomerServiceImpl implements CustomerService {
+
     @Override
-    public List<CustomerDto> getCustomersByOrderId(Long orderId) {
-        return List.of();
+    public CustomerDto getCustomerByOrderId(Long orderId) {
+        return null;
     }
 
     @Override
@@ -21,5 +22,20 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public List<CustomerDto> getCustomersByCity(String city, Long storeId) {
         return List.of();
+    }
+
+    @Override
+    public CustomerDto addCustomer(CustomerDto customerDto) {
+        return null;
+    }
+
+    @Override
+    public CustomerDto updateCustomer(CustomerDto customerDto) {
+        return null;
+    }
+
+    @Override
+    public void deleteCustomer(Long id) {
+
     }
 }

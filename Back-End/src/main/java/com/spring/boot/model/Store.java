@@ -14,10 +14,11 @@ import java.util.List;
 @Getter
 @Setter
 @RequiredArgsConstructor
+@Table(name = "stores")
 public class Store {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String id;
+    private Long id;
 
     private String storeName;
 
@@ -49,6 +50,9 @@ public class Store {
 
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL)
     private List<Category> categories;
+
+    @OneToMany(mappedBy = "store")
+    private List<Order> orders;
 
 
 }

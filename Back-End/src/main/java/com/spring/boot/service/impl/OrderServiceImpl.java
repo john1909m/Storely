@@ -8,6 +8,7 @@ import java.util.List;
 
 @Service
 public class OrderServiceImpl implements OrderService {
+
     @Override
     public List<OrderDto> getAllOrders() {
         return List.of();
@@ -24,17 +25,17 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderDto addOrder(OrderDto orderDto, Long storeId) {
+    public OrderDto addOrder(OrderDto orderDto) {
         return null;
     }
 
     @Override
-    public OrderDto updateOrder(OrderDto orderDto, Long storeId) {
+    public OrderDto updateOrder(OrderDto orderDto) {
         return null;
     }
 
     @Override
-    public void deleteOrder(Long orderId, Long storeId) {
+    public void deleteOrder(Long orderId) {
 
     }
 }

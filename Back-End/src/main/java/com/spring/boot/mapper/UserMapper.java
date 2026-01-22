@@ -10,12 +10,5 @@ import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring", uses = {StoreMapper.class, OrderMapper.class})
 public interface UserMapper {
-    AdminDto toAdminDto(Admin admin);
-    Admin toAdminEntity(AdminDto adminDto);
 
-    VendorDto toVendorDto(Vendor vendor);
-    Vendor toVendorEntity(VendorDto vendorDto);
-
-    CustomerDto toCustomerDto(Customer customer);
-    Customer toCustomerEntity(CustomerDto customerDto);
 }

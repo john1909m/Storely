@@ -2,12 +2,12 @@ spring:
   datasource:
     driver-class-name: oracle.jdbc.driver.OracleDriver
     url: jdbc:oracle:thin:@//localhost:1521/orclpdb
-    username: test
-    password: test
+    username: Storely
+    password: Storely1909
 
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
     show-sql: true
     properties:
       hibernate:

@@ -1,5 +1,6 @@
 package com.spring.boot.dto;
 
+import com.spring.boot.model.Store;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -27,4 +28,6 @@ public class ProductDto {
     private List<String> imageUrls;
 
     private Long categoryId;
+
+    private Long storeId;
 }

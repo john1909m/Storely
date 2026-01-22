@@ -12,4 +12,5 @@ public class ProductImageDto {
     private String url;
     private String altText;
     private Integer position;
+    private Long productId;
 }

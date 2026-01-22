@@ -1,20 +1,34 @@
 package com.spring.boot.model;
 
 import com.spring.boot.enums.Role;
-import jakarta.persistence.Entity;
-import jakarta.persistence.OneToOne;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @Setter
-@RequiredArgsConstructor
-public class Vendor extends  User {
-    public Vendor() {
-        super.setRole(Role.VENDOR);
-    }
+@AllArgsConstructor
+@NoArgsConstructor
+public class Vendor{
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+
+    private String email;
+
+    private String phoneNumber;
+
+    private String password;
+
+    private LocalDateTime createdAt=LocalDateTime.now();
+
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
     @OneToOne(mappedBy = "vendor")
     private Store store;
 

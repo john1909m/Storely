@@ -9,6 +9,8 @@ public interface ProductService {
 
     ProductDto getProductByIdInStoreId(Long productId, Long storeId);
 
+    List<ProductDto> getAllProductsByCategoryId(Long categoryId, Long storeId);
+
     ProductDto addProduct(ProductDto productDto);
 
     ProductDto updateProduct(ProductDto productDto);

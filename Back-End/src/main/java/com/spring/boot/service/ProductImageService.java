@@ -7,9 +7,9 @@ import java.util.List;
 public interface ProductImageService {
     List<ProductImageDto> getProductImageByProductId(Long productId);
 
-    ProductImageDto addProductImageToProduct(ProductImageDto productImageDto, Long productId);
+    ProductImageDto addProductImageToProduct(ProductImageDto productImageDto);
 
-    ProductImageDto updateProductImageToProduct(ProductImageDto productImageDto, Long productId);
+    ProductImageDto updateProductImageToProduct(ProductImageDto productImageDto);
 
-    void deleteProductImageFromProduct(Long productImageId, Long productId);
+    void deleteProductImageFromProduct(Long productImageId);
 }

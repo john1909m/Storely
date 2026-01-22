@@ -1,6 +1,8 @@
 package com.spring.boot.dto;
 
 import com.spring.boot.enums.StoreStatus;
+import com.spring.boot.model.Category;
+import com.spring.boot.model.Order;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -9,12 +11,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
 @RequiredArgsConstructor
 public class StoreDto {
-    private String id;
+    private Long id;
 
     private String storeName;
 
@@ -34,5 +37,15 @@ public class StoreDto {
 
     private String fontFamily;
 
-    private StoreStatus storeStatus;
+    private String storeStatus;
+
+    private List<ProductDto> products;
+
+    private List<CategoryDto> categories;
+
+    private List<OrderDto> orders;
+
+
+
+
 }

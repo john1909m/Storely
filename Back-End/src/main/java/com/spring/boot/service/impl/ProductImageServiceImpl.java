@@ -14,17 +14,17 @@ public class ProductImageServiceImpl implements ProductImageService {
     }
 
     @Override
-    public ProductImageDto addProductImageToProduct(ProductImageDto productImageDto, Long productId) {
+    public ProductImageDto addProductImageToProduct(ProductImageDto productImageDto) {
         return null;
     }
 
     @Override
-    public ProductImageDto updateProductImageToProduct(ProductImageDto productImageDto, Long productId) {
+    public ProductImageDto updateProductImageToProduct(ProductImageDto productImageDto) {
         return null;
     }
 
     @Override
-    public void deleteProductImageFromProduct(Long productImageId, Long productId) {
+    public void deleteProductImageFromProduct(Long productImageId) {
 
     }
 }

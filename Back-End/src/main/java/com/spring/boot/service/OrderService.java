@@ -11,10 +11,10 @@ public interface OrderService {
 
     OrderDto getOrderById(Long orderId, Long storeId);
 
-    OrderDto addOrder(OrderDto orderDto, Long storeId);
+    OrderDto addOrder(OrderDto orderDto);
 
-    OrderDto updateOrder(OrderDto orderDto, Long storeId);
+    OrderDto updateOrder(OrderDto orderDto);
 
-    void deleteOrder(Long orderId, Long storeId);
+    void deleteOrder(Long orderId);
 
 }
