@@ -10,6 +10,19 @@ import java.util.List;
 @Setter
 @RequiredArgsConstructor
 public class CustomerDto extends UserDto {
+    private Long id;
+
+    private String firstName;
+
+    private String lastName;
+
+    private String address;
+
+    private String city;
+
+    private String phoneNumber;
+
+    private String whatsappNumber;
     private List<OrderDto> orders;
 
 }
