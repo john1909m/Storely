@@ -42,7 +42,7 @@ public class Store {
     private StoreStatus storeStatus;
 
     @OneToOne
-    @JoinColumn(name = "vendor_id")
+    @JoinColumn(name = "vendor_id",nullable = true)
     private Vendor vendor;
 
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL)

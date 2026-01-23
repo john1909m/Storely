@@ -14,9 +14,8 @@ public class VendorDto{
     private Long id;
     private String name;
     private String email;
+    private String password;
     private String phoneNumber;
-    private String role;
-    private LocalDateTime createdAt;
-
-    private StoreDto store;
+    private String role = "VENDOR";
+    private LocalDateTime createdAt=LocalDateTime.now();
 }

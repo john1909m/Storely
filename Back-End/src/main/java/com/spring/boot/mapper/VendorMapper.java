@@ -9,10 +9,8 @@ import org.mapstruct.Mappings;
 @Mapper(componentModel = "spring")
 public interface VendorMapper {
     @Mapping(source = "role",target = "role")
-    @Mapping(source = "store",target = "role")
     VendorDto toVendorDto(Vendor vendor);
 
     @Mapping(source = "role",target = "role")
-    @Mapping(source = "store",target = "role")
     Vendor toVendorEntity(VendorDto vendorDto);
 }
