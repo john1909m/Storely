@@ -17,5 +17,5 @@ public interface ProductService {
 
     void deleteProduct(Long id);
 
-    ProductDto getProductByNameInStoreId(String productName,Long storeId);
+    List<ProductDto> getProductsByNameStartingWithInStoreId(String productName, Long storeId);
 }

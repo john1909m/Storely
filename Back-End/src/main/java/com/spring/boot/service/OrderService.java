@@ -1,11 +1,11 @@
 package com.spring.boot.service;
 
+import com.spring.boot.dto.CheckoutDto;
 import com.spring.boot.dto.OrderDto;
 
 import java.util.List;
 
 public interface OrderService {
-    List<OrderDto> getAllOrders();
 
     List<OrderDto> getAllOrdersByStore(Long storeId);
 
@@ -16,5 +16,7 @@ public interface OrderService {
     OrderDto updateOrder(OrderDto orderDto);
 
     void deleteOrder(Long orderId);
+
+    OrderDto checkout(CheckoutDto dto);
 
 }

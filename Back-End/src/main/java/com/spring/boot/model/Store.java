@@ -54,5 +54,8 @@ public class Store {
     @OneToMany(mappedBy = "store")
     private List<Order> orders;
 
+    @ManyToMany(mappedBy = "stores")
+    private List<Customer> customers;
+
 
 }

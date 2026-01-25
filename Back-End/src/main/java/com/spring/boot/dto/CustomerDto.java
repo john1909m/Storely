@@ -1,5 +1,6 @@
 package com.spring.boot.dto;
 
+import com.spring.boot.enums.Role;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -10,7 +11,7 @@ import java.util.List;
 @Getter
 @Setter
 @RequiredArgsConstructor
-public class CustomerDto extends UserDto {
+public class CustomerDto {
     private Long id;
 
     private String firstName;
@@ -21,12 +22,14 @@ public class CustomerDto extends UserDto {
 
     private String city;
 
+    private String role="CUSTOMER";
+
     private String phoneNumber;
 
     private String whatsappNumber;
 
     private LocalDateTime createdDate;
 
-    private List<OrderDto> orders;
+    private List<Long> storeIds;
 
 }

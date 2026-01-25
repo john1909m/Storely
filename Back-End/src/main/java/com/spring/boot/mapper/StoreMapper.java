@@ -11,10 +11,12 @@ public interface StoreMapper {
     @Mapping(source = "storeStatus",target = "storeStatus")
     @Mapping(source = "products",target = "products")
     @Mapping(source = "categories",target = "categories")
+    @Mapping(source = "vendor.id" , target = "vendorId")
     StoreDto toStoreDto(Store store);
 
     @Mapping(source = "storeStatus",target = "storeStatus")
     @Mapping(source = "products",target = "products")
     @Mapping(source = "categories",target = "categories")
+    @Mapping(target = "vendor", ignore = true)
     Store toStoreEntity(StoreDto storeDto);
 }

@@ -1,5 +1,6 @@
 package com.spring.boot.controller;
 
+import com.spring.boot.dto.CheckoutDto;
 import com.spring.boot.dto.OrderDto;
 import com.spring.boot.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,11 +19,6 @@ public class OrderController {
     @Autowired
     public OrderController(OrderService orderService) {
         this.orderService = orderService;
-    }
-
-    @GetMapping("/get/all")
-    public ResponseEntity<List<OrderDto>> getAllOrders() {
-        return ResponseEntity.ok(orderService.getAllOrders());
     }
 
     @GetMapping("/get/store/{storeId}")
@@ -52,5 +48,13 @@ public class OrderController {
     public ResponseEntity<Void> deleteOrder(@PathVariable("orderId") Long orderId) {
         orderService.deleteOrder(orderId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/checkout")
+    public ResponseEntity<OrderDto> checkout(
+            @RequestBody CheckoutDto checkoutDto
+    ) {
+        OrderDto order = orderService.checkout(checkoutDto);
+        return ResponseEntity.ok(order);
     }
 }

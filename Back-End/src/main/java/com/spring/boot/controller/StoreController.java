@@ -30,7 +30,7 @@ public class StoreController {
         return ResponseEntity.ok(storeService.getStoreByStoreId(storeId));
     }
 
-    @GetMapping("/get/{storeName}")
+    @GetMapping("/get/name/{storeName}")
     public ResponseEntity<StoreDto> getStoreByName(@PathVariable("storeName") String storeName) {
         return ResponseEntity.ok(storeService.getStoreByStoreName(storeName));
     }
@@ -40,7 +40,7 @@ public class StoreController {
         return ResponseEntity.ok(storeService.getStoreByVendorId(vendorId));
     }
 
-    @GetMapping("/get/vendor/{vendorName}")
+    @GetMapping("/get/vendor/name/{vendorName}")
     public ResponseEntity<StoreDto> getStoreByVendorName(@PathVariable("vendorName") String vendorName) {
         return ResponseEntity.ok(storeService.getStoreByVendorName(vendorName));
     }

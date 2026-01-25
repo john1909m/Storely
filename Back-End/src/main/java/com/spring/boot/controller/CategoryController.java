@@ -29,9 +29,9 @@ public class CategoryController {
         return ResponseEntity.ok().body(categoryService.getCategoryById(categoryId));
     }
 
-    @GetMapping("/get/{categoryName}")
-    public ResponseEntity<CategoryDto> getCategoryByName(@PathVariable("categoryName") String categoryName) {
-        return ResponseEntity.ok().body(categoryService.getCategoryByName(categoryName));
+    @GetMapping("/get/name/{categoryName}/store/{storeId}")
+    public ResponseEntity<CategoryDto> getCategoryByName(@PathVariable("categoryName") String categoryName ,@PathVariable Long storeId) {
+        return ResponseEntity.ok().body(categoryService.getCategoryByNameAndStoreId(categoryName,storeId));
     }
 
     @PostMapping("/add")

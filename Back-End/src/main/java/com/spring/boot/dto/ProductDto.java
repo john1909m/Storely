@@ -26,6 +26,9 @@ public class ProductDto {
     private Integer quantity;
 
     private List<String> imageUrls;
+    private List<String> altText;
+    private List<Integer> position;
+
 
     private Long categoryId;
 

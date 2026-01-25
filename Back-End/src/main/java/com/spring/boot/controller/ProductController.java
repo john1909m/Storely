@@ -22,7 +22,7 @@ public class ProductController {
         this.storeService = storeService;
     }
 
-    @GetMapping("/get/{storeId}")
+    @GetMapping("/get/all/{storeId}")
     public ResponseEntity<List<ProductDto>> getProductByStoreId(@PathVariable Long storeId) {
         return ResponseEntity.ok(productService.getAllProductsByStoreId(storeId));
     }
@@ -32,9 +32,9 @@ public class ProductController {
         return ResponseEntity.ok(productService.getProductByIdInStoreId(productId, storeId));
     }
 
-    @GetMapping("/get/{productName}/{storeId}")
-    public ResponseEntity<ProductDto> getProductByName(@PathVariable String productName, @PathVariable Long storeId) {
-        return ResponseEntity.ok(productService.getProductByNameInStoreId(productName, storeId));
+    @GetMapping("/get/search/{productName}/{storeId}")
+    public ResponseEntity<List<ProductDto>> getProductByName(@PathVariable String productName, @PathVariable Long storeId) {
+        return ResponseEntity.ok(productService.getProductsByNameStartingWithInStoreId(productName, storeId));
     }
 
     @GetMapping("/get/category/{categoryId}/{storeId}")

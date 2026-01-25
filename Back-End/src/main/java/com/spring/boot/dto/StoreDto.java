@@ -19,6 +19,8 @@ import java.util.List;
 public class StoreDto {
     private Long id;
 
+    private Long vendorId;
+
     private String storeName;
 
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -37,13 +39,15 @@ public class StoreDto {
 
     private String fontFamily;
 
-    private String storeStatus;
+    private String storeStatus="Inactive";
 
     private List<ProductDto> products;
 
     private List<CategoryDto> categories;
 
     private List<OrderDto> orders;
+
+    private List<Long> customerIds;
 
 
 

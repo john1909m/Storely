@@ -30,10 +30,21 @@ public class Customer{
 
     private String phoneNumber;
 
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
     private String whatsappNumber;
 
     private LocalDateTime createdDate;
 
     @OneToMany(mappedBy = "customer",cascade = CascadeType.ALL)
     private List<Order> orders;
+
+    @ManyToMany
+    @JoinTable(
+            name = "customer_store",
+            joinColumns = @JoinColumn(name = "customer_id"),
+            inverseJoinColumns = @JoinColumn(name = "store_id")
+    )
+    private List<Store> stores;
 }
