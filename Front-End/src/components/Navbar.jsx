@@ -6,12 +6,12 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
   const navLinks = [
-    { name: 'Home', href: '#' },
+    { name: 'Home', href: '/' },
     { name: 'Features', href: '#features' },
     { name: 'How It Works', href: '#how-it-works' },
-    { name: 'For Vendors', href: '#for-vendors' },
-    { name: 'Pricing', href: '#pricing' },
-    { name: 'Contact', href: '#contact' },
+    { name: 'For Vendors', href: '/pricing' },
+    { name: 'Pricing', href: '/pricing' },
+    { name: 'Contact', href: '/contact' },
   ];
 
   return (
