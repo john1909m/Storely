@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowRight, Mail, Lock, Store, Eye, EyeOff } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -8,19 +9,69 @@ const Login = () => {
     email: '',
     password: '',
   });
-  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login, isAuthenticated, isLoading, role, store } = useAuth();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && role) {
+      console.log('Already authenticated - Role:', role, 'Store:', store, 'Has Store:', !!store);
+      const from = location.state?.from?.pathname || getDashboardPath(role, store);
+      console.log('Redirecting authenticated user to:', from);
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, role, store, navigate, location]);
+
+  // Helper to get dashboard path based on role and store existence
+  const getDashboardPath = (userRole, store) => {
+    switch (userRole?.toUpperCase()) {
+      case 'ADMIN':
+        return '/admin/dashboard';
+      case 'VENDOR':
+        // Check if vendor has store
+        if (store) {
+          return '/vendor/store';
+        } else {
+          return '/vendor/create-store';
+        }
+      case 'CUSTOMER':
+        const lastStore = sessionStorage.getItem('lastVisitedStore');
+        return lastStore ? `/store/${lastStore}` : '/';
+      default:
+        return '/';
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
+    setError('');
     
-    // Simulate API call
-    setTimeout(() => {
-      console.log('Login data:', formData);
-      setIsLoading(false);
-      navigate('/dashboard'); // Redirect after successful login
-    }, 1000);
+    try {
+      const response = await login(formData);
+      
+      // Debug logging
+      console.log('Login successful - Role:', response.role);
+      console.log('Login successful - Store:', response.store);
+      console.log('Login successful - Full response:', response);
+      
+      // Wait a bit for auth store to update, then get latest values
+      setTimeout(() => {
+        // Get role and store from response (they should be set in auth store now)
+        const userRole = response.role || role;
+        const userStore = response.store || store;
+        
+        // Navigate to intended page or role-based dashboard
+        const redirectPath = location.state?.from?.pathname || getDashboardPath(userRole, userStore);
+        console.log('Redirecting to:', redirectPath, 'Role:', userRole, 'Has Store:', !!userStore);
+        
+        navigate(redirectPath, { replace: true });
+      }, 100);
+    } catch (err) {
+      console.error('Login error:', err);
+      setError(err.message || 'Login failed. Please check your credentials.');
+    }
   };
 
   const handleChange = (e) => {
@@ -28,15 +79,23 @@ const Login = () => {
       ...formData,
       [e.target.name]: e.target.value,
     });
+    setError(''); // Clear error on input change
   };
 
-  const handleDemoLogin = (role) => {
-    setIsLoading(true);
-    setTimeout(() => {
-      console.log(`Demo login as ${role}`);
-      setIsLoading(false);
-      navigate('/dashboard');
-    }, 1000);
+  const handleDemoLogin = async (role) => {
+    setError('');
+    // Demo login - adjust credentials based on your backend
+    const demoCredentials = {
+      email: `demo-${role.toLowerCase()}@storely.com`,
+      password: 'demo123',
+    };
+    
+    try {
+      const response = await login(demoCredentials);
+      navigate(getDashboardPath(response.role, response.store), { replace: true });
+    } catch (err) {
+      setError('Demo login failed. Please use regular login.');
+    }
   };
 
   return (
@@ -62,6 +121,13 @@ const Login = () => {
               Sign in to your Storely vendor account
             </p>
           </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-4">
+              {error}
+            </div>
+          )}
 
           {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -166,7 +232,7 @@ const Login = () => {
             <button
               onClick={() => handleDemoLogin('vendor')}
               disabled={isLoading}
-              className="w-full py-3 bg-gradient-to-r from-blue-50 to-cyan-50 text-blue-700 font-medium rounded-xl border border-blue-100 hover:border-blue-200 transition-all flex items-center justify-center space-x-2"
+              className="w-full py-3 bg-gradient-to-r from-blue-50 to-cyan-50 text-blue-700 font-medium rounded-xl border border-blue-100 hover:border-blue-200 transition-all flex items-center justify-center space-x-2 disabled:opacity-50"
             >
               <Store className="h-5 w-5" />
               <span>Demo Vendor Account</span>
@@ -175,7 +241,7 @@ const Login = () => {
             <button
               onClick={() => handleDemoLogin('admin')}
               disabled={isLoading}
-              className="w-full py-3 bg-gradient-to-r from-purple-50 to-pink-50 text-purple-700 font-medium rounded-xl border border-purple-100 hover:border-purple-200 transition-all flex items-center justify-center space-x-2"
+              className="w-full py-3 bg-gradient-to-r from-purple-50 to-pink-50 text-purple-700 font-medium rounded-xl border border-purple-100 hover:border-purple-200 transition-all flex items-center justify-center space-x-2 disabled:opacity-50"
             >
               <div className="h-5 w-5 flex items-center justify-center">
                 👑

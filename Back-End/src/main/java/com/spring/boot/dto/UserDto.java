@@ -13,6 +13,12 @@ public class UserDto {
     private Long id;
     private String name;
     private String email;
-    private String role;
-    private LocalDateTime createdAt;
+    private String role="VENDOR";
+    private String password;
+    private String phoneNumber;
+    private LocalDateTime createdAt=LocalDateTime.now();
+
+    private VendorDto vendorDto;
+    private AdminDto adminDto;
+    private CustomerDto customerDto;
 }

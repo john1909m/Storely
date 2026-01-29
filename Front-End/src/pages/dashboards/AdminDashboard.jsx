@@ -1,25 +1,71 @@
-// src/pages/dashboard/AdminDashboard.jsx
-import React from 'react';
+// Admin Dashboard - Real data from APIs
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Store, Users, DollarSign, TrendingUp,
   BarChart, Settings, Shield, AlertCircle
 } from 'lucide-react';
+import { storeAPI } from '../../api/store.api';
+import { vendorAPI } from '../../api/vendor.api';
+import { orderAPI } from '../../api/order.api';
 
 const AdminDashboard = () => {
-  const stats = [
-    { label: 'Total Stores', value: '6', change: '+12%', icon: Store },
-    { label: 'Total Vendors', value: '5', change: '+8%', icon: Users },
-    { label: 'Total Revenue', value: '$64,167', change: '+18%', icon: DollarSign },
-    { label: 'Platform Growth', value: '24%', change: '+3%', icon: TrendingUp },
-  ];
+  const [stores, setStores] = useState([]);
+  const [vendors, setVendors] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const recentActivity = [
-    { time: '2 hours ago', action: 'New store "TechGadget" approved', user: 'John Smith' },
-    { time: '5 hours ago', action: 'Store "Fashion Hub" upgraded to Business plan', user: 'Sarah Johnson' },
-    { time: '1 day ago', action: 'Payment processed for 15 vendors', user: 'System' },
-    { time: '2 days ago', action: 'Platform maintenance completed', user: 'Admin' },
-  ];
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      // Fetch all stores and vendors
+      const [storesData, vendorsData] = await Promise.all([
+        storeAPI.getAll(),
+        vendorAPI.getAll()
+      ]);
+
+      setStores(Array.isArray(storesData) ? storesData : []);
+      setVendors(Array.isArray(vendorsData) ? vendorsData : []);
+
+      // Fetch orders for each store to calculate revenue
+      // This is optional - you might want to optimize this
+    } catch (err) {
+      setError(err.message || 'Failed to load dashboard data');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Calculate stats from real data
+  const stats = {
+    totalStores: stores.length,
+    activeStores: stores.filter(s => s.storeStatus?.toUpperCase() === 'ACTIVE').length,
+    inactiveStores: stores.filter(s => s.storeStatus?.toUpperCase() === 'INACTIVE').length,
+    totalVendors: vendors.length,
+    pendingStores: stores.filter(s => s.storeStatus?.toUpperCase() === 'INACTIVE').length,
+  };
+
+  // Get recent stores (last 5)
+  const recentStores = stores
+    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+    .slice(0, 5);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -40,27 +86,51 @@ const AdminDashboard = () => {
       </div>
 
       <div className="container mx-auto px-4 py-8">
+        {/* Error State */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6">
+            {error}
+          </div>
+        )}
+
         {/* Platform Stats */}
         <div className="grid md:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat) => {
-            const Icon = stat.icon;
-            return (
-              <div key={stat.label} className="bg-white rounded-2xl p-6 border border-gray-100">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="h-12 w-12 bg-indigo-50 rounded-xl flex items-center justify-center">
-                    <Icon className="h-6 w-6 text-indigo-600" />
-                  </div>
-                  <div className={`text-sm font-medium ${
-                    stat.change.startsWith('+') ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {stat.change}
-                  </div>
-                </div>
-                <div className="text-2xl font-bold text-gray-900 mb-1">{stat.value}</div>
-                <div className="text-gray-600">{stat.label}</div>
+          <div className="bg-white rounded-2xl p-6 border border-gray-100">
+            <div className="flex items-center justify-between mb-4">
+              <div className="h-12 w-12 bg-indigo-50 rounded-xl flex items-center justify-center">
+                <Store className="h-6 w-6 text-indigo-600" />
               </div>
-            );
-          })}
+            </div>
+            <div className="text-2xl font-bold text-gray-900 mb-1">{stats.totalStores}</div>
+            <div className="text-gray-600">Total Stores</div>
+          </div>
+          <div className="bg-white rounded-2xl p-6 border border-gray-100">
+            <div className="flex items-center justify-between mb-4">
+              <div className="h-12 w-12 bg-green-50 rounded-xl flex items-center justify-center">
+                <Store className="h-6 w-6 text-green-600" />
+              </div>
+            </div>
+            <div className="text-2xl font-bold text-gray-900 mb-1">{stats.activeStores}</div>
+            <div className="text-gray-600">Active Stores</div>
+          </div>
+          <div className="bg-white rounded-2xl p-6 border border-gray-100">
+            <div className="flex items-center justify-between mb-4">
+              <div className="h-12 w-12 bg-indigo-50 rounded-xl flex items-center justify-center">
+                <Users className="h-6 w-6 text-indigo-600" />
+              </div>
+            </div>
+            <div className="text-2xl font-bold text-gray-900 mb-1">{stats.totalVendors}</div>
+            <div className="text-gray-600">Total Vendors</div>
+          </div>
+          <div className="bg-white rounded-2xl p-6 border border-gray-100">
+            <div className="flex items-center justify-between mb-4">
+              <div className="h-12 w-12 bg-amber-50 rounded-xl flex items-center justify-center">
+                <AlertCircle className="h-6 w-6 text-amber-600" />
+              </div>
+            </div>
+            <div className="text-2xl font-bold text-gray-900 mb-1">{stats.pendingStores}</div>
+            <div className="text-gray-600">Pending Approval</div>
+          </div>
         </div>
 
         <div className="grid lg:grid-cols-4 gap-8">
@@ -76,13 +146,13 @@ const AdminDashboard = () => {
                   <Store className="h-5 w-5" />
                   <span>Manage Stores</span>
                 </Link>
+                <Link to="/admin/vendors" className="flex items-center space-x-3 p-3 text-gray-700 hover:bg-gray-50 rounded-xl">
+                  <Users className="h-5 w-5" />
+                  <span>Manage Vendors</span>
+                </Link>
                 <Link to="/admin/pricing" className="flex items-center space-x-3 p-3 text-gray-700 hover:bg-gray-50 rounded-xl">
                   <DollarSign className="h-5 w-5" />
                   <span>Pricing Management</span>
-                </Link>
-                <Link to="/admin/users" className="flex items-center space-x-3 p-3 text-gray-700 hover:bg-gray-50 rounded-xl">
-                  <Users className="h-5 w-5" />
-                  <span>User Management</span>
                 </Link>
                 <Link to="/admin/settings" className="flex items-center space-x-3 p-3 text-gray-700 hover:bg-gray-50 rounded-xl">
                   <Settings className="h-5 w-5" />
@@ -99,16 +169,12 @@ const AdminDashboard = () => {
                     <span className="text-green-600 font-medium">Online</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Database</span>
-                    <span className="text-green-600 font-medium">Healthy</span>
+                    <span className="text-gray-600">Stores</span>
+                    <span className="text-green-600 font-medium">{stats.activeStores} Active</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Payments</span>
-                    <span className="text-green-600 font-medium">Active</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Uptime</span>
-                    <span className="font-medium">99.9%</span>
+                    <span className="text-gray-600">Vendors</span>
+                    <span className="font-medium">{stats.totalVendors}</span>
                   </div>
                 </div>
               </div>
@@ -117,29 +183,40 @@ const AdminDashboard = () => {
 
           {/* Main Content */}
           <div className="lg:col-span-3">
-            {/* Recent Activity */}
+            {/* Recent Stores */}
             <div className="bg-white rounded-2xl p-8 border border-gray-100 mb-8">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">Recent Activity</h2>
-                <Link to="/admin/activity" className="text-indigo-600 hover:text-indigo-500">
+                <h2 className="text-2xl font-bold text-gray-900">Recent Stores</h2>
+                <Link to="/admin/stores" className="text-indigo-600 hover:text-indigo-500">
                   View all →
                 </Link>
               </div>
-              <div className="space-y-4">
-                {recentActivity.map((activity, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                    <div>
-                      <div className="font-medium text-gray-900">{activity.action}</div>
-                      <div className="text-sm text-gray-500">
-                        {activity.time} • By {activity.user}
+              {recentStores.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  No stores found
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {recentStores.map((store) => (
+                    <div key={store.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                      <div>
+                        <div className="font-medium text-gray-900">{store.storeName}</div>
+                        <div className="text-sm text-gray-500">
+                          Status: {store.storeStatus || 'Inactive'} • 
+                          Products: {store.products?.length || 0} • 
+                          Orders: {store.orders?.length || 0}
+                        </div>
                       </div>
+                      <Link
+                        to={`/admin/stores?storeId=${store.id}`}
+                        className="text-indigo-600 hover:text-indigo-500 text-sm"
+                      >
+                        View Details →
+                      </Link>
                     </div>
-                    <button className="text-indigo-600 hover:text-indigo-500 text-sm">
-                      View Details
-                    </button>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Quick Actions */}
@@ -163,27 +240,24 @@ const AdminDashboard = () => {
             </div>
 
             {/* Alerts */}
-            <div className="mt-8 bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl p-6 border border-amber-100">
-              <div className="flex items-start space-x-4">
-                <div className="h-12 w-12 bg-amber-100 rounded-xl flex items-center justify-center">
-                  <AlertCircle className="h-6 w-6 text-amber-600" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900 mb-2">Pending Actions</h3>
-                  <p className="text-gray-700 mb-4">
-                    You have 1 store pending approval and 2 vendor support tickets waiting for review.
-                  </p>
-                  <div className="flex items-center space-x-4">
+            {stats.pendingStores > 0 && (
+              <div className="mt-8 bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl p-6 border border-amber-100">
+                <div className="flex items-start space-x-4">
+                  <div className="h-12 w-12 bg-amber-100 rounded-xl flex items-center justify-center">
+                    <AlertCircle className="h-6 w-6 text-amber-600" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900 mb-2">Pending Actions</h3>
+                    <p className="text-gray-700 mb-4">
+                      You have {stats.pendingStores} store{stats.pendingStores > 1 ? 's' : ''} pending approval.
+                    </p>
                     <Link to="/admin/stores" className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700">
                       Review Stores
-                    </Link>
-                    <Link to="/admin/support" className="px-4 py-2 bg-amber-100 text-amber-700 rounded-lg hover:bg-amber-200">
-                      View Tickets
                     </Link>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

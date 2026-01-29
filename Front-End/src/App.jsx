@@ -22,24 +22,27 @@ import Cart from './pages/checkout/Cart';
 import Checkout from './pages/checkout/Checkout';
 
 // Vendor Pages
-import VendorStoreHome from './pages/store/StoreHome';
-import VendorProducts from './pages/store/AllProducts';
+import VendorStore from './pages/vendor/VendorStore';
+import VendorProducts from './pages/vendor/Products';
 import VendorProductView from './pages/product/SingleProduct';
 import VendorOrders from './pages/vendor/Orders';
 import StoreDetails from './pages/vendor/StoreDetails';
 import ContactSupport from './pages/vendor/ContactSupport';
 import VendorPayment from './pages/vendor/Payment';
+import CreateStore from './pages/vendor/CreateStore';
 
 // Admin Pages
 import ManageStores from './pages/admin/ManageStores';
+import ManageVendors from './pages/admin/ManageVendors';
+import AdminSettings from './pages/admin/AdminSettings';
 import PricingManagement from './pages/admin/PricingManagement';
 
 // Dashboard Pages
 import VendorDashboard from './pages/dashboards/VendorDashboard';
 import AdminDashboard from './pages/dashboards/AdminDashboard';
 
-// Protected Route Component
-import ProtectedRoute from './routes/ProtectedRoutes';
+// Protected Route Components
+import ProtectedRoute, { VendorRoute, AdminRoute, CustomerRoute } from './routes/ProtectedRoutes';
 
 function App() {
   return (
@@ -55,80 +58,130 @@ function App() {
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/contact" element={<CustomerContact />} />
 
-        {/* Store Routes (Public) */}
-        <Route path="/store/:storeId" element={<StoreHome viewType="customer" />} />
-        <Route path="/store/:storeId/products" element={<AllProducts viewType="customer" />} />
-        <Route path="/store/:storeId/product/:productId" element={<SingleProduct viewType="customer" />} />
+        {/* Store Routes (Public) - Customer view */}
+        <Route path="/store/:storeName" element={<StoreHome viewType="customer" />} />
+        <Route path="/store/:storeName/product/:productId" element={<SingleProduct viewType="customer" />} />
 
-        {/* Customer Routes */}
-        <Route path="/cart" element={<Cart />} />
-        <Route path="/checkout" element={<Checkout />} />
-        
-      
+        {/* Protected Customer Routes */}
+        <Route path="/cart" element={
+          <CustomerRoute>
+            <Cart />
+          </CustomerRoute>
+        } />
+        <Route path="/checkout" element={
+          <CustomerRoute>
+            <Checkout />
+          </CustomerRoute>
+        } />
+        <Route path="/orders" element={
+          <CustomerRoute>
+            {/* Customer Orders page - to be created */}
+            <div className="min-h-screen flex items-center justify-center">
+              <h1 className="text-2xl font-bold">My Orders</h1>
+            </div>
+          </CustomerRoute>
+        } />
 
         {/* Protected Vendor Routes */}
+        <Route path="/vendor/create-store" element={
+          <VendorRoute>
+            <CreateStore />
+          </VendorRoute>
+        } />
         <Route path="/vendor/dashboard" element={
-          <ProtectedRoute>
+          <VendorRoute>
             <VendorDashboard />
-          </ProtectedRoute>
+          </VendorRoute>
         } />
         <Route path="/vendor/store" element={
-          <ProtectedRoute>
-            <VendorStoreHome />
-          </ProtectedRoute>
+          <VendorRoute requireStore={true}>
+            <VendorStore />
+          </VendorRoute>
         } />
         <Route path="/vendor/products" element={
-          <ProtectedRoute>
+          <VendorRoute>
             <VendorProducts />
-          </ProtectedRoute>
+          </VendorRoute>
         } />
         <Route path="/vendor/product/:productId" element={
-          <ProtectedRoute>
+          <VendorRoute>
             <VendorProductView />
-          </ProtectedRoute>
+          </VendorRoute>
         } />
         <Route path="/vendor/orders" element={
-          <ProtectedRoute>
+          <VendorRoute>
             <VendorOrders />
-          </ProtectedRoute>
+          </VendorRoute>
         } />
-        <Route path="/vendor/store-settings" element={
-          <ProtectedRoute>
+        <Route path="/vendor/customers" element={
+          <VendorRoute>
+            {/* Vendor Customers page - to be created */}
+            <div className="min-h-screen flex items-center justify-center">
+              <h1 className="text-2xl font-bold">Customers</h1>
+            </div>
+          </VendorRoute>
+        } />
+        <Route path="/vendor/settings" element={
+          <VendorRoute>
             <StoreDetails />
-          </ProtectedRoute>
+          </VendorRoute>
         } />
         <Route path="/vendor/support" element={
-          <ProtectedRoute>
+          <VendorRoute>
             <ContactSupport />
-          </ProtectedRoute>
+          </VendorRoute>
         } />
         <Route path="/vendor/payment" element={
-          <ProtectedRoute>
+          <VendorRoute>
             <VendorPayment />
-          </ProtectedRoute>
+          </VendorRoute>
         } />
-
         <Route path="/vendor/pricing" element={
-          <ProtectedRoute>
+          <VendorRoute>
             <Pricing />
-          </ProtectedRoute>
+          </VendorRoute>
         } />
 
         {/* Protected Admin Routes */}
         <Route path="/admin/dashboard" element={
-          <ProtectedRoute>
+          <AdminRoute>
             <AdminDashboard />
-          </ProtectedRoute>
+          </AdminRoute>
+        } />
+        <Route path="/admin/vendors" element={
+          <AdminRoute>
+            <ManageVendors />
+          </AdminRoute>
+        } />
+        <Route path="/admin/users" element={
+          <AdminRoute>
+            <ManageVendors />
+          </AdminRoute>
+        } />
+        <Route path="/admin/settings" element={
+          <AdminRoute>
+            <AdminSettings />
+          </AdminRoute>
+        } />
+        <Route path="/admin/activity" element={
+          <AdminRoute>
+            <AdminDashboard />
+          </AdminRoute>
+        } />
+        <Route path="/admin/support" element={
+          <AdminRoute>
+            <AdminSettings />
+          </AdminRoute>
         } />
         <Route path="/admin/stores" element={
-          <ProtectedRoute>
+          <AdminRoute>
             <ManageStores />
-          </ProtectedRoute>
+          </AdminRoute>
         } />
         <Route path="/admin/pricing" element={
-          <ProtectedRoute>
+          <AdminRoute>
             <PricingManagement />
-          </ProtectedRoute>
+          </AdminRoute>
         } />
 
         {/* Fallback Route */}

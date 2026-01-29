@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Mail, Lock, User, Store, Eye, EyeOff, Check } from 'lucide-react';
+import { ArrowRight, Mail, Lock, User, Store, Eye, EyeOff, Check, Phone } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 
 const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -10,38 +11,62 @@ const Signup = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    storeName: '',
+    phoneNumber: '',
     acceptTerms: false,
   });
+  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [currentStep, setCurrentStep] = useState(1);
+  const { signup, isAuthenticated, role } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      const dashboardPath = role?.toUpperCase() === 'VENDOR' 
+        ? '/vendor/dashboard' 
+        : '/';
+      navigate(dashboardPath, { replace: true });
+    }
+  }, [isAuthenticated, role, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (currentStep === 1) {
-      setCurrentStep(2);
-      return;
-    }
+    setError('');
     
     if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match!');
+      setError('Passwords do not match!');
       return;
     }
     
     if (!formData.acceptTerms) {
-      alert('Please accept the terms and conditions');
+      setError('Please accept the terms and conditions');
       return;
     }
     
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      console.log('Signup data:', formData);
+    try {
+      // Prepare signup payload with default VENDOR role
+      const signupData = {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        phoneNumber: formData.phoneNumber,
+        vendorDto: null, // Backend will create vendor automatically
+        adminDto: null,
+        customerDto: null,
+      };
+
+      const response = await signup(signupData);
+      
+      // Redirect to create store page after successful signup
+      // Vendor needs to create store before accessing other features
+      navigate('/vendor/create-store', { replace: true });
+    } catch (err) {
+      setError(err.message || 'Signup failed. Please try again.');
+    } finally {
       setIsLoading(false);
-      navigate('/dashboard'); // Redirect after successful signup
-    }, 1500);
+    }
   };
 
   const handleChange = (e) => {
@@ -50,6 +75,7 @@ const Signup = () => {
       ...formData,
       [name]: type === 'checkbox' ? checked : value,
     });
+    setError(''); // Clear error on input change
   };
 
   const passwordStrength = (password) => {
@@ -78,13 +104,6 @@ const Signup = () => {
 
       <div className="w-full max-w-2xl">
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
-          {/* Progress Bar */}
-          <div className="h-2 bg-gray-100">
-            <div 
-              className="h-full bg-gradient-to-r from-indigo-600 to-purple-600 transition-all duration-500"
-              style={{ width: currentStep === 1 ? '50%' : '100%' }}
-            ></div>
-          </div>
 
           <div className="p-8 md:p-10">
             {/* Header */}
@@ -100,29 +119,16 @@ const Signup = () => {
               </p>
             </div>
 
-            {/* Steps Indicator */}
-            <div className="flex items-center justify-center mb-8">
-              <div className={`flex items-center ${currentStep >= 1 ? 'text-indigo-600' : 'text-gray-400'}`}>
-                <div className={`h-8 w-8 rounded-full flex items-center justify-center ${currentStep >= 1 ? 'bg-indigo-100' : 'bg-gray-100'}`}>
-                  {currentStep > 1 ? <Check className="h-5 w-5" /> : '1'}
-                </div>
-                <span className="ml-2 text-sm font-medium">Account Details</span>
+            {/* Error Message */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-4">
+                {error}
               </div>
-              <div className={`h-1 w-12 mx-2 ${currentStep >= 2 ? 'bg-indigo-600' : 'bg-gray-200'}`}></div>
-              <div className={`flex items-center ${currentStep >= 2 ? 'text-indigo-600' : 'text-gray-400'}`}>
-                <div className={`h-8 w-8 rounded-full flex items-center justify-center ${currentStep >= 2 ? 'bg-indigo-100' : 'bg-gray-100'}`}>
-                  2
-                </div>
-                <span className="ml-2 text-sm font-medium">Store Setup</span>
-              </div>
-            </div>
+            )}
 
             {/* Signup Form */}
             <form onSubmit={handleSubmit} className="space-y-6">
-              {currentStep === 1 ? (
-                /* Step 1: Account Details */
-                <>
-                  {/* Name */}
+              {/* Name */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Full Name
@@ -232,6 +238,25 @@ const Signup = () => {
                     </ul>
                   </div>
 
+                  {/* Phone Number */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Phone Number
+                    </label>
+                    <div className="relative">
+                      <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                      <input
+                        type="tel"
+                        name="phoneNumber"
+                        value={formData.phoneNumber}
+                        onChange={handleChange}
+                        required
+                        className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all outline-none"
+                        placeholder="+1234567890"
+                      />
+                    </div>
+                  </div>
+
                   {/* Confirm Password */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -266,54 +291,6 @@ const Signup = () => {
                       </p>
                     )}
                   </div>
-                </>
-              ) : (
-                /* Step 2: Store Setup */
-                <>
-                  {/* Store Name */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Store Name
-                    </label>
-                    <div className="relative">
-                      <Store className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                      <input
-                        type="text"
-                        name="storeName"
-                        value={formData.storeName}
-                        onChange={handleChange}
-                        required
-                        className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all outline-none"
-                        placeholder="My Awesome Store"
-                      />
-                    </div>
-                    <p className="mt-2 text-sm text-gray-500">
-                      Your store URL will be: storely.com/{formData.storeName.toLowerCase().replace(/\s+/g, '-') || 'your-store'}
-                    </p>
-                  </div>
-
-                  {/* Store Type */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      What are you selling?
-                    </label>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                      {['Fashion', 'Electronics', 'Home & Living', 'Food', 'Art', 'Other'].map((type) => (
-                        <button
-                          key={type}
-                          type="button"
-                          className={`py-3 rounded-xl border transition-all ${
-                            formData.storeType === type
-                              ? 'bg-indigo-50 border-indigo-200 text-indigo-700'
-                              : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-gray-300'
-                          }`}
-                          onClick={() => setFormData({...formData, storeType: type})}
-                        >
-                          {type}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
 
                   {/* Terms & Conditions */}
                   <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4">
@@ -341,45 +318,21 @@ const Signup = () => {
                     </div>
                   </div>
 
-                  {/* Promo Code */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Promo Code (Optional)
-                    </label>
-                    <input
-                      type="text"
-                      name="promoCode"
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all outline-none"
-                      placeholder="Enter promo code if you have one"
-                    />
-                  </div>
-                </>
-              )}
-
               {/* Action Buttons */}
-              <div className="flex space-x-4 pt-4">
-                {currentStep === 2 && (
-                  <button
-                    type="button"
-                    onClick={() => setCurrentStep(1)}
-                    className="flex-1 py-3 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition-all"
-                  >
-                    Back
-                  </button>
-                )}
+              <div className="pt-4">
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="flex-1 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                  className="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                 >
                   {isLoading ? (
                     <>
                       <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <span>{currentStep === 1 ? 'Processing...' : 'Creating Account...'}</span>
+                      <span>Creating Account...</span>
                     </>
                   ) : (
                     <>
-                      <span>{currentStep === 1 ? 'Continue to Store Setup' : 'Create Account'}</span>
+                      <span>Create Vendor Account</span>
                       <ArrowRight className="h-5 w-5" />
                     </>
                   )}

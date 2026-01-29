@@ -4,6 +4,36 @@
 @theme {
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
   
+  /* Brand colors */
+  --color-primary: #800020;
+  --color-secondary: #ffffff;
+
+  /*
+    Map the existing UI palette (indigo/purple utilities used in components)
+    to the new brand primary so we don't have to rewrite hundreds of classes.
+  */
+  --color-indigo-50: #fff1f4;
+  --color-indigo-100: #ffe4ea;
+  --color-indigo-200: #fecdd7;
+  --color-indigo-300: #fda4b8;
+  --color-indigo-400: #fb7185;
+  --color-indigo-500: #e11d48;
+  --color-indigo-600: #800020;
+  --color-indigo-700: #660019;
+  --color-indigo-800: #4d0013;
+  --color-indigo-900: #33000d;
+
+  --color-purple-50: #fff1f4;
+  --color-purple-100: #ffe4ea;
+  --color-purple-200: #fecdd7;
+  --color-purple-300: #fda4b8;
+  --color-purple-400: #fb7185;
+  --color-purple-500: #e11d48;
+  --color-purple-600: #800020;
+  --color-purple-700: #660019;
+  --color-purple-800: #4d0013;
+  --color-purple-900: #33000d;
+
   --animate-float: float 3s ease-in-out infinite;
   
   @keyframes float {
@@ -41,12 +71,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #6366f1, #8b5cf6);
+  background: linear-gradient(to bottom, var(--color-primary), #660019);
   border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, #4f46e5, #7c3aed);
+  background: linear-gradient(to bottom, #660019, #4d0013);
 }
 
 /* Container utility */

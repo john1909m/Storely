@@ -32,4 +32,8 @@ public class Vendor{
     @OneToOne(mappedBy = "vendor")
     private Store store;
 
+    @OneToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+
 }

@@ -30,4 +30,8 @@ public class Admin{
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @OneToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+
 }

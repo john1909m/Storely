@@ -21,3 +21,7 @@ logging:
   level:
     org.hibernate.SQL: debug
     org.hibernate.type.descriptor.sql: trace
+
+token:
+  secret: hjfs46687kjsfkj@#@$#$@$%ffeddf@#sADDS
+  time: 36000000

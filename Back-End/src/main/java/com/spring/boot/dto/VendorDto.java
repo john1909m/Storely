@@ -18,4 +18,5 @@ public class VendorDto{
     private String phoneNumber;
     private String role = "VENDOR";
     private LocalDateTime createdAt=LocalDateTime.now();
+    private Long userId;
 }

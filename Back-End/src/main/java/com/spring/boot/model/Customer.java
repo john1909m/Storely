@@ -47,4 +47,8 @@ public class Customer{
             inverseJoinColumns = @JoinColumn(name = "store_id")
     )
     private List<Store> stores;
+
+    @OneToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 }

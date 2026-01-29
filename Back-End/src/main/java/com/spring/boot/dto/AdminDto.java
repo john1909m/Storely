@@ -25,5 +25,7 @@ public class AdminDto {
 
     private LocalDateTime createdAt=LocalDateTime.now();
 
-    private String role;
+    private String role="ADMIN";
+
+    private Long userId;
 }
