@@ -39,7 +39,7 @@ public class StoreDto {
 
     private String fontFamily;
 
-    private String storeStatus="INACTIVE";
+    private String storeStatus="Inactive";
 
     private List<ProductDto> products;
 

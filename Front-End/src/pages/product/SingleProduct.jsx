@@ -1,63 +1,120 @@
 // src/pages/product/SingleProduct.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import {
   Star, ShoppingCart, Heart, Share2, Truck,
   Shield, CheckCircle, ArrowLeft, Package,
-  Edit, Trash2, BarChart, Tag, AlertCircle
+  Edit, Trash2, BarChart, Tag, AlertCircle, Loader2
 } from 'lucide-react';
+import { productAPI, productImagesAPI } from '../../api/product.api';
+import { storeAPI } from '../../api/store.api';
 
 // Customer View Component
 const CustomerProductView = () => {
-  const { productId } = useParams();
+  const { storeName, productId } = useParams();
+  const [product, setProduct] = useState(null);
+  const [images, setImages] = useState([]);
+  const [relatedProducts, setRelatedProducts] = useState([]);
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const [isInWishlist, setIsInWishlist] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const product = {
-    id: productId,
-    name: 'Wireless Bluetooth Headphones Premium',
-    description: 'Premium noise-canceling wireless headphones with 40-hour battery life, premium sound quality, and comfortable over-ear design. Perfect for music lovers and professionals.',
-    price: 129.99,
-    originalPrice: 179.99,
-    rating: 4.5,
-    reviews: 124,
-    stock: 42,
-    category: 'Electronics',
-    brand: 'AudioTech',
-    sku: 'PROD-00124',
-    images: ['🎧', '🎧', '🎧', '🎧'], // Emoji placeholders
-    features: [
-      'Active Noise Cancellation',
-      '40-hour battery life',
-      'Bluetooth 5.2',
-      'Hi-Res Audio support',
-      'Foldable design',
-      'Carrying case included'
-    ],
-    specifications: {
-      'Connectivity': 'Bluetooth 5.2',
-      'Battery Life': '40 hours',
-      'Charging Time': '2 hours',
-      'Weight': '265g',
-      'Warranty': '1 year'
+  useEffect(() => {
+    const loadProduct = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        // Resolve store id if storeName provided
+        let resolvedStoreId;
+        if (storeName) {
+          if (!isNaN(Number(storeName))) resolvedStoreId = Number(storeName);
+          else {
+            const storeResp = await storeAPI.getByName(storeName);
+            resolvedStoreId = storeResp?.id;
+          }
+        }
+
+        // Fetch product
+        const prodResp = await productAPI.getById(productId, resolvedStoreId || 0);
+        if (!prodResp) throw new Error('Product not found');
+        setProduct(prodResp);
+
+        // Images
+        const imagesResp = await productImagesAPI.getByProduct(productId);
+        setImages(imagesResp || []);
+
+        // Related products by category
+        if (prodResp.categoryId) {
+          const related = await productAPI.getByCategory(prodResp.categoryId, resolvedStoreId || 0);
+          setRelatedProducts((related || []).filter(p => p.id !== prodResp.id).slice(0, 3));
+        } else {
+          setRelatedProducts([]);
+        }
+      } catch (err) {
+        console.error('Error loading product:', err);
+        setError(err.message || 'Failed to load product');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadProduct();
+  }, [storeName, productId]);
+
+  if (isLoading) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <Loader2 className="h-12 w-12 text-indigo-600 animate-spin" />
+    </div>
+  );
+
+  if (error) return (
+    <div className="min-h-screen flex items-center justify-center text-center">
+      <div>
+        <div className="text-6xl mb-4">😔</div>
+        <h3 className="text-xl font-semibold">Error</h3>
+        <p className="text-gray-600">{error}</p>
+      </div>
+    </div>
+  );
+
+  if (!product) return null;
+
+  const handleAddToCart = () => {
+    // Add to cart logic: keep it consistent with cart manager elsewhere
+    try {
+      const item = {
+        id: product.id,
+        name: product.name,
+        price: product.price || 0,
+        imageUrl: images[0]?.url || product.imageUrl || '📦',
+        storeId: product.storeId || product.store || null,
+        category: product.category || product.categoryName,
+        quantity: quantity,
+        addedAt: new Date().toISOString()
+      };
+
+      const cart = JSON.parse(localStorage.getItem('store_cart') || '[]');
+      const existingIndex = cart.findIndex(i => i.id === item.id && String(i.storeId) === String(item.storeId));
+      if (existingIndex > -1) {
+        cart[existingIndex].quantity += item.quantity;
+      } else {
+        cart.push(item);
+      }
+      localStorage.setItem('store_cart', JSON.stringify(cart));
+      alert(`Added ${product.name} to cart`);
+    } catch (err) {
+      console.error('Add to cart failed:', err);
+      alert('Failed to add to cart');
     }
   };
 
-  const relatedProducts = [
-    { id: 2, name: 'Wireless Earbuds Pro', price: 89.99, image: '🎵' },
-    { id: 3, name: 'Premium Smart Watch', price: 249.99, image: '⌚' },
-    { id: 4, name: 'Portable Bluetooth Speaker', price: 69.99, image: '🔊' },
-  ];
-
-  const handleAddToCart = () => {
-    console.log(`Added ${quantity} ${product.name} to cart`);
-    // Add to cart logic here
-  };
-
   const handleBuyNow = () => {
-    console.log(`Buying ${quantity} ${product.name}`);
-    // Buy now logic here
+    // For now, push to checkout and let checkout read from storage
+    handleAddToCart();
+    window.location.href = '/checkout';
   };
 
   return (
@@ -82,9 +139,6 @@ const CustomerProductView = () => {
               </button>
               <button className="relative text-gray-600 hover:text-gray-900">
                 <ShoppingCart className="h-5 w-5" />
-                <span className="absolute -top-2 -right-2 h-5 w-5 bg-indigo-600 text-white text-xs rounded-full flex items-center justify-center">
-                  3
-                </span>
               </button>
             </div>
           </div>
@@ -97,12 +151,16 @@ const CustomerProductView = () => {
           <div>
             {/* Main Image */}
             <div className="h-96 bg-gradient-to-br from-gray-50 to-gray-100 rounded-3xl flex items-center justify-center mb-6">
-              <div className="text-9xl">{product.images[selectedImage]}</div>
+              {images[0]?.url ? (
+                <img src={images[0].url} alt={product.name} className="h-full w-full object-contain" />
+              ) : (
+                <div className="text-9xl">{product.imageUrl || '📦'}</div>
+              )}
             </div>
 
             {/* Thumbnail Images */}
             <div className="flex space-x-4">
-              {product.images.map((image, index) => (
+              {(images.length ? images : [{ url: product.imageUrl }]).map((image, index) => (
                 <button
                   key={index}
                   onClick={() => setSelectedImage(index)}
@@ -112,7 +170,11 @@ const CustomerProductView = () => {
                       : 'bg-gray-100 hover:bg-gray-200'
                   }`}
                 >
-                  <div className="text-3xl">{image}</div>
+                  {image?.url ? (
+                    <img src={image.url} alt={`${product.name}-${index}`} className="h-full w-full object-cover rounded" />
+                  ) : (
+                    <div className="text-3xl">{image?.emoji || '📦'}</div>
+                  )}
                 </button>
               ))}
             </div>
@@ -124,8 +186,8 @@ const CustomerProductView = () => {
                   <div className="text-2xl">🏪</div>
                 </div>
                 <div>
-                  <div className="font-semibold text-gray-900">TechGadget Store</div>
-                  <div className="text-sm text-gray-500">4.8 ★ (124 reviews)</div>
+                  <div className="font-semibold text-gray-900">{product.storeName || product.store || 'Store'}</div>
+                  <div className="text-sm text-gray-500">{(product.rating || 0).toFixed(1)} ★ ({product.reviewCount || 0} reviews)</div>
                 </div>
                 <button className="ml-auto px-4 py-2 text-indigo-600 hover:text-indigo-700 text-sm">
                   Visit Store →
@@ -139,9 +201,9 @@ const CustomerProductView = () => {
             {/* Category & Brand */}
             <div className="flex items-center space-x-4 mb-4">
               <span className="text-sm font-medium text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">
-                {product.category}
+                {product.category || product.categoryName || 'Uncategorized'}
               </span>
-              <span className="text-sm text-gray-600">by {product.brand}</span>
+              {product.brand && <span className="text-sm text-gray-600">by {product.brand}</span>}
             </div>
 
             {/* Product Name */}
@@ -156,46 +218,45 @@ const CustomerProductView = () => {
                   <Star
                     key={i}
                     className={`h-5 w-5 ${
-                      i < Math.floor(product.rating)
+                      i < Math.floor(product.rating || 0)
                         ? 'text-yellow-400 fill-current'
                         : 'text-gray-300'
                     }`}
                   />
                 ))}
               </div>
-              <span className="text-gray-700">{product.rating} ({product.reviews} reviews)</span>
-              <span className="text-green-600 font-medium">✓ In Stock</span>
+              <span className="text-gray-700">{(product.rating || 0).toFixed(1)} ({product.reviewCount || 0} reviews)</span>
+              <span className="text-green-600 font-medium">{product.stock > 0 ? '✓ In Stock' : 'Out of Stock'}</span>
             </div>
 
             {/* Price */}
             <div className="mb-8">
-              <div className="text-4xl font-bold text-gray-900">${product.price}</div>
-              <div className="text-lg text-gray-500 line-through">${product.originalPrice}</div>
-              <div className="text-sm text-green-600 font-medium mt-2">
-                Save ${(product.originalPrice - product.price).toFixed(2)} (28% off)
-              </div>
+              <div className="text-4xl font-bold text-gray-900">${(product.price || 0).toFixed(2)}</div>
+              {product.originalPrice && <div className="text-lg text-gray-500 line-through">${(product.originalPrice).toFixed(2)}</div>}
             </div>
 
             {/* Description */}
             <div className="mb-8">
               <h3 className="text-lg font-semibold text-gray-900 mb-3">Description</h3>
               <p className="text-gray-600 leading-relaxed">
-                {product.description}
+                {product.description || product.shortDescription}
               </p>
             </div>
 
             {/* Features */}
-            <div className="mb-8">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">Key Features</h3>
-              <ul className="grid grid-cols-2 gap-2">
-                {product.features.map((feature, index) => (
-                  <li key={index} className="flex items-center text-gray-700">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {Array.isArray(product.features) && (
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Key Features</h3>
+                <ul className="grid grid-cols-2 gap-2">
+                  {product.features.map((feature, index) => (
+                    <li key={index} className="flex items-center text-gray-700">
+                      <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {/* Quantity & Add to Cart */}
             <div className="mb-8">
@@ -221,7 +282,7 @@ const CustomerProductView = () => {
 
                 {/* Stock Info */}
                 <div className="text-gray-600">
-                  <span className="font-medium">{product.stock}</span> units available
+                  <span className="font-medium">{product.stock || 0}</span> units available
                 </div>
               </div>
             </div>
@@ -230,10 +291,11 @@ const CustomerProductView = () => {
             <div className="flex flex-col sm:flex-row gap-4 mb-8">
               <button
                 onClick={handleAddToCart}
-                className="flex-1 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl flex items-center justify-center space-x-3"
+                disabled={!product.stock || product.stock <= 0}
+                className={`flex-1 py-4 ${product.stock > 0 ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'bg-gray-100 text-gray-400 cursor-not-allowed'} font-semibold rounded-xl hover:shadow-xl transition-all flex items-center justify-center space-x-3`}
               >
                 <ShoppingCart className="h-6 w-6" />
-                <span>Add to Cart</span>
+                <span>{product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}</span>
               </button>
               <button
                 onClick={handleBuyNow}
@@ -241,44 +303,6 @@ const CustomerProductView = () => {
               >
                 Buy Now
               </button>
-            </div>
-
-            {/* Trust Badges */}
-            <div className="grid grid-cols-3 gap-4 mb-8">
-              <div className="flex items-center space-x-3 p-4 bg-blue-50 rounded-xl">
-                <Truck className="h-6 w-6 text-blue-600" />
-                <div>
-                  <div className="font-medium text-gray-900">Free Shipping</div>
-                  <div className="text-sm text-gray-600">Over $50</div>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3 p-4 bg-green-50 rounded-xl">
-                <Shield className="h-6 w-6 text-green-600" />
-                <div>
-                  <div className="font-medium text-gray-900">1 Year Warranty</div>
-                  <div className="text-sm text-gray-600">Full coverage</div>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3 p-4 bg-purple-50 rounded-xl">
-                <CheckCircle className="h-6 w-6 text-purple-600" />
-                <div>
-                  <div className="font-medium text-gray-900">30-Day Returns</div>
-                  <div className="text-sm text-gray-600">Easy returns</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Specifications */}
-            <div className="bg-white rounded-2xl p-6 border border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Specifications</h3>
-              <div className="space-y-3">
-                {Object.entries(product.specifications).map(([key, value]) => (
-                  <div key={key} className="flex justify-between py-2 border-b border-gray-100">
-                    <span className="text-gray-600">{key}</span>
-                    <span className="font-medium text-gray-900">{value}</span>
-                  </div>
-                ))}
-              </div>
             </div>
           </div>
         </div>
@@ -290,11 +314,15 @@ const CustomerProductView = () => {
             {relatedProducts.map((relatedProduct) => (
               <div key={relatedProduct.id} className="bg-white rounded-2xl p-6 border border-gray-100 hover:shadow-xl transition-all">
                 <div className="h-48 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl flex items-center justify-center mb-4">
-                  <div className="text-6xl">{relatedProduct.image}</div>
+                  {relatedProduct.imageUrl ? (
+                    <img src={relatedProduct.imageUrl} alt={relatedProduct.name} className="h-full w-full object-cover rounded" />
+                  ) : (
+                    <div className="text-6xl">📦</div>
+                  )}
                 </div>
                 <h3 className="font-semibold text-gray-900 mb-2">{relatedProduct.name}</h3>
-                <div className="text-xl font-bold text-gray-900 mb-4">${relatedProduct.price}</div>
-                <button className="w-full py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all">
+                <div className="text-xl font-bold text-gray-900 mb-4">${(relatedProduct.price || 0).toFixed(2)}</div>
+                <button onClick={() => window.location.href = `/store/${encodeURIComponent(storeName || relatedProduct.storeName || relatedProduct.store)}/product/${relatedProduct.id}`} className="w-full py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all">
                   View Details
                 </button>
               </div>

@@ -26,8 +26,8 @@ export const storeAPI = {
   /**
    * Get store by ID
    */
-  getById: async (storeId) => {
-    return fetchJSON(API_ENDPOINTS.STORE.GET_BY_ID(storeId));
+  getById: async (storeId, requireAuth = true) => {
+    return fetchJSON(API_ENDPOINTS.STORE.GET_BY_ID(storeId), {}, requireAuth);
   },
 
   /**
@@ -47,8 +47,8 @@ export const storeAPI = {
   /**
    * Get store by name
    */
-  getByName: async (storeName) => {
-    return fetchJSON(API_ENDPOINTS.STORE.GET_BY_NAME(storeName));
+  getByName: async (storeName, requireAuth = true) => {
+    return fetchJSON(API_ENDPOINTS.STORE.GET_BY_NAME(storeName), {}, requireAuth);
   },
 
   /**

@@ -50,7 +50,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/auth/signup", "/auth/login","/v3/api-docs/**",
                                 "/swagger-ui/**",
-                                "/swagger-ui.html").permitAll()
+                                "/swagger-ui.html",
+                                "/store/{storeName}",
+                                "/subscription-plan/get/all").permitAll()
                         .anyRequest().authenticated()
                 );
 
