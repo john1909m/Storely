@@ -18,6 +18,7 @@ public interface ProductMapper {
     @Mapping(target = "altText", expression = "java(mapAltTexts(product.getImages()))")
     @Mapping(target = "position", expression = "java(mapPositions(product.getImages()))")
     @Mapping(source = "category.id", target = "categoryId")
+    @Mapping(source = "category.name", target = "categoryName")
     @Mapping(source = "store.id", target = "storeId")
     ProductDto toProductDto(Product product);
 
@@ -27,6 +28,7 @@ public interface ProductMapper {
     )
     @Mapping(source = "categoryId", target = "category.id")
     @Mapping(source = "storeId" , target="store.id")
+    @Mapping(source = "categoryName", target = "category.name")
     Product toProductEntity(ProductDto dto);
 
     default List<String> mapUrls(List<ProductImage> images) {

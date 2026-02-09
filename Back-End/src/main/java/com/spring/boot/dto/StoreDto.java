@@ -23,6 +23,8 @@ public class StoreDto {
 
     private String storeName;
 
+    private String vendorName;
+
     private LocalDateTime createdAt = LocalDateTime.now();
 
     private String storeAddress;
@@ -38,6 +40,10 @@ public class StoreDto {
     private String secondaryColor;
 
     private String fontFamily;
+
+    private String facebook;
+
+    private String instagram;
 
     private String storeStatus="Inactive";
 

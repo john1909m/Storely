@@ -60,6 +60,7 @@ const AppContent = () => {
       <Route path="/verify-otp" element={<OTPVerification />} />
       <Route path="/pricing" element={<Pricing />} />
       <Route path="/contact" element={<CustomerContact />} />
+      <Route path="/checkout" element={<Checkout />} />
 
       {/* Store Routes (Public) - Customer view */}
       <Route path="/store/:storeName" element={<StoreHome viewType="customer" />} />
@@ -71,17 +72,7 @@ const AppContent = () => {
         </CustomerRoute>
       } />
 
-      {/* Protected Customer Routes */}
-      <Route path="/cart" element={
-        <CustomerRoute>
-          <Cart />
-        </CustomerRoute>
-      } />
-      <Route path="/checkout" element={
-        <CustomerRoute>
-          <Checkout />
-        </CustomerRoute>
-      } />
+
       <Route path="/orders" element={
         <CustomerRoute>
           {/* Customer Orders page - to be created */}

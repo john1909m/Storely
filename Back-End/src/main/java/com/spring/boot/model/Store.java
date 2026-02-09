@@ -38,6 +38,10 @@ public class Store {
 
     private String fontFamily;
 
+    private String facebook;
+
+    private String instagram;
+
     @Enumerated(EnumType.STRING)
     private StoreStatus storeStatus;
 

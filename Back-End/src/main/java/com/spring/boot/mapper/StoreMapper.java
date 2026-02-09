@@ -12,6 +12,7 @@ public interface StoreMapper {
     @Mapping(source = "products",target = "products")
     @Mapping(source = "categories",target = "categories")
     @Mapping(source = "vendor.id" , target = "vendorId")
+    @Mapping(source = "vendor.name",target = "vendorName")
     StoreDto toStoreDto(Store store);
 
     @Mapping(source = "storeStatus",target = "storeStatus")

@@ -34,10 +34,8 @@ export const login = async (credentials) => {
       role = 'ADMIN';
     }
     
-    // Default to CUSTOMER only if nothing else matches
-    if (!role) {
-      role = 'CUSTOMER';
-    }
+    
+
 
     // Normalize role to uppercase
     role = role.toUpperCase();

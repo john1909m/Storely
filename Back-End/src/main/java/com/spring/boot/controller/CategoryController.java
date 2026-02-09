@@ -4,6 +4,7 @@ import com.spring.boot.dto.CategoryDto;
 import com.spring.boot.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -35,16 +36,19 @@ public class CategoryController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyRole('VENDOR','ADMIN')")
     public ResponseEntity<CategoryDto> addCategory(@RequestBody CategoryDto categoryDto) throws URISyntaxException {
         return ResponseEntity.created(new URI("/category/add")).body(categoryService.addCategory(categoryDto));
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyRole('VENDOR','ADMIN')")
     public ResponseEntity<CategoryDto> updateCategory(@RequestBody CategoryDto categoryDto) throws URISyntaxException {
         return ResponseEntity.created(new URI("/category/update")).body(categoryService.updateCategory(categoryDto));
     }
 
     @DeleteMapping("/delete/{categoryId}")
+    @PreAuthorize("hasAnyRole('VENDOR','ADMIN')")
     public ResponseEntity<Void> deleteCategory(@PathVariable Long categoryId){
         categoryService.deleteCategory(categoryId);
         return ResponseEntity.noContent().build();

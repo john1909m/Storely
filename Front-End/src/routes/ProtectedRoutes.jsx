@@ -14,13 +14,13 @@ const ProtectedRoute = ({
   allowedRoles = ['CUSTOMER', 'VENDOR', 'ADMIN'], 
   requireAuth = true 
 }) => {
-  const { isAuthenticated, role, isLoading, initializeAuth } = useAuth();
+  const { isAuthenticated, role, isLoading} = useAuth();
   const location = useLocation();
 
   // Initialize auth on mount
   useEffect(() => {
     if (!isAuthenticated && !isLoading) {
-      initializeAuth();
+      return;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

@@ -5,6 +5,7 @@ import com.spring.boot.service.ProductService;
 import com.spring.boot.service.StoreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -43,16 +44,19 @@ public class ProductController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyRole('VENDOR','ADMIN')")
     public ResponseEntity<ProductDto> addProduct(@RequestBody ProductDto productDto) throws URISyntaxException {
         return ResponseEntity.created(new URI("/product/add")).body(productService.addProduct(productDto));
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyRole('VENDOR','ADMIN')")
     public ResponseEntity<ProductDto> updateProduct(@RequestBody ProductDto productDto) throws URISyntaxException {
         return ResponseEntity.ok(productService.updateProduct(productDto));
     }
 
     @DeleteMapping("/delete/{productId}")
+    @PreAuthorize("hasAnyRole('VENDOR','ADMIN')")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long productId) {
         productService.deleteProduct(productId);
         return ResponseEntity.noContent().build();

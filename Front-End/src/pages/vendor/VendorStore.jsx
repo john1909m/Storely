@@ -1,6 +1,6 @@
 // Vendor Store Page - Real data from APIs
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { 
   Store, Package, ShoppingBag, BarChart, Settings, 
   Plus, Edit, Copy, Check, ExternalLink, TrendingUp,
@@ -24,26 +24,48 @@ const VendorStore = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [copied, setCopied] = useState(false);
-  const { store: authStore, vendor, setStore: setAuthStore } = useAuth();
+  const { store: authStore, vendor, setStore: setAuthStore, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     fetchStoreData();
-  }, []);
+    // Add a refresh listener for manual refresh
+    const handleRefresh = () => fetchStoreData();
+    window.addEventListener('focus', handleRefresh);
+    
+    return () => {
+      window.removeEventListener('focus', handleRefresh);
+    };
+  }, [location]);
 
   const fetchStoreData = async () => {
     try {
       setIsLoading(true);
       setError(null);
 
-      // Get store from auth or fetch by vendor ID
-      let storeData = authStore;
+      // Always fetch fresh data - don't rely on auth store cache
+      let storeData = null;
       
-      if (!storeData && vendor?.id) {
-        const stores = await storeAPI.getByVendorId(vendor.id);
-        storeData = Array.isArray(stores) ? stores[0] : stores;
-        if (storeData) {
-          setAuthStore(storeData);
+      // If we have a vendor ID, fetch store by vendor
+      if (vendor?.id) {
+        try {
+          const stores = await storeAPI.getByVendorId(vendor.id);
+          storeData = Array.isArray(stores) ? stores[0] : stores;
+        } catch (storeErr) {
+          console.error('Error fetching store by vendor:', storeErr);
+        }
+      }
+      
+      // If no store found by vendor, try to use auth store as fallback
+      if (!storeData && authStore?.id) {
+        try {
+          // Try to fetch fresh store data by ID
+          storeData = await storeAPI.getById(authStore.id);
+        } catch (storeByIdErr) {
+          console.error('Error fetching store by ID:', storeByIdErr);
+          // If fetch fails, use the cached auth store
+          storeData = authStore;
         }
       }
 
@@ -53,7 +75,11 @@ const VendorStore = () => {
         return;
       }
 
+      // Update both local state and auth store
       setStore(storeData);
+      if (setAuthStore) {
+        setAuthStore(storeData);
+      }
 
       // Fetch products for this store
       if (storeData.id) {
@@ -61,8 +87,8 @@ const VendorStore = () => {
           const storeProducts = await productAPI.getAll(storeData.id);
           setProducts(Array.isArray(storeProducts) ? storeProducts : []);
           setStats(prev => ({ ...prev, totalProducts: Array.isArray(storeProducts) ? storeProducts.length : 0 }));
-        } catch (err) {
-          console.error('Error fetching products:', err);
+        } catch (productErr) {
+          console.error('Error fetching products:', productErr);
           setProducts([]);
         }
 
@@ -77,8 +103,8 @@ const VendorStore = () => {
             totalRevenue: ordersList.reduce((sum, order) => sum + (order.totalPrice || 0), 0),
             totalCustomers: new Set(ordersList.map(order => order.customerId).filter(Boolean)).size
           }));
-        } catch (err) {
-          console.error('Error fetching orders:', err);
+        } catch (orderErr) {
+          console.error('Error fetching orders:', orderErr);
           setOrders([]);
         }
       }
@@ -133,6 +159,7 @@ const VendorStore = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      
       {/* Header */}
       <div className="bg-white shadow-sm border-b border-gray-200">
         <div className="container mx-auto px-4 py-6">
@@ -163,7 +190,7 @@ const VendorStore = () => {
                       ? 'bg-green-100 text-green-800'
                       : 'bg-yellow-100 text-yellow-800'
                   }`}>
-                    {store.storeStatus || 'Inactive'}
+                    {store.storeStatus || 'Inactived'}
                   </span>
                 </div>
                 <div className="flex items-center space-x-4 text-sm text-gray-600">
@@ -214,6 +241,15 @@ const VendorStore = () => {
                 <BarChart className="h-5 w-5" />
                 <span>Dashboard</span>
               </Link>
+              {/* Logout Button */}
+              <div className="w-full flex justify-end p-4">
+                <button
+                  onClick={() => { logout(); navigate('/login'); }}
+                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all shadow"
+                >
+                  Logout
+                </button>
+              </div>
             </div>
           </div>
         </div>

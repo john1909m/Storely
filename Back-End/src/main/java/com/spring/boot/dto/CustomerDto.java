@@ -28,7 +28,7 @@ public class CustomerDto {
 
     private String whatsappNumber;
 
-    private LocalDateTime createdDate;
+    private LocalDateTime createdDate=LocalDateTime.now();
 
     private List<Long> storeIds;
 

@@ -79,6 +79,11 @@ public class StoreServiceImpl implements StoreService {
 
         Store updatedStore = storeMapper.toStoreEntity(storeDto);
         updatedStore.setId(existingStore.getId());
+        updatedStore.setVendor(existingStore.getVendor());
+        updatedStore.setCategories(existingStore.getCategories());
+        updatedStore.setProducts(existingStore.getProducts());
+        updatedStore.setOrders(existingStore.getOrders());
+        updatedStore.setCustomers(existingStore.getCustomers());
 
         Store savedStore = storeRepo.save(updatedStore);
         return storeMapper.toStoreDto(savedStore);

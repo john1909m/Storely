@@ -22,54 +22,52 @@ const useAuthStore = create((set, get) => ({
         set({ isLoading: true, error: null });
         try {
           const response = await login(credentials);
-          
           // Normalize role to uppercase
           const role = (response.role || 'CUSTOMER').toUpperCase();
-          
-          console.log('Auth store - Setting role:', role);
-          console.log('Auth store - Full response:', response);
-          
           const vendorData = response.vendor || (response.vendorId ? { id: response.vendorId } : null);
           let storeData = response.store || null;
-          
-          // If vendor but no store in response, try to fetch it
-          if (role === 'VENDOR' && vendorData?.id && !storeData) {
+          // If vendor but no store in response, try to fetch store(s) by vendorId
+          if (role === 'VENDOR' && vendorData?.id && (!storeData || !storeData.id)) {
             try {
               const { storeAPI } = await import('../api/store.api');
-              const stores = await storeAPI.getByVendorId(vendorData.id);
-              storeData = Array.isArray(stores) ? stores[0] : stores;
-              console.log('Fetched store for vendor:', storeData);
+              const vendorStores = await storeAPI.getByVendorId(vendorData.id);
+              const foundStore = Array.isArray(vendorStores)
+                ? vendorStores.find(s => s.vendorId && String(s.vendorId) === String(vendorData.id))
+                : (vendorStores && vendorStores.vendorId && String(vendorStores.vendorId) === String(vendorData.id) ? vendorStores : null);
+              if (foundStore && foundStore.id) {
+                storeData = foundStore;
+              } else {
+                storeData = null;
+              }
             } catch (err) {
-              console.log('No store found for vendor:', err.message);
               storeData = null;
             }
           }
-          
           set({
             user: response.user || { id: response.userId || response.user?.id, email: credentials.email },
             vendor: vendorData,
-            store: storeData, // Store from login response or fetched
+            store: storeData && storeData.id ? storeData : null, // Only set if valid
             role: role, // Use normalized role
             token: response.token,
             isAuthenticated: true,
             isLoading: false,
             error: null,
           });
-          
-          // Store store info in sessionStorage if exists
-          if (storeData) {
+          // Store info in sessionStorage if exists
+          if (storeData && storeData.id) {
             sessionStorage.setItem('storeId', storeData.id);
             sessionStorage.setItem('storeName', storeData.storeName);
+          } else {
+            sessionStorage.removeItem('storeId');
+            sessionStorage.removeItem('storeName');
           }
-
           // Return response with normalized role and store
           return {
             ...response,
             role: role,
-            store: storeData
+            store: storeData && storeData.id ? storeData : null
           };
         } catch (error) {
-          console.error('Auth store login error:', error);
           set({
             isLoading: false,
             error: error.message || 'Login failed',
@@ -140,13 +138,19 @@ const useAuthStore = create((set, get) => ({
         const role = sessionStorage.getItem('userRole');
         const userId = sessionStorage.getItem('userId');
         const vendorId = sessionStorage.getItem('vendorId');
-
+        const storeId = sessionStorage.getItem('storeId');
+        const storeName = sessionStorage.getItem('storeName');
+        let store = null;
+        if (storeId && storeName) {
+          store = { id: storeId, storeName };
+        }
         if (token && role && userId) {
           set({
             token,
             role,
             user: { id: userId },
             vendor: vendorId ? { id: vendorId } : null,
+            store: store,
             isAuthenticated: true,
           });
         }

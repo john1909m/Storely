@@ -4,6 +4,7 @@ import com.spring.boot.dto.CustomerDto;
 import com.spring.boot.service.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -40,11 +41,13 @@ public class CustomerController {
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyRole('VENDOR','ADMIN','Customer')")
     public ResponseEntity<CustomerDto> updateCustomer(@RequestBody CustomerDto customerDto) throws URISyntaxException {
         return ResponseEntity.created(new URI("/customer/add")).body(customerService.updateCustomer(customerDto));
     }
 
     @DeleteMapping("/delete/{customerId}")
+    @PreAuthorize("hasAnyRole('VENDOR','ADMIN')")
     public ResponseEntity<Void> deleteCustomer(@PathVariable("customerId") Long customerId) {
         customerService.deleteCustomer(customerId);
         return ResponseEntity.noContent().build();

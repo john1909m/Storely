@@ -1,6 +1,7 @@
 // API Configuration
 // Update this with your Spring Boot backend URL
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+import Pricing from './../pages/vendor/Pricing';
 
 // API endpoints
 export const API_ENDPOINTS = {
@@ -82,4 +83,11 @@ export const API_ENDPOINTS = {
     GET_BY_NAME: (categoryName, storeId) => `/category/get/name/${categoryName}/store/${storeId}`,
     DELETE: (categoryId) => `/category/delete/${categoryId}`,
   },
+  PRICING:{
+    GET_PLANS: '/subscription-plan/get/all',
+    Add_PLAN: '/subscription-plan/add',
+    DELETE_PLAN: (planId) => `/subscription-plan/delete/${planId}`,
+    UPDATE_PLAN: '/subscription-plan/update',
+    
+  }
 };

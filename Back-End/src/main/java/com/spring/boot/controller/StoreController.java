@@ -5,6 +5,7 @@ import com.spring.boot.dto.VendorDto;
 import com.spring.boot.service.StoreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -21,6 +22,7 @@ public class StoreController {
     }
 
     @GetMapping("/get/all")
+    @PreAuthorize("hasAnyRole('ADMIN')")
     public ResponseEntity<List<StoreDto>> getAllStores() {
         return ResponseEntity.ok(storeService.getAllStores());
     }
@@ -36,26 +38,31 @@ public class StoreController {
     }
 
     @GetMapping("/get/vendor/{vendorId}")
+    @PreAuthorize("hasAnyRole('ADMIN','VENDOR')")
     public ResponseEntity<StoreDto> getStoreByVendor(@PathVariable("vendorId") Long vendorId) {
         return ResponseEntity.ok(storeService.getStoreByVendorId(vendorId));
     }
 
     @GetMapping("/get/vendor/name/{vendorName}")
+    @PreAuthorize("hasAnyRole('ADMIN')")
     public ResponseEntity<StoreDto> getStoreByVendorName(@PathVariable("vendorName") String vendorName) {
         return ResponseEntity.ok(storeService.getStoreByVendorName(vendorName));
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyRole('VENDOR','ADMIN')")
     public ResponseEntity<StoreDto> addStore(@RequestBody StoreDto storeDto) throws URISyntaxException {
         return ResponseEntity.created(new URI("store/add")).body(storeService.addStore(storeDto));
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyRole('VENDOR','ADMIN')")
     public ResponseEntity<StoreDto> updateStore(@RequestBody StoreDto storeDto) throws URISyntaxException {
         return ResponseEntity.created(new URI("store/update")).body(storeService.updateStore(storeDto));
     }
 
     @DeleteMapping("/delete/{storeId}")
+    @PreAuthorize("hasAnyRole('ADMIN')")
     public ResponseEntity<Void> deleteStore(@PathVariable("storeId") Long storeId) {
         storeService.deleteStore(storeId);
         return ResponseEntity.noContent().build();

@@ -4,32 +4,46 @@ import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, CreditCard, Lock, Truck,
   MapPin, User, Mail, Phone,
-  CheckCircle, Shield, Loader2
+  CheckCircle, Shield, Loader2,
+  ShoppingBag, AlertCircle
 } from 'lucide-react';
 import { orderAPI } from '../../api/order.api';
+import { customerAPI } from '../../api/customer.api';
 
 const Checkout = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
-  const [cartItems, setCartItems] = useState([]);
+  const [cartData, setCartData] = useState(null);
+  const [error, setError] = useState(null);
   const [customerInfo, setCustomerInfo] = useState({
     firstName: '',
     lastName: '',
-    email: '',
-    phone: '',
+    phoneNumber: '',
+    whatsappNumber: '',
     address: '',
     city: '',
-    state: '',
-    zipCode: '',
-    country: 'United States'
   });
 
   useEffect(() => {
-    // Load cart items from localStorage
-    const cart = JSON.parse(localStorage.getItem('store_cart') || '[]');
-    setCartItems(cart);
-  }, []);
+    // Load cart data from localStorage
+    const savedCart = localStorage.getItem('checkout_cart');
+    if (savedCart) {
+      try {
+        const parsedCart = JSON.parse(savedCart);
+        if (parsedCart.items && parsedCart.items.length > 0) {
+          setCartData(parsedCart);
+        } else {
+          navigate('/');
+        }
+      } catch (err) {
+        console.error('Error parsing cart:', err);
+        navigate('/');
+      }
+    } else {
+      navigate('/');
+    }
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -40,48 +54,118 @@ const Checkout = () => {
     }
 
     if (step === 2) {
-      setIsLoading(true);
-      try {
-        // Create order
-        const orderData = {
-          customerInfo,
-          items: cartItems,
-          total: calculateTotal(),
-          shippingAddress: {
-            street: customerInfo.address,
-            city: customerInfo.city,
-            state: customerInfo.state,
-            zipCode: customerInfo.zipCode,
-            country: customerInfo.country
-          },
-          status: 'pending'
-        };
+      await placeOrder();
+    }
+  };
 
-        const response = await orderAPI.add(orderData);
-        
-        if (response && response.id) {
-          // Clear cart
-          localStorage.removeItem('store_cart');
-          
-          // Navigate to order confirmation
-          navigate(`/order-confirmation/${response.id}`);
-        } else {
-          throw new Error('Failed to create order');
-        }
-      } catch (error) {
-        console.error('Error creating order:', error);
-        alert('Failed to place order. Please try again.');
-      } finally {
-        setIsLoading(false);
+  const placeOrder = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Validate required data
+      if (!cartData || !cartData.storeId || !cartData.items || cartData.items.length === 0) {
+        throw new Error('Cart data is invalid or empty');
       }
+
+      // Step 1: Create customer first
+      const customerData = {
+        firstName: customerInfo.firstName,
+        lastName: customerInfo.lastName,
+        
+        phoneNumber: customerInfo.phoneNumber,
+        whatsappNumber: customerInfo.whatsappNumber,
+        address: customerInfo.address,
+        city: customerInfo.city,
+        
+        storeIds: [cartData.storeId] // Associate customer with store
+      };
+
+      console.log('Creating customer with data:', customerData);
+      
+      // Call customer API
+      const customerResponse = await customerAPI.add(customerData);
+      
+      if (!customerResponse || !customerResponse.id) {
+        throw new Error('Failed to create customer');
+      }
+
+      const customerId = customerResponse.id;
+      console.log('Customer created successfully with ID:', customerId);
+
+      // Step 2: Create order with customer ID
+      const orderData = {
+        storeId: cartData.storeId,
+        customerId: customerId,
+        
+        items: cartData.items.map(item => ({
+          productId: item.id,
+          price: item.price,
+          quantity: item.quantity,
+        })),
+        
+      };
+
+      console.log('Creating order with data:', orderData);
+      
+      // Call order API
+      const orderResponse = await orderAPI.checkout(orderData);
+      
+      if (!orderResponse || !orderResponse.id) {
+        throw new Error('Failed to create order');
+      }
+
+      const orderId = orderResponse.id;
+      console.log('Order created successfully with ID:', orderId);
+      
+      // Save order to localStorage for reference
+      const userOrders = JSON.parse(localStorage.getItem('user_orders') || '[]');
+      userOrders.push({
+        id: orderId,
+        orderNumber: orderResponse.orderNumber || `#${Date.now().toString().slice(-8)}`,
+        ...orderData,
+        createdAt: new Date().toISOString()
+      });
+      localStorage.setItem('user_orders', JSON.stringify(userOrders));
+      
+      // Clear cart from localStorage
+      localStorage.removeItem('checkout_cart');
+      
+      // Clear store-specific cart
+      if (cartData.storeName) {
+        localStorage.removeItem(`cart_${cartData.storeName}`);
+      }
+      
+      // Navigate to order confirmation with order details
+      navigate(`/order-confirmation/${orderId}`, {
+        state: {
+          orderId: orderId,
+          orderNumber: orderResponse.orderNumber || `#${Date.now().toString().slice(-8)}`,
+          orderData: orderData,
+          customerInfo: customerInfo
+        }
+      });
+
+    } catch (error) {
+      console.error('Error placing order:', error);
+      setError(error.message || 'Failed to place order. Please try again.');
+      
+      // Show error alert
+      setTimeout(() => {
+        alert(`Order failed: ${error.message || 'Please try again'}`);
+      }, 100);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const calculateTotal = () => {
-    const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const shipping = subtotal > 50 ? 0 : 9.99;
-    const tax = subtotal * 0.08;
-    return subtotal + shipping + tax;
+    if (!cartData || !cartData.items) return 0;
+    
+    const subtotal = cartData.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const shipping = subtotal > 500 ? 0 : 50; // Free shipping over 500 EGP
+    const tax = subtotal * 0.14; // 14% VAT for Egypt
+    return Math.round(subtotal + shipping + tax);
   };
 
   const handleInputChange = (e) => {
@@ -90,6 +174,18 @@ const Checkout = () => {
       ...prev,
       [name]: value
     }));
+    // Clear any previous errors when user starts typing
+    if (error) setError(null);
+  };
+
+  // Format price in EGP
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat('ar-EG', {
+      style: 'currency',
+      currency: 'EGP',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
+    }).format(price);
   };
 
   if (isLoading) {
@@ -98,6 +194,17 @@ const Checkout = () => {
         <div className="text-center">
           <Loader2 className="h-12 w-12 text-indigo-600 animate-spin mx-auto mb-4" />
           <p className="text-gray-600">Processing your order...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!cartData) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <ShoppingBag className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-600">Loading cart...</p>
         </div>
       </div>
     );
@@ -118,7 +225,7 @@ const Checkout = () => {
               </button>
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">Checkout</h1>
-                <p className="text-gray-600">Complete your purchase</p>
+                <p className="text-gray-600">Complete your purchase from {cartData.storeName}</p>
               </div>
             </div>
             <div className="flex items-center space-x-8">
@@ -141,6 +248,25 @@ const Checkout = () => {
       </div>
 
       <div className="container mx-auto px-4 py-8">
+        {/* Error Message */}
+        {error && (
+          <div className="mb-6">
+            <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl flex items-center justify-between">
+              <div className="flex items-center">
+                <AlertCircle className="h-5 w-5 mr-2" />
+                <span>{error}</span>
+              </div>
+              <button
+                onClick={() => setError(null)}
+                className="text-red-800 hover:text-red-900"
+              >
+                <span className="sr-only">Dismiss</span>
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Checkout Form */}
           <div className="lg:col-span-2">
@@ -153,7 +279,7 @@ const Checkout = () => {
                     <div className="grid md:grid-cols-2 gap-6">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          First Name
+                          First Name *
                         </label>
                         <div className="relative">
                           <User className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -170,7 +296,7 @@ const Checkout = () => {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Last Name
+                          Last Name *
                         </label>
                         <div className="relative">
                           <User className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -188,37 +314,39 @@ const Checkout = () => {
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-6 mt-6">
+                      
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Email Address
-                        </label>
-                        <div className="relative">
-                          <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                          <input
-                            type="email"
-                            name="email"
-                            required
-                            value={customerInfo.email}
-                            onChange={handleInputChange}
-                            className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
-                            placeholder="john@example.com"
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Phone Number
+                          Phone Number *
                         </label>
                         <div className="relative">
                           <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                           <input
-                            type="tel"
-                            name="phone"
+                            type="text"
+                            name="phoneNumber"
                             required
-                            value={customerInfo.phone}
+                            value={customerInfo.phoneNumber}
                             onChange={handleInputChange}
                             className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
-                            placeholder="(123) 456-7890"
+                            placeholder="+20 123 456 7890"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Whatsapp Number *
+                        </label>
+                        <div className="relative">
+                          <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                          <input
+                            type="text"
+                            name="whatsappNumber"
+                            required
+                            value={customerInfo.whatsappNumber}
+                            onChange={handleInputChange}
+                            className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                            placeholder="+20 123 456 7890"
                           />
                         </div>
                       </div>
@@ -226,11 +354,11 @@ const Checkout = () => {
 
                     <div className="mt-6">
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Street Address
+                        Address *
                       </label>
                       <div className="relative">
                         <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                        <input
+                        <textarea
                           type="text"
                           name="address"
                           required
@@ -244,7 +372,7 @@ const Checkout = () => {
 
                     <div className="grid md:grid-cols-3 gap-6 mt-6">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">City *</label>
                         <input
                           type="text"
                           name="city"
@@ -252,40 +380,31 @@ const Checkout = () => {
                           value={customerInfo.city}
                           onChange={handleInputChange}
                           className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
-                          placeholder="New York"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">State</label>
-                        <input
-                          type="text"
-                          name="state"
-                          required
-                          value={customerInfo.state}
-                          onChange={handleInputChange}
-                          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
-                          placeholder="NY"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">ZIP Code</label>
-                        <input
-                          type="text"
-                          name="zipCode"
-                          required
-                          value={customerInfo.zipCode}
-                          onChange={handleInputChange}
-                          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
-                          placeholder="10001"
+                          placeholder="Cairo"
                         />
                       </div>
                     </div>
 
+                    <div className="mt-6">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                      <input
+                        type="text"
+                        name="country"
+                        required
+                        value={customerInfo.country}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                        placeholder="Egypt"
+                        readOnly
+                      />
+                    </div>
+
                     <button
                       type="submit"
-                      className="w-full mt-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all"
+                      disabled={isLoading}
+                      className="w-full mt-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Review Order
+                      {isLoading ? 'Processing...' : 'Review Order'}
                     </button>
                   </>
                 ) : (
@@ -294,25 +413,26 @@ const Checkout = () => {
 
                     {/* Order Items */}
                     <div className="mb-8">
-                      <h4 className="font-semibold text-gray-900 mb-4">Order Items</h4>
+                      <h4 className="font-semibold text-gray-900 mb-4">Order Items ({cartData.items.length})</h4>
                       <div className="space-y-4">
-                        {cartItems.map((item) => (
+                        {cartData.items.map((item) => (
                           <div key={item.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
                             <div className="flex items-center space-x-4">
                               <div className="h-12 w-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                                {item.imageUrl ? (
-                                  <img src={item.imageUrl} alt={item.name} className="h-10 w-10 object-cover rounded" />
+                                {item.images && item.images[0] ? (
+                                  <img src={item.images[0]} alt={item.productName || item.name} className="h-10 w-10 object-cover rounded" />
                                 ) : (
                                   <div className="text-lg">📦</div>
                                 )}
                               </div>
                               <div>
-                                <div className="font-medium text-gray-900">{item.name}</div>
+                                <div className="font-medium text-gray-900">{item.productName || item.name}</div>
                                 <div className="text-sm text-gray-600">Qty: {item.quantity}</div>
+                                <div className="text-sm text-gray-600">{formatPrice(item.price)} each</div>
                               </div>
                             </div>
                             <div className="font-semibold">
-                              ${(item.price * item.quantity).toFixed(2)}
+                              {formatPrice(item.price * item.quantity)}
                             </div>
                           </div>
                         ))}
@@ -323,10 +443,11 @@ const Checkout = () => {
                     <div className="mb-8">
                       <h4 className="font-semibold text-gray-900 mb-4">Shipping Information</h4>
                       <div className="bg-gray-50 rounded-xl p-6">
-                        <div className="text-gray-900">{customerInfo.firstName} {customerInfo.lastName}</div>
-                        <div className="text-gray-600">{customerInfo.address}</div>
-                        <div className="text-gray-600">{customerInfo.city}, {customerInfo.state} {customerInfo.zipCode}</div>
-                        <div className="text-gray-600">{customerInfo.email}</div>
+                        <div className="text-gray-900 font-medium mb-2">{customerInfo.firstName} {customerInfo.lastName}</div>
+                        <div className="text-gray-600 mb-1">{customerInfo.address}</div>
+                        <div className="text-gray-600 mb-1">{customerInfo.city}, {customerInfo.state} {customerInfo.zipCode}</div>
+                        <div className="text-gray-600 mb-1">{customerInfo.country}</div>
+                        <div className="text-gray-600 mb-1">{customerInfo.email}</div>
                         <div className="text-gray-600">{customerInfo.phone}</div>
                       </div>
                     </div>
@@ -351,16 +472,27 @@ const Checkout = () => {
                       <button
                         type="button"
                         onClick={() => setStep(1)}
-                        className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200"
+                        disabled={isLoading}
+                        className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         Back
                       </button>
                       <button
                         type="submit"
-                        className="flex-1 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all shadow-lg hover:shadow-xl flex items-center justify-center space-x-2"
+                        disabled={isLoading}
+                        className="flex-1 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all shadow-lg hover:shadow-xl flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        <CheckCircle className="h-6 w-6" />
-                        <span>Place Order</span>
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="h-5 w-5 animate-spin" />
+                            <span>Processing...</span>
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle className="h-6 w-6" />
+                            <span>Place Order</span>
+                          </>
+                        )}
                       </button>
                     </div>
                   </>
@@ -372,33 +504,46 @@ const Checkout = () => {
           {/* Order Summary */}
           <div>
             <div className="bg-white rounded-2xl p-8 border border-gray-100 sticky top-8">
-              <h3 className="text-xl font-bold text-gray-900 mb-6">Order Summary</h3>
+              <div className="flex items-center space-x-3 mb-6">
+                {cartData.storeLogo ? (
+                  <img src={cartData.storeLogo} alt={cartData.storeName} className="h-10 w-10 rounded-xl object-cover" />
+                ) : (
+                  <div className="h-10 w-10 bg-gray-100 rounded-xl flex items-center justify-center">
+                    <ShoppingBag className="h-5 w-5 text-gray-600" />
+                  </div>
+                )}
+                <h3 className="text-xl font-bold text-gray-900">{cartData.storeName}</h3>
+              </div>
 
               {/* Price Breakdown */}
               <div className="space-y-4 mb-8">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Items ({cartItems.length})</span>
+                  <span className="text-gray-600">Subtotal</span>
                   <span className="font-medium">
-                    ${cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)}
+                    {formatPrice(cartData.items.reduce((sum, item) => sum + (item.price * item.quantity), 0))}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Shipping</span>
                   <span className="font-medium">
-                    {cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0) > 50 ? 'FREE' : '$9.99'}
+                    {cartData.items.reduce((sum, item) => sum + (item.price * item.quantity), 0) > 500 ? 
+                      <span className="text-emerald-600">FREE</span> : 
+                      formatPrice(50)
+                    }
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Tax</span>
+                  <span className="text-gray-600">VAT (14%)</span>
                   <span className="font-medium">
-                    ${(cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0) * 0.08).toFixed(2)}
+                    {formatPrice(cartData.items.reduce((sum, item) => sum + (item.price * item.quantity), 0) * 0.14)}
                   </span>
                 </div>
                 <div className="border-t border-gray-200 pt-4">
                   <div className="flex justify-between text-xl font-bold">
                     <span>Total</span>
-                    <span>${calculateTotal().toFixed(2)}</span>
+                    <span className="text-indigo-600">{formatPrice(calculateTotal())}</span>
                   </div>
+                  <p className="text-sm text-gray-500 mt-2">All prices in Egyptian Pound (EGP)</p>
                 </div>
               </div>
 
@@ -408,15 +553,34 @@ const Checkout = () => {
                   <Truck className="h-5 w-5 text-blue-600" />
                   <div>
                     <div className="font-medium text-blue-900">Estimated Delivery</div>
-                    <div className="text-sm text-blue-700">5-7 business days</div>
+                    <div className="text-sm text-blue-700">2-4 business days within Egypt</div>
                   </div>
                 </div>
               </div>
 
               {/* Security Notice */}
-              <div className="text-center text-sm text-gray-500">
+              <div className="text-center text-sm text-gray-500 mb-6">
                 <Shield className="h-4 w-4 inline mr-1" />
                 Secure SSL encrypted payment
+              </div>
+
+              {/* API Flow Info */}
+              <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                <h4 className="text-sm font-medium text-gray-900 mb-2">Order Process</h4>
+                <div className="space-y-2">
+                  <div className="flex items-center text-sm text-gray-600">
+                    <div className="h-6 w-6 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-xs font-bold mr-2">1</div>
+                    <span>Create Customer Account</span>
+                  </div>
+                  <div className="flex items-center text-sm text-gray-600">
+                    <div className="h-6 w-6 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-xs font-bold mr-2">2</div>
+                    <span>Create Order with Items</span>
+                  </div>
+                  <div className="flex items-center text-sm text-gray-600">
+                    <div className="h-6 w-6 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-xs font-bold mr-2">3</div>
+                    <span>Send Order Confirmation</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

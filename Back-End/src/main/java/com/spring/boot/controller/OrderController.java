@@ -5,6 +5,7 @@ import com.spring.boot.dto.OrderDto;
 import com.spring.boot.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -22,11 +23,13 @@ public class OrderController {
     }
 
     @GetMapping("/get/store/{storeId}")
+    @PreAuthorize("hasAnyRole('VENDOR','ADMIN')")
     public ResponseEntity<List<OrderDto>> getAllOrdersByStore(@PathVariable("storeId") Long storeId) {
         return ResponseEntity.ok(orderService.getAllOrdersByStore(storeId));
     }
 
     @GetMapping("/get/{orderId}/store/{storeId}")
+    @PreAuthorize("hasAnyRole('VENDOR','ADMIN')")
     public ResponseEntity<OrderDto> getOrderById(
             @PathVariable("orderId") Long orderId,
             @PathVariable("storeId") Long storeId) {
@@ -34,26 +37,27 @@ public class OrderController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyRole('VENDOR','ADMIN','CUSTOMER')")
     public ResponseEntity<OrderDto> addOrder(@RequestBody OrderDto orderDto) throws URISyntaxException {
         return ResponseEntity.created(new URI("/order/add")).body(orderService.addOrder(orderDto));
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyRole('VENDOR','ADMIN')")
     public ResponseEntity<OrderDto> updateOrder(@RequestBody OrderDto orderDto) {
         OrderDto updatedOrder = orderService.updateOrder(orderDto);
         return ResponseEntity.ok(updatedOrder);
     }
 
     @DeleteMapping("/delete/{orderId}")
+    @PreAuthorize("hasAnyRole('VENDOR','ADMIN')")
     public ResponseEntity<Void> deleteOrder(@PathVariable("orderId") Long orderId) {
         orderService.deleteOrder(orderId);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/checkout")
-    public ResponseEntity<OrderDto> checkout(
-            @RequestBody CheckoutDto checkoutDto
-    ) {
+    public ResponseEntity<OrderDto> checkout(@RequestBody CheckoutDto checkoutDto) {
         OrderDto order = orderService.checkout(checkoutDto);
         return ResponseEntity.ok(order);
     }

@@ -4,6 +4,7 @@ import com.spring.boot.dto.ProductImageDto;
 import com.spring.boot.service.ProductImageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -25,16 +26,19 @@ public class ProductImageController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyRole('VENDOR','ADMIN')")
     public ResponseEntity<ProductImageDto> addProductImage(@RequestBody ProductImageDto productImageDto) throws URISyntaxException {
         return ResponseEntity.created(new URI("/product/images/add")).body(productImageService.addProductImageToProduct(productImageDto));
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyRole('VENDOR','ADMIN')")
     public ResponseEntity<ProductImageDto> updateProductImage(@RequestBody ProductImageDto productImageDto) throws URISyntaxException {
         return ResponseEntity.created(new URI("/product/images/update")).body(productImageService.updateProductImageToProduct(productImageDto));
     }
 
     @DeleteMapping("/delete/{productImageId}")
+    @PreAuthorize("hasAnyRole('VENDOR','ADMIN')")
     public ResponseEntity<Void> deleteProductImage(@PathVariable Long productImageId) {
         productImageService.deleteProductImageFromProduct(productImageId);
         return ResponseEntity.noContent().build();

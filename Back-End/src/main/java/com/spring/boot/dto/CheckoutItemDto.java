@@ -8,4 +8,5 @@ import lombok.Setter;
 public class CheckoutItemDto {
     private Long productId;
     private Integer quantity;
+    private Double price;
 }

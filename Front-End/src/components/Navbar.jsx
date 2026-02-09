@@ -24,8 +24,6 @@ const Navbar = () => {
         return '/admin/dashboard';
       case 'VENDOR':
         return '/vendor/dashboard';
-      case 'CUSTOMER':
-        return '/';
       default:
         return '/';
     }
@@ -33,9 +31,6 @@ const Navbar = () => {
 
   const navLinks = [
     { name: 'Home', href: '/' },
-    { name: 'Features', href: '#features' },
-    { name: 'How It Works', href: '#how-it-works' },
-    { name: 'For Vendors', href: '/pricing' },
     { name: 'Pricing', href: '/pricing' },
     { name: 'Contact', href: '/contact' },
   ];
@@ -101,12 +96,12 @@ const Navbar = () => {
             ) : (
               <>
                 <Link to="/login">
-                  <button className="px-6 py-2 text-gray-700 font-medium hover:text-indigo-600 transition-colors">
+                  <button className="px-6 py-2 text-gray-700 font-medium hover:text-white rounded-full cursor-pointer hover:bg-indigo-600 transition-all 0.2s shadow-md hover:shadow-lg">
                     Login
                   </button>
                 </Link>
                 <Link to="/signup">
-                  <button className="px-6 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium rounded-full hover:from-indigo-700 hover:to-purple-700 transition-all shadow-md hover:shadow-lg">
+                  <button className="px-6 py-2 bg-gradient-to-r bg-indigo-600  text-white font-medium rounded-full hover:bg-white transition-all shadow-md hover:shadow-lg hover:text-indigo-600 cursor-pointer hover:scale-110">
                     Sign Up
                   </button>
                 </Link>
@@ -174,14 +169,14 @@ const Navbar = () => {
                   <>
                     <Link
                       to="/login"
-                      className="w-full py-2 text-gray-700 font-medium border rounded-lg hover:border-indigo-600 text-center"
+                      className="w-full py-2 text-gray-700 font-medium hover:text-white rounded-lg cursor-pointer hover:bg-indigo-600 transition-all 0.2s shadow-md hover:shadow-lg text-center"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Login
                     </Link>
                     <Link
                       to="/signup"
-                      className="w-full py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium rounded-lg hover:from-indigo-700 hover:to-purple-700 text-center"
+                      className="w-full py-2 bg-indigo-600 text-white hover:bg-white transition-all shadow-md hover:shadow-lg hover:text-indigo-600 cursor-pointer text-center rounded-lg"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Sign Up

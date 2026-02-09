@@ -28,16 +28,19 @@ public class SubscriptionPlanController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyRole('ADMIN')")
     public ResponseEntity<SubscriptionPlanDto> addSubscriptionPlan(@RequestBody SubscriptionPlanDto subscriptionPlanDto) throws URISyntaxException {
         return ResponseEntity.created(new URI("/subscription-plan/add")).body(subscriptionPlanService.addSubscriptionPlan(subscriptionPlanDto));
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyRole('ADMIN')")
     public ResponseEntity<SubscriptionPlanDto> updateSubscriptionPlan(@RequestBody SubscriptionPlanDto subscriptionPlanDto) {
         return ResponseEntity.ok(subscriptionPlanService.updateSubscriptionPlan(subscriptionPlanDto));
     }
 
     @DeleteMapping("/delete/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN')")
     public ResponseEntity<Void> deleteSubscriptionPlan(@PathVariable Long id) {
         subscriptionPlanService.deleteSubscriptionPlan(id);
         return ResponseEntity.noContent().build();

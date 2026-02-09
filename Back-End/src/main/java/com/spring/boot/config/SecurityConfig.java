@@ -51,7 +51,18 @@ public class SecurityConfig {
                         .requestMatchers("/auth/signup", "/auth/login","/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
-                                "/store/{storeName}",
+                                "/store/get/name/{storeName}",
+                                "/products/{productId}",
+                                "/product/get/all/{storeId}",
+                                "/product/get/{productId}/{storeId}",
+                                "/product/get/search/{productName}/{storeId}",
+                                "/product/get/category/{categoryId}/{storeId}",
+                                "/product/images/get/{productId}",
+                                "/category/get/store/{storeId}",
+                                "/category/get/{categoryId}",
+                                "/category/get/name/{categoryName}/store/{storeId}",
+                                "/customer/add",
+                                "/order/checkout",
                                 "/subscription-plan/get/all").permitAll()
                         .anyRequest().authenticated()
                 );

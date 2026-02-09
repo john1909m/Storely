@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { storeAPI } from '../../api/store.api';
 import { vendorAPI } from '../../api/vendor.api';
-import { orderAPI } from '../../api/order.api';
+import { logout } from './../../api/auth.api';
 
 const AdminDashboard = () => {
   const [stores, setStores] = useState([]);
@@ -45,16 +45,16 @@ const AdminDashboard = () => {
   // Calculate stats from real data
   const stats = {
     totalStores: stores.length,
-    activeStores: stores.filter(s => s.storeStatus?.toUpperCase() === 'ACTIVE').length,
-    inactiveStores: stores.filter(s => s.storeStatus?.toUpperCase() === 'INACTIVE').length,
+    activeStores: stores.filter(s => s.storeStatus === 'Active').length,
+    inactiveStores: stores.filter(s => s.storeStatus=== 'Inactive').length,
     totalVendors: vendors.length,
-    pendingStores: stores.filter(s => s.storeStatus?.toUpperCase() === 'INACTIVE').length,
+    pendingStores: stores.filter(s => s.storeStatus === 'Inactive').length,
   };
 
   // Get recent stores (last 5)
   const recentStores = stores
     .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
-    .slice(0, 5);
+    .slice(0, 10);
 
   if (isLoading) {
     return (
@@ -65,6 +65,15 @@ const AdminDashboard = () => {
         </div>
       </div>
     );
+  }
+
+  const logoutHandler =() => {
+    try{
+      sessionStorage.clear();
+      window.location.href = '/login';
+    } catch(err) {
+      console.error('Logout error:', err);
+    }
   }
 
   return (
@@ -78,9 +87,11 @@ const AdminDashboard = () => {
               <p className="text-gray-600">Platform administration and management</p>
             </div>
             <div className="flex items-center space-x-2 text-sm">
-              <Shield className="h-5 w-5 text-indigo-600" />
-              <span className="text-gray-600">Administrator Access</span>
+              <div>
+              <button onClick={logoutHandler} className='p-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-800 transition-colors cursor-pointer duration-200 px-4 ml-4'>Logout</button>
+              </div>
             </div>
+            
           </div>
         </div>
       </div>
@@ -154,10 +165,7 @@ const AdminDashboard = () => {
                   <DollarSign className="h-5 w-5" />
                   <span>Pricing Management</span>
                 </Link>
-                <Link to="/admin/settings" className="flex items-center space-x-3 p-3 text-gray-700 hover:bg-gray-50 rounded-xl">
-                  <Settings className="h-5 w-5" />
-                  <span>Platform Settings</span>
-                </Link>
+                
               </nav>
 
               {/* System Status */}

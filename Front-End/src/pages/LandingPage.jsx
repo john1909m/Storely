@@ -15,7 +15,6 @@ const LandingPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Redirect authenticated users based on role
     if (isAuthenticated) {
       switch (role?.toUpperCase()) {
         case 'ADMIN':
@@ -29,18 +28,9 @@ const LandingPage = () => {
             navigate('/vendor/create-store', { replace: true });
           }
           break;
-        case 'CUSTOMER':
-          // Redirect to last visited store or homepage
-          const lastStore = sessionStorage.getItem('lastVisitedStore');
-          if (lastStore) {
-            navigate(`/store/${lastStore}`, { replace: true });
-          } else {
-            // Stay on landing for customers to browse stores
-            // Or redirect to a store listing page
-          }
-          break;
+        
         default:
-          // Stay on landing
+          
           break;
       }
     }

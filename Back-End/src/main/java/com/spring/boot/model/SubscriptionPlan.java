@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -27,11 +29,17 @@ public class SubscriptionPlan {
 
     private Integer durationInDays;
 
-    private String features;
+    private ArrayList<String> features;
 
     private Boolean isActive=true;
 
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+
+    private Integer productLimit;
+
+    private Boolean popular;
+
+
 }
