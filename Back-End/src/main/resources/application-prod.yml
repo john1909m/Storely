@@ -1,15 +1,36 @@
 spring:
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://DB_HOST:5432/storely
-    username: prod_user
-    password: prod_pass
+    url: ${SUPABASE_URL}
+    username: postgres
+    password: ${SUPABASE_PASSWORD}
 
   jpa:
     hibernate:
       ddl-auto: validate
     show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
 
   flyway:
     enabled: true
     locations: classpath:db/migration
+
+logging:
+  level:
+    org.hibernate.SQL: debug
+    org.hibernate.type.descriptor.sql: trace
+
+    
+cloudflare:
+  r2:
+    bucket: ${CLOUDFLARE_R2_BUCKET}
+    public-url: ${CLOUDFLARE_R2_PUBLIC_URL}
+    access-key: ${CLOUDFLARE_R2_ACCESS_KEY}
+    secret-key: ${CLOUDFLARE_R2_SECRET_KEY}
+    account-id: ${CLOUDFLARE_R2_ACCOUNT_ID}
+
+token:
+  secret: hjfs46687kjsfkj@#@$#$@$%ffeddf@#sADDS
+  time: 36000000
