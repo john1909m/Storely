@@ -2,7 +2,7 @@ spring:
   datasource:
     driver-class-name: org.postgresql.Driver
     url: ${SUPABASE_URL}
-    username: postgres
+    username: Storely
     password: ${SUPABASE_PASSWORD}
 
   jpa:
