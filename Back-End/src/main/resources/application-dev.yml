@@ -46,10 +46,10 @@ token:
 
 cloudflare:
   r2:
-    bucket: storely-assets
-    public-url: https://pub-e3f67119581e41a09e34c0a920c52720.r2.dev
-    access-key: 4adfeadc1d78f84c6da78ba85e176aa4
-    secret-key: 35fdff5b70bde9b7eb2f58e7a07ff95e5ad678c940fa593e946b96dd028bcc15
-    account-id: 63ea452477a1a0be1a674adeab912669
+    bucket: ${CLOUDFLARE_R2_BUCKET}
+    public-url: ${CLOUDFLARE_R2_PUBLIC_URL}
+    access-key: ${CLOUDFLARE_R2_ACCESS_KEY}
+    secret-key: ${CLOUDFLARE_R2_SECRET_KEY}
+    account-id: ${CLOUDFLARE_R2_ACCOUNT_ID}
 
 
