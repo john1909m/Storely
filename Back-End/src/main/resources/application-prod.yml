@@ -22,7 +22,7 @@ logging:
     org.hibernate.SQL: debug
     org.hibernate.type.descriptor.sql: trace
 
-    
+
 cloudflare:
   r2:
     bucket: ${CLOUDFLARE_R2_BUCKET}
