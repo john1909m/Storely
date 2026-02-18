@@ -61,13 +61,7 @@ const ForVendors = () => {
               ))}
             </div>
             
-            <div className="mt-8 p-6 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl">
-              <div className="text-sm text-gray-600 mb-2">Success Story</div>
-              <div className="text-lg font-semibold text-gray-900">
-                "Storely helped me grow my handmade jewelry business by 300% in just 6 months!"
-              </div>
-              <div className="text-gray-600 mt-2">— Sarah Chen, Artisan Store</div>
-            </div>
+            
           </div>
           
           {/* Right Stats */}
@@ -94,12 +88,7 @@ const ForVendors = () => {
                 </div>
               </div>
               
-              <div className="mt-8 text-center">
-                <div className="text-sm text-white/80 mb-2">Ready to join successful vendors?</div>
-                <button className="px-8 py-3 bg-white text-indigo-600 font-semibold rounded-xl hover:bg-gray-100 transition-all shadow-lg">
-                  Start Free Trial
-                </button>
-              </div>
+              
             </div>
           </div>
         </div>

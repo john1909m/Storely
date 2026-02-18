@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/orderItem")
@@ -21,7 +22,7 @@ public class OrderItemController {
     }
 
     @GetMapping("/get/order/{orderId}")
-    public ResponseEntity<List<OrderItemDto>> getOrderItemsByOrderId(@PathVariable Long orderId) {
+    public ResponseEntity<List<OrderItemDto>> getOrderItemsByOrderId(@PathVariable UUID orderId) {
         return ResponseEntity.ok(orderItemService.getOrderItemsByOrderId(orderId));
     }
 
@@ -43,7 +44,7 @@ public class OrderItemController {
 
     @DeleteMapping("/delete/{orderItemId}")
     public ResponseEntity<Void> deleteOrderItem(
-            @PathVariable Long orderItemId) {
+            @PathVariable UUID orderItemId) {
         orderItemService.deleteOrderItem(orderItemId);
         return ResponseEntity.noContent().build();
     }

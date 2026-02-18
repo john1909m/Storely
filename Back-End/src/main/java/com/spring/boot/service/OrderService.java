@@ -4,18 +4,19 @@ import com.spring.boot.dto.CheckoutDto;
 import com.spring.boot.dto.OrderDto;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface OrderService {
 
-    List<OrderDto> getAllOrdersByStore(Long storeId);
+    List<OrderDto> getAllOrdersByStore(UUID storeId);
 
-    OrderDto getOrderById(Long orderId, Long storeId);
+    OrderDto getOrderById(UUID orderId, UUID storeId);
 
     OrderDto addOrder(OrderDto orderDto);
 
     OrderDto updateOrder(OrderDto orderDto);
 
-    void deleteOrder(Long orderId);
+    void deleteOrder(UUID orderId);
 
     OrderDto checkout(CheckoutDto dto);
 

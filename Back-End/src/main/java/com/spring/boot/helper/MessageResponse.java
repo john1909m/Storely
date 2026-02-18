@@ -10,6 +10,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class MessageResponse {
-    private String message_ar;
+//    private String message_ar;
     private String message_en;
 }

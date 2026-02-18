@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class CustomerServiceImpl implements CustomerService {
@@ -34,7 +35,7 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public CustomerDto getCustomerByOrderId(Long orderId) {
+    public CustomerDto getCustomerByOrderId(UUID orderId) {
         // First get the order
         Order order = orderRepo.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("order.not.found"));
@@ -48,14 +49,14 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public List<CustomerDto> getCustomersByStoreId(Long storeId) {
+    public List<CustomerDto> getCustomersByStoreId(UUID storeId) {
         return customerRepo.findAllByStores_Id(storeId).stream()
                 .map(customerMapper::toCustomerDto)
                 .toList();
     }
 
     @Override
-    public List<CustomerDto> getCustomersByCity(String city, Long storeId) {
+    public List<CustomerDto> getCustomersByCity(String city, UUID storeId) {
         return customerRepo.findAllByCityAndStores_Id(city, storeId).stream()
                 .map(customerMapper::toCustomerDto)
                 .toList();
@@ -63,6 +64,20 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public CustomerDto addCustomer(CustomerDto customerDto) {
+        if (customerDto.getFirstName().length() < 3) {
+            throw new RuntimeException("firstName.not.valid");
+        }
+        if (customerDto.getLastName().length() < 3) {
+            throw new RuntimeException("lastName.not.valid");
+        }
+        String phoneRegex = "^[0-9]{11}$";
+        if (customerDto.getPhoneNumber().matches(phoneRegex)) {
+            throw new RuntimeException("phone.not.valid");
+        }
+        if (customerDto.getWhatsappNumber().matches(phoneRegex)) {
+            throw new RuntimeException("phone.not.valid");
+        }
+
 
         Customer customer = customerMapper.toCustomerEntity(customerDto);
 
@@ -101,7 +116,7 @@ public class CustomerServiceImpl implements CustomerService {
 
 
     @Override
-    public void deleteCustomer(Long id) {
+    public void deleteCustomer(UUID id) {
         // Check if customer exists
         Customer customer = customerRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("customer.not.found"));

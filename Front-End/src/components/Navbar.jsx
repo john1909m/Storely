@@ -41,7 +41,9 @@ const Navbar = () => {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center space-x-2">
-            <ShoppingCart className="h-8 w-8 text-indigo-600" />
+            <div className='h-16 w-16 flex items-center justify-centerrounded-full'>
+               <img src="Logo.png" alt="Storely Logo" className=" text-indigo-600" />
+            </div>
             <span className="text-2xl font-bold text-gray-900">Storely</span>
           </div>
 

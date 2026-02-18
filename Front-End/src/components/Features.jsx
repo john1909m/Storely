@@ -28,12 +28,12 @@ const Features = () => {
       description: 'Stores look great on all devices with responsive design.',
       color: 'from-orange-500 to-red-500'
     },
-    {
-      icon: <Shield className="h-8 w-8" />,
-      title: 'Secure Payments',
-      description: 'Multiple payment gateways with PCI compliant security.',
-      color: 'from-indigo-500 to-blue-500'
-    },
+    // {
+    //   icon: <Shield className="h-8 w-8" />,
+    //   title: 'Secure Payments',
+    //   description: 'Multiple payment gateways with PCI compliant security.',
+    //   color: 'from-indigo-500 to-blue-500'
+    // },
     {
       icon: <BarChart className="h-8 w-8" />,
       title: 'Vendor Dashboard',

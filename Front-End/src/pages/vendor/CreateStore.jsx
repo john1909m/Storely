@@ -5,6 +5,8 @@ import { Store, MapPin, Phone, FileText, Palette, Type, ArrowLeft, Check } from 
 import { useAuth } from '../../hooks/useAuth';
 import { storeAPI } from '../../api/store.api';
 import { Link } from 'react-router-dom';
+import StoreFooter from '../../components/StoreFooter';
+import { useErrorHandler } from '../../hooks/useErrorHandler';
 
 const CreateStore = () => {
   const [formData, setFormData] = useState({
@@ -21,6 +23,7 @@ const CreateStore = () => {
   const [error, setError] = useState('');
   const { vendor, setStore, isVendor } = useAuth();
   const navigate = useNavigate();
+    const { handleError } = useErrorHandler();
 
   // Redirect if not vendor or already has store
   useEffect(() => {
@@ -63,7 +66,7 @@ const CreateStore = () => {
         primaryColor: formData.primaryColor,
         secondaryColor: formData.secondaryColor,
         fontFamily: formData.fontFamily,
-        storeStatus: 'Active', // Store is active immediately after creation
+        storeStatus: 'Inactive', // Store is inactive immediately after creation
         products: [],
         categories: [],
         orders: [],
@@ -78,7 +81,8 @@ const CreateStore = () => {
       // Redirect to vendor store page
       navigate('/vendor/store', { replace: true });
     } catch (err) {
-      setError(err.message || 'Failed to create store. Please try again.');
+      handleError(err);
+      
     } finally {
       setIsLoading(false);
     }
@@ -114,7 +118,7 @@ const CreateStore = () => {
             {/* Store Name */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Store Name *
+                Store Name * <span className='text-red-700'>(store name must not contain spaces or special characters)</span>
               </label>
               <div className="relative">
                 <Store className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -190,20 +194,8 @@ const CreateStore = () => {
               </div>
             </div>
 
-            {/* Store Logo URL */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Store Logo URL (Optional)
-              </label>
-              <input
-                type="url"
-                name="storeLogoUrl"
-                value={formData.storeLogoUrl}
-                onChange={handleChange}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all outline-none"
-                placeholder="https://example.com/logo.png"
-              />
-            </div>
+            
+            
 
             {/* Branding Section */}
             <div className="border-t border-gray-200 pt-6">
@@ -247,15 +239,14 @@ const CreateStore = () => {
 
               {/* Font Family */}
               <div className="mt-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Font Family
-                </label>
+                
                 <div className="relative">
-                  <Type className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  
                   <select
                     name="fontFamily"
                     value={formData.fontFamily}
                     onChange={handleChange}
+                    hidden
                     className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all outline-none"
                   >
                     <option value="Inter">Inter</option>
@@ -272,8 +263,9 @@ const CreateStore = () => {
             <div className="bg-green-50 border border-green-200 rounded-xl p-4">
               <p className="text-sm text-green-800 flex items-center">
                 <Check className="h-4 w-4 mr-2" />
-                <strong>Note:</strong> Your store will be created and set to Active status. 
-                You can start adding products immediately!
+                Your store will be created and set to Inctive status. 
+                You can start adding products and categories!
+
               </p>
             </div>
 
@@ -308,6 +300,7 @@ const CreateStore = () => {
           </form>
         </div>
       </div>
+      <StoreFooter />
     </div>
   );
 };

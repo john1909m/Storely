@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class VendorServiceImpl implements VendorService {
@@ -28,7 +29,7 @@ public class VendorServiceImpl implements VendorService {
     }
 
     @Override
-    public VendorDto getVendorById(Long id) {
+    public VendorDto getVendorById(UUID id) {
         return vendorRepo.findById(id)
                 .map(vendorMapper::toVendorDto)
                 .orElseThrow(() -> new RuntimeException("vendor.not.found") );
@@ -51,7 +52,7 @@ public class VendorServiceImpl implements VendorService {
     }
 
     @Override
-    public void deleteVendor(Long id) {
+    public void deleteVendor(UUID id) {
         Optional<Vendor> optionalVendor = vendorRepo.findById(id);
         if (optionalVendor.isEmpty()) {
             throw new RuntimeException("Vendor.not.found");
@@ -67,7 +68,7 @@ public class VendorServiceImpl implements VendorService {
     }
 
     @Override
-    public VendorDto getVendorByStoreId(Long storeId) {
+    public VendorDto getVendorByStoreId(UUID storeId) {
         return vendorRepo.findVendorBystoreId(storeId)
                 .map(vendorMapper::toVendorDto)
                 .orElseThrow(()-> new RuntimeException("vendor.not.found"));

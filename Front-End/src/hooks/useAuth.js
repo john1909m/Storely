@@ -1,4 +1,4 @@
-// Custom hook for authentication
+// Custom hook for authentication (Cookie-based)
 import { useEffect } from 'react';
 import useAuthStore from '../store/authStore';
 
@@ -20,7 +20,6 @@ export const useAuth = () => {
     vendor: authStore.vendor,
     store: authStore.store,
     role: authStore.role,
-    token: authStore.token,
     isAuthenticated: authStore.isAuthenticated,
     isLoading: authStore.isLoading,
     error: authStore.error,

@@ -30,6 +30,7 @@ import StoreDetails from './pages/vendor/StoreDetails';
 import ContactSupport from './pages/vendor/ContactSupport';
 import VendorPayment from './pages/vendor/Payment';
 import CreateStore from './pages/vendor/CreateStore';
+import VendorAnalytics from './pages/vendor/Analytics';
 
 // Admin Pages
 import ManageStores from './pages/admin/ManageStores';
@@ -43,6 +44,7 @@ import AdminDashboard from './pages/dashboards/AdminDashboard';
 
 // Protected Route Components
 import ProtectedRoute, { VendorRoute, AdminRoute, CustomerRoute } from './routes/ProtectedRoutes';
+import { ToastProvider } from './contexts/ToastContext';
 
 // Create a wrapper component that uses useLocation
 const AppContent = () => {
@@ -50,6 +52,7 @@ const AppContent = () => {
   // We'll handle redirect logic differently
   
   return (
+    <ToastProvider>
     <Routes>
       {/* Public Routes */}
       <Route path="/" element={<LandingPage />} />
@@ -106,6 +109,11 @@ const AppContent = () => {
       <Route path="/vendor/product/:productId" element={
         <VendorRoute>
           <VendorProductView />
+        </VendorRoute>
+      } />
+      <Route path='/vendor/analytics' element={
+        <VendorRoute>
+          <VendorAnalytics />
         </VendorRoute>
       } />
       <Route path="/vendor/orders" element={
@@ -187,6 +195,7 @@ const AppContent = () => {
       {/* Fallback Route */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </ToastProvider>
   );
 };
 

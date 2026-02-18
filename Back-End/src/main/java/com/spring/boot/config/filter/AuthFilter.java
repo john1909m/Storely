@@ -4,6 +4,7 @@ import com.spring.boot.config.jwt.TokenHandler;
 import com.spring.boot.dto.UserDto;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -28,29 +29,48 @@ public class AuthFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain)
             throws ServletException, IOException {
-        String token = request.getHeader("Authorization");
-        if (token != null && token.startsWith("Bearer ")) {
-            token = token.substring(7);
-            System.out.println("Token received: " + token); // DEBUG
-            UserDto userDto = tokenHandler.validateToken(token);
-            if (userDto != null) {
-                System.out.println("Token valid, user: " + userDto.getName());
-                List<SimpleGrantedAuthority> roles =
-                        List.of(new SimpleGrantedAuthority("ROLE_" + userDto.getRole().toUpperCase().trim()));
-                UsernamePasswordAuthenticationToken auth =
-                        new UsernamePasswordAuthenticationToken(userDto, null, roles);
-                System.out.println("Roles in token: " + roles);
-                SecurityContextHolder.getContext().setAuthentication(auth);
-                System.out.println("Auth set: " + auth.getPrincipal() + " | Roles: " + roles);
 
-            }else {
-                System.out.println("Token invalid or expired");
+        String token = null;
+
+        // ✅ Get token from cookie
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("access_token".equals(cookie.getName())) {
+                    token = cookie.getValue();
+                    break;
+                }
             }
         }
-        System.out.println("Request URI: " + request.getRequestURI());
-        System.out.println("Authorization header: " + token);
+
+        if (token != null) {
+            try {
+                UserDto userDto = tokenHandler.validateToken(token);
+
+                if (userDto != null) {
+                    List<SimpleGrantedAuthority> authorities =
+                            List.of(new SimpleGrantedAuthority(
+                                    "ROLE_" + userDto.getRole().toUpperCase().trim()
+                            ));
+
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(
+                                    userDto,
+                                    null,
+                                    authorities
+                            );
+
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
+
+            } catch (Exception e) {
+                SecurityContextHolder.clearContext();
+            }
+        }
+
         filterChain.doFilter(request, response);
     }
 

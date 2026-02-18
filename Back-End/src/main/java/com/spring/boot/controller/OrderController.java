@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/order")
@@ -24,15 +25,15 @@ public class OrderController {
 
     @GetMapping("/get/store/{storeId}")
     @PreAuthorize("hasAnyRole('VENDOR','ADMIN')")
-    public ResponseEntity<List<OrderDto>> getAllOrdersByStore(@PathVariable("storeId") Long storeId) {
+    public ResponseEntity<List<OrderDto>> getAllOrdersByStore(@PathVariable("storeId") UUID storeId) {
         return ResponseEntity.ok(orderService.getAllOrdersByStore(storeId));
     }
 
     @GetMapping("/get/{orderId}/store/{storeId}")
     @PreAuthorize("hasAnyRole('VENDOR','ADMIN')")
     public ResponseEntity<OrderDto> getOrderById(
-            @PathVariable("orderId") Long orderId,
-            @PathVariable("storeId") Long storeId) {
+            @PathVariable("orderId") UUID orderId,
+            @PathVariable("storeId") UUID storeId) {
         return ResponseEntity.ok(orderService.getOrderById(orderId, storeId));
     }
 
@@ -51,7 +52,7 @@ public class OrderController {
 
     @DeleteMapping("/delete/{orderId}")
     @PreAuthorize("hasAnyRole('VENDOR','ADMIN')")
-    public ResponseEntity<Void> deleteOrder(@PathVariable("orderId") Long orderId) {
+    public ResponseEntity<Void> deleteOrder(@PathVariable("orderId") UUID orderId) {
         orderService.deleteOrder(orderId);
         return ResponseEntity.noContent().build();
     }

@@ -1,6 +1,7 @@
 // components/Hero.jsx
 import React from 'react';
 import { ArrowRight, Store, Users } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Hero = () => {
   return (
@@ -26,30 +27,16 @@ const Hero = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 mb-12">
+              <Link to="/signup">
               <button className="px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl flex items-center justify-center space-x-2">
                 <span>Create Your Store</span>
                 <ArrowRight className="h-5 w-5" />
               </button>
-              <button className="px-8 py-4 bg-white text-gray-800 font-semibold rounded-xl border-2 border-gray-200 hover:border-indigo-400 transition-all shadow-md hover:shadow-lg flex items-center justify-center space-x-2">
-                <Users className="h-5 w-5" />
-                <span>Explore Stores</span>
-              </button>
+              </Link>
+              
             </div>
             
-            <div className="flex items-center space-x-8">
-              <div>
-                <div className="text-2xl font-bold text-gray-900">5,000+</div>
-                <div className="text-gray-600">Active Vendors</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-gray-900">50K+</div>
-                <div className="text-gray-600">Products Sold</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-gray-900">99.9%</div>
-                <div className="text-gray-600">Uptime</div>
-              </div>
-            </div>
+            
           </div>
           
           {/* Right Illustration */}
@@ -64,7 +51,7 @@ const Hero = () => {
                     </div>
                     <div>
                       <div className="font-semibold text-gray-900">My Store Dashboard</div>
-                      <div className="text-sm text-gray-500">storely.com/mystore</div>
+                      <div className="text-sm text-gray-500">storely-eg.com/mystore</div>
                     </div>
                   </div>
                   <div className="h-3 w-16 bg-green-100 rounded-full">

@@ -1,17 +1,19 @@
 package com.spring.boot.service;
 
 import com.spring.boot.dto.StoreDto;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface StoreService {
     List<StoreDto> getAllStores();
 
-    StoreDto getStoreByStoreId(Long storeId);
+    StoreDto getStoreByStoreId(UUID storeId);
 
     StoreDto getStoreByStoreName(String storeName);
 
-    StoreDto getStoreByVendorId(Long VendorId);
+    StoreDto getStoreByVendorId(UUID VendorId);
 
     StoreDto getStoreByVendorName(String VendorName);
 
@@ -19,6 +21,12 @@ public interface StoreService {
 
     StoreDto updateStore(StoreDto storeDto);
 
-    void deleteStore(Long storeId);
+    void deleteStore(UUID storeId);
+
+    String uploadStoreImage(UUID storeId, MultipartFile file, String type);
+
+
+
+
 
 }

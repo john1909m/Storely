@@ -7,7 +7,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Getter
@@ -18,17 +20,22 @@ import java.time.LocalDateTime;
 public class VendorSubscription {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
-    private LocalDateTime startTime;
-    private LocalDateTime endTime;
+    private LocalDate startDate;
+    private LocalDate endDate;
+
+    private String billingCycle;
+
 
     @Enumerated(EnumType.STRING)
     private SubscriptionStatus status;
     // ACTIVE, EXPIRED, CANCELED, PENDING
 
     private Boolean autoRenew = false;
+
+    private Boolean analytics = false;
 
     @ManyToOne
     @JoinColumn(name = "vendor_id", nullable = false)

@@ -13,9 +13,14 @@ import com.spring.boot.model.User;
 import com.spring.boot.repo.UserRepo;
 import com.spring.boot.service.AuthService;
 import com.spring.boot.service.UserService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.SystemException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +32,8 @@ public class AuthServiceImpl implements AuthService {
 
     @Autowired
     private UserService userService;
+
+
 
     @Autowired
     private UserMapper userMapper;
@@ -52,12 +59,14 @@ public class AuthServiceImpl implements AuthService {
         userService.addUser(userDto);
     }
 
+
+
     @Override
-    public LoginResponseVM login(LoginRequestVM loginRequestVm) throws SystemException {
+    public LoginResponseVM login(LoginRequestVM loginRequestVm, HttpServletResponse response) throws SystemException {
 
 
         User user = userRepo.findByEmail(loginRequestVm.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("User.not.found"));
 
 
 
@@ -83,6 +92,38 @@ public class AuthServiceImpl implements AuthService {
         // إنشاء token
         String token = tokenHandler.createToken(userDto);
 
-        return new LoginResponseVM(token, userDto, vendorDto,adminDto);
+        Cookie cookie = new Cookie("access_token", token);
+        cookie.setHttpOnly(true);     // أهم حاجة
+        cookie.setSecure(false);      // true في production
+        cookie.setPath("/");
+        cookie.setMaxAge(60 * 60 * 24); // 1 day
+
+        response.addCookie(cookie);
+
+
+        return new LoginResponseVM(null, userDto, vendorDto,adminDto);
+    }
+
+
+    @Override
+    public void logout(HttpServletRequest request, HttpServletResponse response) {
+
+        // 🔹 مسح الكوكي
+        Cookie cookie = new Cookie("access_token", null);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(false); // true في production مع HTTPS
+        cookie.setPath("/");
+        cookie.setMaxAge(0); // 👈 delete
+
+        response.addCookie(cookie);
+
+        // 🔹 clear spring security context
+        SecurityContextHolder.clearContext();
+
+        // 🔹 invalidate session لو موجودة
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
     }
 }

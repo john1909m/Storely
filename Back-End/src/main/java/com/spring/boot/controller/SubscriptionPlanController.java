@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/subscription-plan")
@@ -27,21 +28,27 @@ public class SubscriptionPlanController {
         return ResponseEntity.ok(subscriptionPlanService.findAllPlans());
     }
 
+    @GetMapping("/get/{planId}")
+    @PreAuthorize("hasAnyRole('ADMIN','VENDOR')")
+    public ResponseEntity<SubscriptionPlanDto> getSubscriptionPlan(@PathVariable("planId") UUID planId) {
+        return ResponseEntity.ok(subscriptionPlanService.getSubscriptionPlanById(planId));
+    }
+
     @PostMapping("/add")
-    @PreAuthorize("hasAnyRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','VENDOR')")
     public ResponseEntity<SubscriptionPlanDto> addSubscriptionPlan(@RequestBody SubscriptionPlanDto subscriptionPlanDto) throws URISyntaxException {
         return ResponseEntity.created(new URI("/subscription-plan/add")).body(subscriptionPlanService.addSubscriptionPlan(subscriptionPlanDto));
     }
 
     @PutMapping("/update")
-    @PreAuthorize("hasAnyRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','VENDOR')")
     public ResponseEntity<SubscriptionPlanDto> updateSubscriptionPlan(@RequestBody SubscriptionPlanDto subscriptionPlanDto) {
         return ResponseEntity.ok(subscriptionPlanService.updateSubscriptionPlan(subscriptionPlanDto));
     }
 
     @DeleteMapping("/delete/{id}")
     @PreAuthorize("hasAnyRole('ADMIN')")
-    public ResponseEntity<Void> deleteSubscriptionPlan(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteSubscriptionPlan(@PathVariable UUID id) {
         subscriptionPlanService.deleteSubscriptionPlan(id);
         return ResponseEntity.noContent().build();
 

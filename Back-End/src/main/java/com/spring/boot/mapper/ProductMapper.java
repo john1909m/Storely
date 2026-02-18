@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring" , uses = { ProductVariantMapper.class })
 public interface ProductMapper {
 
     @Mapping(target = "imageUrls", expression = "java(mapUrls(product.getImages()))")
@@ -20,6 +20,7 @@ public interface ProductMapper {
     @Mapping(source = "category.id", target = "categoryId")
     @Mapping(source = "category.name", target = "categoryName")
     @Mapping(source = "store.id", target = "storeId")
+    @Mapping(target = "variants", source = "variants")
     ProductDto toProductDto(Product product);
 
     @Mapping(
@@ -29,6 +30,7 @@ public interface ProductMapper {
     @Mapping(source = "categoryId", target = "category.id")
     @Mapping(source = "storeId" , target="store.id")
     @Mapping(source = "categoryName", target = "category.name")
+    @Mapping(target = "variants", ignore = true)
     Product toProductEntity(ProductDto dto);
 
     default List<String> mapUrls(List<ProductImage> images) {
@@ -74,5 +76,7 @@ public interface ProductMapper {
                 })
                 .toList();
     }
+
+
 
 }

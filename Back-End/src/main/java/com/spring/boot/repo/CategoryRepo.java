@@ -6,9 +6,18 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface CategoryRepo extends JpaRepository<Category,Long> {
-    List<Category> findByStore_Id(Long storeId);
-    Optional<Category> findByNameAndStore_Id(String name, Long storeId);
+public interface CategoryRepo extends JpaRepository<Category, UUID> {
+    List<Category> findByStore_Id(UUID storeId);
+    Optional<Category> findByNameAndStore_Id(String name, UUID storeId);
+    boolean existsByNameIgnoreCaseAndStoreId(String name, UUID storeId);
+
+    boolean existsByNameIgnoreCaseAndStoreIdAndIdNot(
+            String name,
+            UUID storeId,
+            UUID id
+    );
+
 }

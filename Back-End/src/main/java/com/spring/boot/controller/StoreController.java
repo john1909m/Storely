@@ -7,10 +7,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/store")
@@ -28,7 +32,7 @@ public class StoreController {
     }
 
     @GetMapping("/get/{storeId}")
-    public ResponseEntity<StoreDto> getStoreById(@PathVariable("storeId") Long storeId) {
+    public ResponseEntity<StoreDto> getStoreById(@PathVariable("storeId") UUID storeId) {
         return ResponseEntity.ok(storeService.getStoreByStoreId(storeId));
     }
 
@@ -39,7 +43,7 @@ public class StoreController {
 
     @GetMapping("/get/vendor/{vendorId}")
     @PreAuthorize("hasAnyRole('ADMIN','VENDOR')")
-    public ResponseEntity<StoreDto> getStoreByVendor(@PathVariable("vendorId") Long vendorId) {
+    public ResponseEntity<StoreDto> getStoreByVendor(@PathVariable("vendorId") UUID vendorId) {
         return ResponseEntity.ok(storeService.getStoreByVendorId(vendorId));
     }
 
@@ -63,10 +67,24 @@ public class StoreController {
 
     @DeleteMapping("/delete/{storeId}")
     @PreAuthorize("hasAnyRole('ADMIN')")
-    public ResponseEntity<Void> deleteStore(@PathVariable("storeId") Long storeId) {
+    public ResponseEntity<Void> deleteStore(@PathVariable("storeId") UUID storeId) {
         storeService.deleteStore(storeId);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{storeId}/upload-image")
+    @PreAuthorize("hasAnyRole('ADMIN','VENDOR')")
+    public ResponseEntity<Map<String,String>> uploadStoreImage(@PathVariable UUID storeId,
+                                                               @RequestParam("file") MultipartFile file,
+                                                               @RequestParam("type") String type ){
+        String imageUrl = storeService.uploadStoreImage(storeId, file, type);
+
+        return ResponseEntity.ok(
+                Map.of("url", imageUrl)
+        );
+    }
+
+
 
 
 

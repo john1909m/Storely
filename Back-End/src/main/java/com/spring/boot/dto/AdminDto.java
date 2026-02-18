@@ -8,12 +8,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Getter
 @Setter
 @RequiredArgsConstructor
 public class AdminDto {
-    private Long id;
+    private UUID id;
 
     private String name;
 
@@ -27,5 +28,5 @@ public class AdminDto {
 
     private String role="ADMIN";
 
-    private Long userId;
+    private UUID userId;
 }

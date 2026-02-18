@@ -5,11 +5,12 @@ import com.spring.boot.service.ProductImageService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class ProductImageServiceImpl implements ProductImageService {
     @Override
-    public List<ProductImageDto> getProductImageByProductId(Long productId) {
+    public List<ProductImageDto> getProductImageByProductId(UUID productId) {
         return List.of();
     }
 
@@ -24,7 +25,7 @@ public class ProductImageServiceImpl implements ProductImageService {
     }
 
     @Override
-    public void deleteProductImageFromProduct(Long productImageId) {
+    public void deleteProductImageFromProduct(UUID productImageId) {
 
     }
 }

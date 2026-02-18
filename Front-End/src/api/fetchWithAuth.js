@@ -1,106 +1,124 @@
-// Centralized API service with authentication
+// api/fetchWithAuth.js
 import { API_BASE_URL } from '../config/api.config';
 
 /**
- * Secure token storage using sessionStorage (more secure than localStorage)
- * For production, consider using httpOnly cookies or secure storage solutions
+ * Clear session storage data (cookies are handled by backend)
  */
-const getToken = () => {
-  return sessionStorage.getItem('authToken');
-};
-
-const setToken = (token) => {
-  if (token) {
-    sessionStorage.setItem('authToken', token);
-  } else {
-    sessionStorage.removeItem('authToken');
-  }
-};
-
-const clearAuth = () => {
-  sessionStorage.removeItem('authToken');
+const clearAuthData = () => {
   sessionStorage.removeItem('userRole');
   sessionStorage.removeItem('userId');
   sessionStorage.removeItem('vendorId');
+  sessionStorage.removeItem('storeId');
+  sessionStorage.removeItem('storeName');
 };
 
 /**
- * Enhanced fetch wrapper with automatic auth token attachment and error handling
- * @param {string} url - API endpoint (relative or absolute)
- * @param {object} options - Fetch options (method, body, headers, etc.)
- * @param {boolean} requireAuth - Whether authentication is required (default: true)
- * @returns {Promise<Response>}
+ * Enhanced fetch wrapper with automatic cookie-based authentication
  */
 export const fetchWithAuth = async (url, options = {}, requireAuth = true) => {
-  // Build full URL if relative
   const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`;
 
-  // Default headers
   const headers = {
     'Content-Type': 'application/json',
     ...options.headers,
   };
 
-  // Attach auth token if required and available
-  if (requireAuth) {
-    const token = getToken();
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
+  const isFormData = options.body instanceof FormData;
+  if (isFormData) {
+    delete headers['Content-Type'];
   }
 
-  // Merge options
   const fetchOptions = {
     ...options,
     headers,
+    credentials: 'include',
   };
 
   try {
     const response = await fetch(fullUrl, fetchOptions);
 
-    // Handle 401 Unauthorized - token expired or invalid
+    // Handle 401 Unauthorized
     if (response.status === 401) {
-      clearAuth();
-      // Redirect to login if not already there
+      clearAuthData();
       if (window.location.pathname !== '/login') {
         window.location.href = '/login?expired=true';
       }
-      throw new Error('Unauthorized: Please login again');
+      const error = new Error('Unauthorized: Please login again');
+      error.response = {
+        status: 401,
+        data: { message_ar: 'الرجاء تسجيل الدخول مرة أخرى', message_en: 'Please login again' },
+        headers: response.headers
+      };
+      throw error;
     }
 
-    // Handle 403 Forbidden - insufficient permissions
+    // Handle 403 Forbidden
     if (response.status === 403) {
-      throw new Error('Forbidden: You do not have permission to access this resource');
+      const error = new Error('Forbidden: You do not have permission');
+      error.response = {
+        status: 403,
+        data: { message_ar: 'ليس لديك صلاحية', message_en: 'Access denied' },
+        headers: response.headers
+      };
+      throw error;
     }
 
-    // Handle other errors
+    // Handle other errors (400, 404, 500, etc.)
     if (!response.ok) {
-      let errorMessage = `HTTP error! status: ${response.status}`;
+      let errorData = null;
+      let errorText = '';
+      
       try {
         const text = await response.text();
         if (text) {
           try {
-            const errorData = JSON.parse(text);
-            errorMessage = errorData.message || errorData.error || errorMessage;
+            errorData = JSON.parse(text);
+            errorText = JSON.stringify(errorData);
           } catch {
-            // If not JSON, use the text as error message
-            errorMessage = text.substring(0, 200) || errorMessage;
+            errorText = text;
+            errorData = { message: text };
           }
         }
       } catch (e) {
-        // If we can't read the response, use default message
+        errorText = 'Could not read response';
       }
-      throw new Error(errorMessage);
-    }
 
-    // Return response for manual parsing if needed
-    return response;
-  } catch (error) {
-    // Re-throw with context
-    if (error.message.includes('Unauthorized') || error.message.includes('Forbidden')) {
+      // ✅ إنشاء error object بالشكل المطلوب
+      const error = new Error(errorData?.message || errorText || `HTTP error ${response.status}`);
+      
+      error.response = {
+        status: response.status,
+        statusText: response.statusText,
+        data: errorData,        // هنا هيكون فيه message_ar و message_en
+        headers: response.headers,
+        url: response.url
+      };
+      error.status = response.status;
+      
+      console.log(errorData);
+      
       throw error;
     }
-    throw new Error(`Network error: ${error.message}`);
+
+    return response;
+    
+  } catch (error) {
+    // لو الـ error أصلاً من النوع اللي احنا عملناه
+    if (error.response) {
+      throw error;
+    }
+    
+    // لو error تاني (مشكلة في الشبكة)
+    const networkError = new Error(error.message || 'Network error');
+    networkError.response = {
+      status: 0,
+      data: { 
+        message_ar: 'خطأ في الشبكة. تحقق من اتصالك', 
+        message_en: 'Network error. Please check your connection.' 
+      }
+    };
+    networkError.status = 0;
+    throw networkError;
   }
 };
 
@@ -110,52 +128,21 @@ export const fetchWithAuth = async (url, options = {}, requireAuth = true) => {
 export const fetchJSON = async (url, options = {}, requireAuth = true) => {
   const response = await fetchWithAuth(url, options, requireAuth);
   
-  // Check if response has content
   const contentType = response.headers.get('content-type');
-  const contentLength = response.headers.get('content-length');
-  
-  // If no content or empty response, return empty object
-  if (contentLength === '0' || !contentType) {
-    return {};
-  }
-  
-  // Check if response is actually JSON
-  if (!contentType || !contentType.includes('application/json')) {
-    const text = await response.text();
-    // If empty text, return empty object
-    if (!text || text.trim() === '') {
-      return {};
-    }
-    // Try to parse as JSON anyway (some servers don't set content-type correctly)
-    try {
-      return JSON.parse(text);
-    } catch (e) {
-      throw new Error(`Server returned non-JSON response: ${text.substring(0, 100)}`);
-    }
-  }
-  
-  // Get response text first to check if it's empty
   const text = await response.text();
   
-  // If empty, return empty object
   if (!text || text.trim() === '') {
     return {};
   }
   
-  // Parse JSON
   try {
     return JSON.parse(text);
   } catch (e) {
-    throw new Error(`Invalid JSON response: ${e.message}`);
+    return { message: text };
   }
 };
 
-/**
- * Token management utilities
- */
-export const tokenManager = {
-  get: getToken,
-  set: setToken,
-  clear: clearAuth,
-  exists: () => !!getToken(),
+export const cookieManager = {
+  isAuthenticated: () => !!sessionStorage.getItem('userRole'),
+  clear: clearAuthData,
 };

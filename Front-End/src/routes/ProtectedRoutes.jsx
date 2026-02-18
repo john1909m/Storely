@@ -17,14 +17,6 @@ const ProtectedRoute = ({
   const { isAuthenticated, role, isLoading} = useAuth();
   const location = useLocation();
 
-  // Initialize auth on mount
-  useEffect(() => {
-    if (!isAuthenticated && !isLoading) {
-      return;
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   // Show loading state while checking auth
   if (isLoading) {
     return (
@@ -75,30 +67,56 @@ export const VendorRoute = ({ children, requireStore = false }) => {
     );
   }
 
-  // If route requires store and vendor doesn't have one, redirect to create-store
-  if (requireStore && isVendor() && !hasStore()) {
-    console.log('VendorRoute: No store found, redirecting to create-store');
-    return <Navigate to="/vendor/create-store" state={{ from: location }} replace />;
+  // First check if user is vendor (let ProtectedRoute handle role checking)
+  // We'll handle store-specific logic here
+  
+  const currentPath = location.pathname;
+  
+  console.log('VendorRoute - Path:', currentPath, 'Has Store:', hasStore(), 'Store:', store);
+
+  // CASE 1: Vendor with store
+  if (isVendor() && hasStore()) {
+    // If trying to access create-store, redirect to store
+    if (currentPath === '/vendor/create-store') {
+      console.log('VendorRoute: Has store, redirecting from create-store to store');
+      return <Navigate to="/vendor/store" replace />;
+    }
+    
+    // If trying to access dashboard, redirect to store (or keep on dashboard if you want)
+    if (currentPath === '/vendor/dashboard') {
+      console.log('VendorRoute: Has store, redirecting from dashboard to store');
+      return <Navigate to="/vendor/store" replace />;
+    }
+    
+    // Allow access to store page and other vendor routes
+    console.log('VendorRoute: Has store, allowing access to:', currentPath);
+    return (
+      <ProtectedRoute allowedRoles={['VENDOR']}>
+        {children}
+      </ProtectedRoute>
+    );
+  }
+  
+  // CASE 2: Vendor without store
+  if (isVendor() && !hasStore()) {
+    // If trying to access store or dashboard without store, redirect to create-store
+    if (currentPath === '/vendor/store' || currentPath === '/vendor/dashboard') {
+      console.log('VendorRoute: No store, redirecting to create-store');
+      return <Navigate to="/vendor/create-store" replace />;
+    }
+    
+    // Allow access to create-store page
+    if (currentPath === '/vendor/create-store') {
+      console.log('VendorRoute: No store, allowing access to create-store');
+      return (
+        <ProtectedRoute allowedRoles={['VENDOR']}>
+          {children}
+        </ProtectedRoute>
+      );
+    }
   }
 
-  // If vendor has store but trying to access create-store, redirect to store
-  if (isVendor() && hasStore() && location.pathname === '/vendor/create-store') {
-    console.log('VendorRoute: Store exists, redirecting from create-store to store');
-    return <Navigate to="/vendor/store" replace />;
-  }
-
-  // If vendor accesses /vendor/dashboard without store, redirect to create-store
-  if (isVendor() && !hasStore() && location.pathname === '/vendor/dashboard') {
-    console.log('VendorRoute: No store, redirecting dashboard to create-store');
-    return <Navigate to="/vendor/create-store" replace />;
-  }
-
-  // If vendor accesses /vendor/dashboard with store, redirect to store page
-  if (isVendor() && hasStore() && location.pathname === '/vendor/dashboard') {
-    console.log('VendorRoute: Store exists, redirecting dashboard to store');
-    return <Navigate to="/vendor/store" replace />;
-  }
-
+  // Default case - let ProtectedRoute handle it
   return (
     <ProtectedRoute allowedRoles={['VENDOR']}>
       {children}

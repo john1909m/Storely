@@ -3,21 +3,26 @@ package com.spring.boot.dto;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Getter
 @Setter
 public class VendorSubscriptionDto {
-    private Long id;
+    private UUID id;
 
-    private Long vendorId;
-    private Long planId;
+    private UUID vendorId;
+    private UUID planId;
 
     private String planName;
 
-    private LocalDateTime startDate;
-    private LocalDateTime endDate;
+    private String billingCycle;
+
+    private LocalDate startDate;
+    private LocalDate endDate;
 
     private String status;
     private Boolean autoRenew;
+    private Boolean analytics;
 }

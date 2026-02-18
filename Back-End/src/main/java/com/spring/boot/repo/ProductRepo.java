@@ -7,12 +7,17 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface ProductRepo extends JpaRepository<Product,Long> {
-    List<Product> findByStore_Id(Long id);
-    Optional<Product> findByIdAndStore_Id(Long id,Long storeId);
-    Optional<Product> findByCategory_IdAndStore_Id(Long categoryId,Long storeId);
+public interface ProductRepo extends JpaRepository<Product, UUID> {
+    List<Product> findByStore_Id(UUID id);
+    Optional<Product> findByName(String name);
+    Optional<Product> findByIdAndStore_Id(UUID id,UUID storeId);
+    Optional<Product> findByCategory_IdAndStore_Id(UUID categoryId,UUID storeId);
 
-    List<Product> findByNameStartingWithAndStore_Id(String name, Long storeId);
+    List<Product> findByNameStartingWithAndStore_Id(String name, UUID storeId);
+
+    Integer countByStoreId(UUID storeId);
+
 }

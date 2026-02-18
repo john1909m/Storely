@@ -5,18 +5,19 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Getter
 @Setter
 @RequiredArgsConstructor
 public class VendorDto{
 
-    private Long id;
+    private UUID id;
     private String name;
     private String email;
     private String password;
     private String phoneNumber;
     private String role = "VENDOR";
     private LocalDateTime createdAt=LocalDateTime.now();
-    private Long userId;
+    private UUID userId;
 }

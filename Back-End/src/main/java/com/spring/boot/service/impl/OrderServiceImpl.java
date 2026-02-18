@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -37,14 +38,14 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrderDto> getAllOrdersByStore(Long storeId) {
+    public List<OrderDto> getAllOrdersByStore(UUID storeId) {
         return orderRepo.findByStore_Id(storeId).stream()
                 .map(orderMapper::toOrderDto)
                 .toList();
     }
 
     @Override
-    public OrderDto getOrderById(Long orderId, Long storeId) {
+    public OrderDto getOrderById(UUID orderId, UUID storeId) {
         return orderRepo.findByIdAndStore_Id(orderId, storeId)
                 .map(orderMapper::toOrderDto)
                 .orElseThrow(() -> new RuntimeException("order.not.found.in.store"));
@@ -67,29 +68,96 @@ public class OrderServiceImpl implements OrderService {
         return orderMapper.toOrderDto(savedOrder);
     }
 
+    private void restoreStock(Order order) {
+
+        for (OrderItem item : order.getOrderItems()) {
+
+            Product product = item.getProduct();
+            int qty = item.getQuantity();
+
+            // 1️⃣ Product بدون variants
+            if (product.getVariants().isEmpty()) {
+                product.setQuantity(product.getQuantity() + qty);
+                continue;
+            }
+
+            // 2️⃣ Product فيه variants
+            ProductVariant variant = product.getVariants().stream()
+                    .filter(v ->
+                            (item.getProductColor() == null || item.getProductColor().equals(v.getProductColor())) &&
+                                    (item.getProductSize() == null || item.getProductSize().equals(v.getProductSize()))
+                    )
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("variant.not.found"));
+
+            variant.setQuantity(variant.getQuantity() + qty);
+        }
+    }
+
+    private boolean isValidStatusTransition(OrderStatus oldStatus, OrderStatus newStatus) {
+
+        // ✅ cancelled مسموح دايمًا
+        if (newStatus == OrderStatus.CANCELLED) {
+            return true;
+        }
+
+        // ❌ ممنوع أي انتقال بعد delivered
+        if (oldStatus == OrderStatus.DELIVERED) {
+            return false;
+        }
+
+        // ترتيب الـ flow
+        List<OrderStatus> flow = List.of(
+                OrderStatus.PENDING,
+                OrderStatus.CONFIRMED,
+                OrderStatus.PROCESSING,
+                OrderStatus.SHIPPED,
+                OrderStatus.DELIVERED
+        );
+
+        int oldIndex = flow.indexOf(oldStatus);
+        int newIndex = flow.indexOf(newStatus);
+
+        // لازم يتحرك خطوة لقدّام بس
+        return newIndex == oldIndex + 1;
+    }
+
+
+
     @Override
+    @Transactional
     public OrderDto updateOrder(OrderDto orderDto) {
-        // First check if order exists
+
         Order existingOrder = orderRepo.findById(orderDto.getId())
                 .orElseThrow(() -> new RuntimeException("order.not.found"));
 
-        // Map DTO to entity
-        Order updatedOrder = orderMapper.toOrderEntity(orderDto);
-        updatedOrder.setId(existingOrder.getId()); // Preserve the ID
+        OrderStatus oldStatus = existingOrder.getStatus();
+        OrderStatus newStatus = OrderStatus.valueOf(orderDto.getStatus());
 
-        // Handle store relationship
-        if (updatedOrder.getStore() != null && updatedOrder.getStore().getId() != null) {
-            Store existingStore = storeRepo.findById(updatedOrder.getStore().getId())
-                    .orElseThrow(() -> new RuntimeException("store.not.found"));
-            updatedOrder.setStore(existingStore);
+        // ❌ validate sequence
+        if (!isValidStatusTransition(oldStatus, newStatus)) {
+            throw new RuntimeException(
+                    "invalid.status.transition"
+            );
         }
 
-        Order savedOrder = orderRepo.save(updatedOrder);
+        // ✅ restore stock لو اتلغى
+        if (oldStatus != OrderStatus.CANCELLED &&
+                newStatus == OrderStatus.CANCELLED) {
+
+            restoreStock(existingOrder);
+        }
+
+        existingOrder.setStatus(newStatus);
+
+        Order savedOrder = orderRepo.save(existingOrder);
         return orderMapper.toOrderDto(savedOrder);
     }
 
+
+
     @Override
-    public void deleteOrder(Long orderId) {
+    public void deleteOrder(UUID orderId) {
         // Check if order exists
         Order order = orderRepo.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("order.not.found"));
@@ -98,14 +166,41 @@ public class OrderServiceImpl implements OrderService {
         orderRepo.deleteById(orderId);
     }
 
+
+    private void deductStock(Product product, String color, String size, int requestedQty) {
+
+        // 1️⃣ Product بدون variants
+        if (product.getVariants().isEmpty()) {
+            if (product.getQuantity() < requestedQty) {
+                throw new RuntimeException("out.of.stock");
+            }
+            product.setQuantity(product.getQuantity() - requestedQty);
+            return;
+        }
+
+        // 2️⃣ Product فيه variants
+        ProductVariant variant = product.getVariants().stream()
+                .filter(v ->
+                        (color == null || color.equals(v.getProductColor())) &&
+                                (size == null || size.equals(v.getProductSize()))
+                )
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("variant.not.found"));
+
+        if (variant.getQuantity() < requestedQty) {
+            throw new RuntimeException("out.of.stock");
+        }
+
+        variant.setQuantity(variant.getQuantity() - requestedQty);
+    }
+
+
     @Transactional
     public OrderDto checkout(CheckoutDto dto) {
 
-        // 1️⃣ هات الـ Store
         Store store = storeRepo.findById(dto.getStoreId())
                 .orElseThrow(() -> new RuntimeException("store.not.found"));
 
-        // 2️⃣ أنشئ Order
         Order order = new Order();
         order.setStore(store);
         order.setCustomer(
@@ -114,33 +209,46 @@ public class OrderServiceImpl implements OrderService {
         );
         order.setStatus(OrderStatus.PENDING);
 
-        // 3️⃣ OrderItems
         List<OrderItem> orderItems = dto.getItems().stream().map(i -> {
+
             Product product = productRepo.findById(i.getProductId())
                     .orElseThrow(() -> new RuntimeException("product.not.found"));
 
+
+            deductStock(
+                    product,
+                    i.getProductColor(),
+                    i.getProductSize(),
+                    i.getQuantity()
+            );
+
+
+            // ✅ VALIDATE VARIANT + STOCK HERE (later)
             OrderItem item = new OrderItem();
             item.setOrder(order);
             item.setProduct(product);
             item.setQuantity(i.getQuantity());
             item.setPrice(product.getPrice());
 
+            // ✅ SNAPSHOT
+            item.setProductColor(i.getProductColor());
+            item.setProductSize(i.getProductSize());
+
             return item;
         }).toList();
 
-        // 4️⃣ اربطهم بالـ Order
         order.setOrderItems(orderItems);
 
-        // 5️⃣ احسب totalPrice
         double totalPrice = orderItems.stream()
                 .mapToDouble(i -> i.getPrice() * i.getQuantity())
                 .sum();
+
         order.setTotalPrice(totalPrice);
 
-        // 6️⃣ احفظ Order (هيحفظ items تلقائي)
         Order savedOrder = orderRepo.save(order);
 
         return orderMapper.toOrderDto(savedOrder);
     }
+
 
 }

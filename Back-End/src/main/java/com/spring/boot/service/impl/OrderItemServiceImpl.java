@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class OrderItemServiceImpl implements OrderItemService {
@@ -34,7 +35,7 @@ public class OrderItemServiceImpl implements OrderItemService {
     }
 
     @Override
-    public List<OrderItemDto> getOrderItemsByOrderId(Long orderId) {
+    public List<OrderItemDto> getOrderItemsByOrderId(UUID orderId) {
         return orderItemRepo.findAllByOrder_Id(orderId).stream()
                 .map(orderItemMapper::toOrderItemDto)
                 .toList();
@@ -95,7 +96,7 @@ public class OrderItemServiceImpl implements OrderItemService {
     }
 
     @Override
-    public void deleteOrderItem(Long orderItemId) {
+    public void deleteOrderItem(UUID orderItemId) {
         // Check if order item exists
         OrderItem orderItem = orderItemRepo.findById(orderItemId)
                 .orElseThrow(() -> new RuntimeException("order.item.not.found"));

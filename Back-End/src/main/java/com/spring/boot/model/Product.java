@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Getter
@@ -13,8 +14,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class Product {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     private String name;
 
@@ -22,7 +23,16 @@ public class Product {
 
     private Double price;
 
+    private Double oldPrice;
+
     private Integer quantity;
+
+    @OneToMany(
+            mappedBy = "product",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<ProductVariant> variants;
 
     @ManyToOne
     @JoinColumn(name = "store_id")

@@ -24,6 +24,17 @@ export const productAPI = {
     });
   },
 
+  uploadProductImage: async (productId, formData) => {
+  // CRITICAL: Do NOT set Content-Type header for FormData
+  // Let the browser set it automatically with the boundary
+  
+  return fetchWithAuth(API_ENDPOINTS.PRODUCT.UPLOAD_PRODUCT_IMAGE(productId), {
+    method: 'POST',
+    body: formData,
+    // NO headers object at all - this is key!
+  });
+},
+
   /**
    * Update product
    */
@@ -132,4 +143,7 @@ export const productImagesAPI = {
       method: 'DELETE',
     });
   },
+
+
+
 };

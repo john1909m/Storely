@@ -5,6 +5,8 @@ import com.spring.boot.controller.vm.LoginResponseVM;
 import com.spring.boot.dto.UserDto;
 import com.spring.boot.service.AuthService;
 import com.spring.boot.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.SystemException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,8 +32,17 @@ public class AuthController {
         return ResponseEntity.ok().build();
     }
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseVM> login(@RequestBody @Valid LoginRequestVM loginRequestVM) throws SystemException{
-        return ResponseEntity.ok(authService.login(loginRequestVM));
+    public ResponseEntity<LoginResponseVM> login(@RequestBody @Valid LoginRequestVM loginRequestVM, HttpServletResponse response) throws SystemException{
+
+        return ResponseEntity.ok(authService.login(loginRequestVM, response));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(HttpServletRequest request,
+                                         HttpServletResponse response) {
+
+        authService.logout(request, response);
+        return ResponseEntity.ok("Logged.out.successfully");
     }
 
 

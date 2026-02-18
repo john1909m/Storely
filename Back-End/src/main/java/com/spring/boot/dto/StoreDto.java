@@ -12,14 +12,15 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
 @RequiredArgsConstructor
 public class StoreDto {
-    private Long id;
+    private UUID id;
 
-    private Long vendorId;
+    private UUID vendorId;
 
     private String storeName;
 

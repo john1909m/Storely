@@ -21,7 +21,7 @@ const CartSidebar = ({
   };
 
   const defaultFormatPrice = (price) => {
-    return new Intl.NumberFormat('ar-EG', {
+    return new Intl.NumberFormat('en-EG', {
       style: 'currency',
       currency: 'EGP',
       minimumFractionDigits: 0,
@@ -31,18 +31,75 @@ const CartSidebar = ({
 
   const formatPriceFunc = formatPrice || defaultFormatPrice;
 
+  const handleRemoveItem = (itemId) => {
+    // Remove from parent state
+    onRemoveItem(itemId);
+    
+    // Also remove from localStorage
+    if (store?.storeName) {
+      const cartKey = `cart_${store.storeName}`;
+      const existingCart = JSON.parse(localStorage.getItem(cartKey) || '[]');
+      const updatedCart = existingCart.filter(item => item.id !== itemId);
+      localStorage.setItem(cartKey, JSON.stringify(updatedCart));
+    }
+  };
+
+  const handleUpdateQuantity = (itemId, newQuantity) => {
+    if (newQuantity < 1) {
+      handleRemoveItem(itemId);
+      return;
+    }
+    
+    // Update parent state
+    onUpdateQuantity(itemId, newQuantity);
+    
+    // Update localStorage
+    if (store?.storeName) {
+      const cartKey = `cart_${store.storeName}`;
+      const existingCart = JSON.parse(localStorage.getItem(cartKey) || '[]');
+      const updatedCart = existingCart.map(item => 
+        item.id === itemId ? { ...item, quantity: newQuantity } : item
+      );
+      localStorage.setItem(cartKey, JSON.stringify(updatedCart));
+    }
+  };
+
   const handleCheckout = () => {
-    // Save cart data for checkout page
-    localStorage.setItem('checkout_cart', JSON.stringify({
+    // Save cart data for checkout page with variant information
+    const checkoutData = {
       storeId: store?.id,
       storeName: store?.storeName,
       storeLogo: store?.logoUrl,
-      items: cart,
+      items: cart.map(item => ({
+        id: item.id,
+        productId: item.id,
+        productName: item.productName || item.name,
+        price: item.price,
+        quantity: item.quantity,
+        imageUrls: item.imageUrls,
+        // Include variant information if present
+        color: item.selectedColor || null,
+        size: item.selectedSize || null,
+        variantId: item.variantId || null
+      })),
       timestamp: new Date().toISOString()
-    }));
+    };
+    
+    localStorage.setItem('checkout_cart', JSON.stringify(checkoutData));
     window.location.href = '/checkout'; // Redirect to checkout page
     
-    onCheckout();
+    if (onCheckout) onCheckout();
+  };
+
+  const getVariantDisplay = (item) => {
+    if (item.color && item.size) {
+      return `${item.color} / ${item.size}`;
+    } else if (item.color) {
+      return item.color;
+    } else if (item.size) {
+      return item.size;
+    }
+    return null;
   };
 
   return (
@@ -112,9 +169,9 @@ const CartSidebar = ({
                       <div className="flex items-start gap-4">
                         {/* Product Image */}
                         <div className="h-20 w-20 rounded-xl overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 flex-shrink-0">
-                          {item.images && item.images[0] ? (
+                          {item.imageUrls && item.imageUrls[0] ? (
                             <img 
-                              src={item.images[0]} 
+                              src={item.imageUrls[0]} 
                               alt={item.productName || item.name}
                               className="h-full w-full object-cover"
                             />
@@ -132,6 +189,12 @@ const CartSidebar = ({
                               <h4 className="font-semibold text-gray-900 mb-1 line-clamp-1">
                                 {item.productName || item.name}
                               </h4>
+                              {/* Variant Display */}
+                              {getVariantDisplay(item) && (
+                                <p className="text-xs text-indigo-600 mb-1">
+                                  {getVariantDisplay(item)}
+                                </p>
+                              )}
                               <p className="text-sm text-gray-600">
                                 {formatPriceFunc(item.price)} each
                               </p>
@@ -141,7 +204,7 @@ const CartSidebar = ({
                                 {formatPriceFunc(item.price * item.quantity)}
                               </div>
                               <button
-                                onClick={() => onRemoveItem(item.id)}
+                                onClick={() => handleRemoveItem(item.id)}
                                 className="text-sm text-gray-400 hover:text-red-600 transition-colors opacity-0 group-hover:opacity-100"
                               >
                                 <Trash2 className="h-4 w-4" />
@@ -153,7 +216,7 @@ const CartSidebar = ({
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <button
-                                onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
+                                onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
                                 className="h-8 w-8 flex items-center justify-center bg-white border border-gray-200 rounded-lg hover:border-gray-300 transition-colors"
                               >
                                 <Minus className="h-4 w-4 text-gray-600" />
@@ -162,7 +225,7 @@ const CartSidebar = ({
                                 {item.quantity}
                               </span>
                               <button
-                                onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+                                onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
                                 className="h-8 w-8 flex items-center justify-center bg-white border border-gray-200 rounded-lg hover:border-gray-300 transition-colors"
                               >
                                 <Plus className="h-4 w-4 text-gray-600" />
@@ -200,25 +263,7 @@ const CartSidebar = ({
                 </div>
               </div>
 
-              {/* Store Benefits */}
-              <div className="grid grid-cols-2 gap-3 mb-6">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Package className="h-4 w-4" />
-                  <span>Free Returns</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Truck className="h-4 w-4" />
-                  <span>Fast Shipping</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Shield className="h-4 w-4" />
-                  <span>Secure Payment</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <span className="text-lg">🔄</span>
-                  <span>30-Day Policy</span>
-                </div>
-              </div>
+              
 
               {/* Action Buttons */}
               <div className="space-y-3">
@@ -239,9 +284,7 @@ const CartSidebar = ({
               </div>
 
               {/* Security Note */}
-              <p className="text-xs text-gray-500 text-center mt-6">
-                Your payment information is encrypted and secure. {store?.storeName} never stores your credit card details.
-              </p>
+              
             </div>
           )}
         </div>

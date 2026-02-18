@@ -88,11 +88,7 @@ const HowItWorks = () => {
           </div>
         </div>
 
-        <div className="text-center mt-16">
-          <button className="px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl inline-flex items-center space-x-2">
-            <span>Get Started Now</span>
-          </button>
-        </div>
+        
       </div>
     </section>
   );

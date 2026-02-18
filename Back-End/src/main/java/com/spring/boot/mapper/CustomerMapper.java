@@ -9,6 +9,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 import java.util.List;
+import java.util.UUID;
 
 @Mapper(componentModel = "spring")
 public interface CustomerMapper {
@@ -16,7 +17,7 @@ public interface CustomerMapper {
     @Mapping(source = "role",target = "role")
     CustomerDto toCustomerDto(Customer customer);
 
-    default List<Long> mapStoresToIds(List<Store> stores) {
+    default List<UUID> mapStoresToIds(List<Store> stores) {
         if (stores == null) return List.of();
         return stores.stream().map(Store::getId).toList();
     }

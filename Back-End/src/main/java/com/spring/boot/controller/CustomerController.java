@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/customer")
@@ -21,17 +22,17 @@ public class CustomerController {
     }
 
     @GetMapping("/get/order/{orderId}")
-    public ResponseEntity<CustomerDto> getCustomerByOrderId(@PathVariable("orderId") Long orderId) {
+    public ResponseEntity<CustomerDto> getCustomerByOrderId(@PathVariable("orderId") UUID orderId) {
         return ResponseEntity.ok(customerService.getCustomerByOrderId(orderId));
     }
 
     @GetMapping("/get/store/{storeId}")
-    public ResponseEntity<List<CustomerDto>> getCustomerByStoreId(@PathVariable("storeId") Long storeId) {
+    public ResponseEntity<List<CustomerDto>> getCustomerByStoreId(@PathVariable("storeId") UUID storeId) {
         return ResponseEntity.ok(customerService.getCustomersByStoreId(storeId));
     }
 
     @GetMapping("/get/city/store/{city}/{storeId}")
-    public ResponseEntity<List<CustomerDto>> getCustomerByCity(@PathVariable("city") String city,@PathVariable("storeId") Long storeId) {
+    public ResponseEntity<List<CustomerDto>> getCustomerByCity(@PathVariable("city") String city,@PathVariable("storeId") UUID storeId) {
         return ResponseEntity.ok(customerService.getCustomersByCity(city,storeId));
     }
 
@@ -48,7 +49,7 @@ public class CustomerController {
 
     @DeleteMapping("/delete/{customerId}")
     @PreAuthorize("hasAnyRole('VENDOR','ADMIN')")
-    public ResponseEntity<Void> deleteCustomer(@PathVariable("customerId") Long customerId) {
+    public ResponseEntity<Void> deleteCustomer(@PathVariable("customerId") UUID customerId) {
         customerService.deleteCustomer(customerId);
         return ResponseEntity.noContent().build();
     }

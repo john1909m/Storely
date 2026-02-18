@@ -4,11 +4,12 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
 public class CheckoutDto {
-    private Long storeId;
-    private Long customerId;
+    private UUID storeId;
+    private UUID customerId;
     private List<CheckoutItemDto> items;
 }

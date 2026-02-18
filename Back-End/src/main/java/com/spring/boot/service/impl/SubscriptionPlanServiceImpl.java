@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -52,11 +53,20 @@ public class SubscriptionPlanServiceImpl implements SubscriptionPlanService {
     }
 
     @Override
-    public void deleteSubscriptionPlan(Long id) {
+    public void deleteSubscriptionPlan(UUID id) {
         Optional<SubscriptionPlan> planExist=subscriptionPlanRepo.findById(id);
         if(planExist.isEmpty()){
             throw new RuntimeException("Plan.Not.Found");
         }
         subscriptionPlanRepo.delete(planExist.get());
+    }
+
+    @Override
+    public SubscriptionPlanDto getSubscriptionPlanById(UUID id) {
+        Optional<SubscriptionPlan> planExist=subscriptionPlanRepo.findById(id);
+        if(planExist.isEmpty()){
+            throw new RuntimeException("Plan.Not.Found");
+        }
+        return subscriptionPlanMapper.toDto(planExist.get());
     }
 }

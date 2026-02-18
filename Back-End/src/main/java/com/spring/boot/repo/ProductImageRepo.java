@@ -4,6 +4,8 @@ import com.spring.boot.model.ProductImage;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.UUID;
+
 @Repository
-public interface ProductImageRepo extends JpaRepository<ProductImage,Long> {
+public interface ProductImageRepo extends JpaRepository<ProductImage, UUID> {
 }

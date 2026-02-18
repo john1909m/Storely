@@ -1,27 +1,28 @@
 package com.spring.boot.dto;
 
-import com.spring.boot.model.Store;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
 @RequiredArgsConstructor
 public class ProductDto {
 
-    private Long id;
+    private UUID id;
 
     private String name;
 
     private String description;
 
     private Double price;
+
+    private Double oldPrice;
+
+    private List<ProductVariantDto> variants;
 
     private Integer quantity;
 
@@ -30,8 +31,8 @@ public class ProductDto {
     private List<Integer> position;
 
 
-    private Long categoryId;
+    private UUID categoryId;
     private String categoryName;
 
-    private Long storeId;
+    private UUID storeId;
 }

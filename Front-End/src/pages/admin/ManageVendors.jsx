@@ -376,7 +376,7 @@ const ManageVendors = () => {
         )}
 
         {/* Stats Overview */}
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
+        <div className="grid md:grid-cols-2 grid-cols-2 gap-6 mb-8">
           <div className="bg-white rounded-2xl p-6 border border-gray-100">
             <div className="flex items-center justify-between mb-4">
               <div className="h-12 w-12 bg-indigo-50 rounded-xl flex items-center justify-center">
@@ -551,7 +551,7 @@ const ManageVendors = () => {
                                       </div>
                                       
                                       <div className="space-y-3 pt-4 border-t border-gray-200">
-                                        <div className="grid grid-cols-2 gap-4">
+                                        <div className="grid grid-cols-2 gap-5">
                                           <div className="space-y-2">
                                             <div className="flex items-center text-sm text-gray-600">
                                               <Mail className="h-4 w-4 mr-2" />
@@ -613,18 +613,7 @@ const ManageVendors = () => {
                                       </div>
                                     </div>
 
-                                    {/* Revenue Display */}
-                                    <div className="bg-white p-4 rounded-lg border border-gray-200 mb-6">
-                                      <div className="flex items-center justify-between">
-                                        <div>
-                                          <div className="text-xs text-gray-500">Total Revenue</div>
-                                          <div className="font-bold text-gray-900 text-xl">
-                                            ${stats.totalRevenue.toFixed(2)}
-                                          </div>
-                                        </div>
-                                        <TrendingUp className="h-8 w-8 text-green-500" />
-                                      </div>
-                                    </div>
+                                    
 
                                     {/* Stores List */}
                                     <div className="space-y-3">
@@ -664,7 +653,7 @@ const ManageVendors = () => {
                                         </div>
                                       ) : (
                                         <div className="text-center py-4 text-gray-500 text-sm">
-                                          No stores created yet
+                                          No stores created yetww
                                         </div>
                                       )}
                                     </div>

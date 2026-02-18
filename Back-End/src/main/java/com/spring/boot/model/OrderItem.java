@@ -5,17 +5,22 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
+import java.util.UUID;
+
 @Entity
 @Getter
 @Setter
 @RequiredArgsConstructor
 public class OrderItem {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     private Integer quantity;
     private Double price;
+
+    private String productColor;
+    private String productSize;
 
     @ManyToOne
     @JoinColumn(name = "order_id")

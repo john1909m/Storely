@@ -5,10 +5,13 @@ import {
   ArrowLeft, CreditCard, Lock, Truck,
   MapPin, User, Mail, Phone,
   CheckCircle, Shield, Loader2,
-  ShoppingBag, AlertCircle
+  ShoppingBag, AlertCircle, Package, Palette, Ruler
 } from 'lucide-react';
 import { orderAPI } from '../../api/order.api';
 import { customerAPI } from '../../api/customer.api';
+import StoreFooter from '../../components/StoreFooter';
+import { car } from '@cloudinary/url-gen/qualifiers/focusOn';
+import { useErrorHandler } from '../../hooks/useErrorHandler';
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -23,7 +26,9 @@ const Checkout = () => {
     whatsappNumber: '',
     address: '',
     city: '',
+    country: 'Egypt'
   });
+      const { handleError } = useErrorHandler();
 
   useEffect(() => {
     // Load cart data from localStorage
@@ -34,14 +39,14 @@ const Checkout = () => {
         if (parsedCart.items && parsedCart.items.length > 0) {
           setCartData(parsedCart);
         } else {
-          navigate('/');
+          navigate(`/store/${parsedCart.storeName}`);
         }
       } catch (err) {
-        console.error('Error parsing cart:', err);
-        navigate('/');
+        handleError(err);
+        navigate(`/store/${cartData?.storeName}`);
       }
     } else {
-      navigate('/');
+      navigate(`/store/${cartData?.storeName }`);
     }
   }, [navigate]);
 
@@ -72,16 +77,13 @@ const Checkout = () => {
       const customerData = {
         firstName: customerInfo.firstName,
         lastName: customerInfo.lastName,
-        
         phoneNumber: customerInfo.phoneNumber,
         whatsappNumber: customerInfo.whatsappNumber,
         address: customerInfo.address,
         city: customerInfo.city,
-        
         storeIds: [cartData.storeId] // Associate customer with store
       };
 
-      console.log('Creating customer with data:', customerData);
       
       // Call customer API
       const customerResponse = await customerAPI.add(customerData);
@@ -91,22 +93,22 @@ const Checkout = () => {
       }
 
       const customerId = customerResponse.id;
-      console.log('Customer created successfully with ID:', customerId);
 
-      // Step 2: Create order with customer ID
+      // Step 2: Create order with customer ID and variant information
       const orderData = {
         storeId: cartData.storeId,
         customerId: customerId,
-        
         items: cartData.items.map(item => ({
-          productId: item.id,
+          productId: item.productId || item.id,
           price: item.price,
           quantity: item.quantity,
+          // Include variant information if present
+          color: item.color || null,
+          size: item.size || null,
+          variantId: item.variantId || null
         })),
-        
       };
 
-      console.log('Creating order with data:', orderData);
       
       // Call order API
       const orderResponse = await orderAPI.checkout(orderData);
@@ -116,7 +118,6 @@ const Checkout = () => {
       }
 
       const orderId = orderResponse.id;
-      console.log('Order created successfully with ID:', orderId);
       
       // Save order to localStorage for reference
       const userOrders = JSON.parse(localStorage.getItem('user_orders') || '[]');
@@ -137,22 +138,14 @@ const Checkout = () => {
       }
       
       // Navigate to order confirmation with order details
-      navigate(`/order-confirmation/${orderId}`, {
-        state: {
-          orderId: orderId,
-          orderNumber: orderResponse.orderNumber || `#${Date.now().toString().slice(-8)}`,
-          orderData: orderData,
-          customerInfo: customerInfo
-        }
-      });
+      navigate(`/store/${cartData.storeName}`);
 
     } catch (error) {
-      console.error('Error placing order:', error);
-      setError(error.message || 'Failed to place order. Please try again.');
+      handleError(error);
       
-      // Show error alert
+
       setTimeout(() => {
-        alert(`Order failed: ${error.message || 'Please try again'}`);
+        handleError({message_en: error.message || 'An error occurred while placing your order. Please try again.'});
       }, 100);
     } finally {
       setIsLoading(false);
@@ -163,9 +156,7 @@ const Checkout = () => {
     if (!cartData || !cartData.items) return 0;
     
     const subtotal = cartData.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const shipping = subtotal > 500 ? 0 : 50; // Free shipping over 500 EGP
-    const tax = subtotal * 0.14; // 14% VAT for Egypt
-    return Math.round(subtotal + shipping + tax);
+    return Math.round(subtotal);
   };
 
   const handleInputChange = (e) => {
@@ -180,12 +171,23 @@ const Checkout = () => {
 
   // Format price in EGP
   const formatPrice = (price) => {
-    return new Intl.NumberFormat('ar-EG', {
+    return new Intl.NumberFormat('ar-en', {
       style: 'currency',
       currency: 'EGP',
       minimumFractionDigits: 0,
       maximumFractionDigits: 2
     }).format(price);
+  };
+
+  const getVariantDisplay = (item) => {
+    if (item.color && item.size) {
+      return `${item.color} / ${item.size}`;
+    } else if (item.color) {
+      return item.color;
+    } else if (item.size) {
+      return item.size;
+    }
+    return null;
   };
 
   if (isLoading) {
@@ -314,7 +316,6 @@ const Checkout = () => {
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-6 mt-6">
-                      
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Phone Number *
@@ -357,20 +358,20 @@ const Checkout = () => {
                         Address *
                       </label>
                       <div className="relative">
-                        <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                        <MapPin className="absolute left-4 top-4 h-5 w-5 text-gray-400" />
                         <textarea
-                          type="text"
                           name="address"
                           required
                           value={customerInfo.address}
                           onChange={handleInputChange}
+                          rows={3}
                           className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
-                          placeholder="123 Main Street"
+                          placeholder="123 Main Street, Apartment 4B"
                         />
                       </div>
                     </div>
 
-                    <div className="grid md:grid-cols-3 gap-6 mt-6">
+                    <div className="grid md:grid-cols-2 gap-6 mt-6">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">City *</label>
                         <input
@@ -383,20 +384,16 @@ const Checkout = () => {
                           placeholder="Cairo"
                         />
                       </div>
-                    </div>
-
-                    <div className="mt-6">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
-                      <input
-                        type="text"
-                        name="country"
-                        required
-                        value={customerInfo.country}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
-                        placeholder="Egypt"
-                        readOnly
-                      />
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                        <input
+                          type="text"
+                          name="country"
+                          value={customerInfo.country}
+                          readOnly
+                          className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-xl text-gray-600"
+                        />
+                      </div>
                     </div>
 
                     <button
@@ -415,40 +412,65 @@ const Checkout = () => {
                     <div className="mb-8">
                       <h4 className="font-semibold text-gray-900 mb-4">Order Items ({cartData.items.length})</h4>
                       <div className="space-y-4">
-                        {cartData.items.map((item) => (
-                          <div key={item.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                            <div className="flex items-center space-x-4">
-                              <div className="h-12 w-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                                {item.images && item.images[0] ? (
-                                  <img src={item.images[0]} alt={item.productName || item.name} className="h-10 w-10 object-cover rounded" />
-                                ) : (
-                                  <div className="text-lg">📦</div>
-                                )}
+                        {cartData.items.map((item) => {
+                          const variantDisplay = getVariantDisplay(item);
+                          return (
+                            <div key={item.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                              <div className="flex items-center space-x-4">
+                                <div className="h-16 w-16 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+                                  {item.imageUrls && item.imageUrls[0] ? (
+                                    <img 
+                                      src={item.imageUrls[0]} 
+                                      alt={item.productName || item.name} 
+                                      className="h-full w-full object-cover" 
+                                    />
+                                  ) : (
+                                    <Package className="h-8 w-8 text-gray-400" />
+                                  )}
+                                </div>
+                                <div>
+                                  <div className="font-medium text-gray-900">{item.productName || item.name}</div>
+                                  {variantDisplay && (
+                                    <div className="flex items-center gap-2 mt-1">
+                                      {item.color && (
+                                        <div className="flex items-center text-xs text-indigo-600">
+                                          <Palette className="h-3 w-3 mr-1" />
+                                          {item.color}
+                                        </div>
+                                      )}
+                                      {item.size && (
+                                        <div className="flex items-center text-xs text-indigo-600">
+                                          <Ruler className="h-3 w-3 mr-1" />
+                                          {item.size}
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                  <div className="text-sm text-gray-600 mt-1">
+                                    Qty: {item.quantity} × {formatPrice(item.price)}
+                                  </div>
+                                </div>
                               </div>
-                              <div>
-                                <div className="font-medium text-gray-900">{item.productName || item.name}</div>
-                                <div className="text-sm text-gray-600">Qty: {item.quantity}</div>
-                                <div className="text-sm text-gray-600">{formatPrice(item.price)} each</div>
+                              <div className="font-semibold text-lg">
+                                {formatPrice(item.price * item.quantity)}
                               </div>
                             </div>
-                            <div className="font-semibold">
-                              {formatPrice(item.price * item.quantity)}
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
 
-                    {/* Shipping Info */}
+                    {/* Customer Info Summary */}
                     <div className="mb-8">
                       <h4 className="font-semibold text-gray-900 mb-4">Shipping Information</h4>
                       <div className="bg-gray-50 rounded-xl p-6">
-                        <div className="text-gray-900 font-medium mb-2">{customerInfo.firstName} {customerInfo.lastName}</div>
+                        <div className="text-gray-900 font-medium mb-2">
+                          {customerInfo.firstName} {customerInfo.lastName}
+                        </div>
                         <div className="text-gray-600 mb-1">{customerInfo.address}</div>
-                        <div className="text-gray-600 mb-1">{customerInfo.city}, {customerInfo.state} {customerInfo.zipCode}</div>
-                        <div className="text-gray-600 mb-1">{customerInfo.country}</div>
-                        <div className="text-gray-600 mb-1">{customerInfo.email}</div>
-                        <div className="text-gray-600">{customerInfo.phone}</div>
+                        <div className="text-gray-600 mb-1">{customerInfo.city}, {customerInfo.country}</div>
+                        <div className="text-gray-600 mb-1">{customerInfo.phoneNumber}</div>
+                        <div className="text-gray-600">{customerInfo.whatsappNumber}</div>
                       </div>
                     </div>
 
@@ -523,21 +545,8 @@ const Checkout = () => {
                     {formatPrice(cartData.items.reduce((sum, item) => sum + (item.price * item.quantity), 0))}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Shipping</span>
-                  <span className="font-medium">
-                    {cartData.items.reduce((sum, item) => sum + (item.price * item.quantity), 0) > 500 ? 
-                      <span className="text-emerald-600">FREE</span> : 
-                      formatPrice(50)
-                    }
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">VAT (14%)</span>
-                  <span className="font-medium">
-                    {formatPrice(cartData.items.reduce((sum, item) => sum + (item.price * item.quantity), 0) * 0.14)}
-                  </span>
-                </div>
+                
+                
                 <div className="border-t border-gray-200 pt-4">
                   <div className="flex justify-between text-xl font-bold">
                     <span>Total</span>
@@ -559,10 +568,7 @@ const Checkout = () => {
               </div>
 
               {/* Security Notice */}
-              <div className="text-center text-sm text-gray-500 mb-6">
-                <Shield className="h-4 w-4 inline mr-1" />
-                Secure SSL encrypted payment
-              </div>
+              
 
               {/* API Flow Info */}
               <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
@@ -574,7 +580,7 @@ const Checkout = () => {
                   </div>
                   <div className="flex items-center text-sm text-gray-600">
                     <div className="h-6 w-6 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-xs font-bold mr-2">2</div>
-                    <span>Create Order with Items</span>
+                    <span>Create Order with Items & Variants</span>
                   </div>
                   <div className="flex items-center text-sm text-gray-600">
                     <div className="h-6 w-6 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-xs font-bold mr-2">3</div>
@@ -586,6 +592,7 @@ const Checkout = () => {
           </div>
         </div>
       </div>
+      <StoreFooter />
     </div>
   );
 };

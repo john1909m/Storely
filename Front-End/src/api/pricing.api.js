@@ -8,6 +8,10 @@ export const pricingAPI = {
     getPlans: async () => {
         return fetchJSON(API_ENDPOINTS.PRICING.GET_PLANS);
     },
+
+    getPlanById: async (planId) => {
+        return fetchJSON(API_ENDPOINTS.PRICING.GET_PLAN_BY_ID(planId));
+    },
     /**
     * Add a new subscription plan
     */

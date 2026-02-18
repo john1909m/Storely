@@ -9,8 +9,10 @@ import org.mapstruct.Mapping;
 public interface OrderItemMapper {
 
     @Mapping(source = "product.id", target = "productId")
+    @Mapping(source = "product.name" , target = "productName")
     OrderItemDto toOrderItemDto(OrderItem orderItem);
 
+    @Mapping(source = "productName" , target = "product.name")
     @Mapping(source = "productId",target = "product.id")
     OrderItem toOrderItemEntity(OrderItemDto orderItemDto);
 }

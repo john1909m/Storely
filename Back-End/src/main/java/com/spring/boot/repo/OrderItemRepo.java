@@ -5,8 +5,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.UUID;
 
 @Repository
-public interface OrderItemRepo extends JpaRepository<OrderItem,Long> {
-    List<OrderItem> findAllByOrder_Id(Long orderId);
+public interface OrderItemRepo extends JpaRepository<OrderItem,UUID> {
+    List<OrderItem> findAllByOrder_Id(UUID orderId);
 }

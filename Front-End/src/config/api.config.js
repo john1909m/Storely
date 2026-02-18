@@ -31,6 +31,8 @@ export const API_ENDPOINTS = {
     GET_BY_NAME: (storeName) => `/store/get/name/${storeName}`,
     GET_ALL: '/store/get/all',
     DELETE: (storeId) => `/store/delete/${storeId}`,
+    UPLOAD_IMAGE: (storeId) => `/store/${storeId}/upload-image`,
+    
   },
   // Product
   PRODUCT: {
@@ -41,6 +43,7 @@ export const API_ENDPOINTS = {
     GET_BY_CATEGORY: (categoryId, storeId) => `/product/get/category/${categoryId}/${storeId}`,
     GET_ALL: (storeId) => `/product/get/all/${storeId}`,
     DELETE: (productId) => `/product/delete/${productId}`,
+    UPLOAD_PRODUCT_IMAGE: (productId) => `/product/${productId}/upload-product-images`,
   },
   // Product Images
   PRODUCT_IMAGES: {
@@ -88,6 +91,16 @@ export const API_ENDPOINTS = {
     Add_PLAN: '/subscription-plan/add',
     DELETE_PLAN: (planId) => `/subscription-plan/delete/${planId}`,
     UPDATE_PLAN: '/subscription-plan/update',
+    GET_PLAN_BY_ID: (planId) => `/subscription-plan/get/${planId}`,
     
+  },
+
+  VENDOR_SUBSCRIPTION: {
+    GET_ALL: '/vendor-subscription/get/all',
+    GET_BY_ID: (id) => `/vendor-subscription/get/${id}`,
+    GET_BY_VENDOR_ID: (vendorId) => `/vendor-subscription/get/vendor/${vendorId}`,
+    ADD: '/vendor-subscription/add',
+    UPDATE: '/vendor-subscription/update',
+    DELETE: (id) => `/vendor-subscription/delete/${id}`,
   }
 };

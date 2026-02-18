@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,9 +30,19 @@ public class VendorSubscriptionServiceImpl implements VendorSubscriptionService 
     }
 
     @Override
-    public VendorSubscriptionDto findVendorSubscriptionById(Long id) {
+    public VendorSubscriptionDto findVendorSubscriptionById(UUID id) {
         return vendorSubscriptionRepo.findById(id).
                 map(vendorSubscriptionMapper::toDto).orElse(null);
+    }
+
+    @Override
+    public VendorSubscriptionDto findVendorSubscriptionByVendorId(UUID id) {
+        VendorSubscription vendorSubscription =
+                vendorSubscriptionRepo.findByVendorId(id)
+                        .orElseThrow(() ->
+                                new RuntimeException("vendor.subscription.not.found"));
+
+        return vendorSubscriptionMapper.toDto(vendorSubscription);
     }
 
     @Override
@@ -48,13 +59,15 @@ public class VendorSubscriptionServiceImpl implements VendorSubscriptionService 
             throw new RuntimeException("vendor.subscription.does.not.exist");
 
         }
-        VendorSubscription vendorSubscription = existVendorSubscription.get();
+
+        VendorSubscription vendorSubscription;
+        vendorSubscription=vendorSubscriptionMapper.toEntity(vendorSubscriptionDto);
         vendorSubscriptionRepo.save(vendorSubscription);
         return vendorSubscriptionMapper.toDto(vendorSubscription);
     }
 
     @Override
-    public void deleteVendorSubscriptionById(Long id) {
+    public void deleteVendorSubscriptionById(UUID id) {
         Optional<VendorSubscription> existVendorSubscription=vendorSubscriptionRepo.findById(id);
         if(existVendorSubscription.isEmpty()){
             throw new RuntimeException("vendor.subscription.does.not.exist");

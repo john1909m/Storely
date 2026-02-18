@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowRight, Mail, Lock, Store, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { useErrorHandler } from './../hooks/useErrorHandler';
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -14,32 +15,23 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, isAuthenticated, isLoading, role, store } = useAuth();
+  const { handleError } = useErrorHandler();
 
   // Helper to get dashboard path based on role and store existence
-  
   const getDashboardPath = (userRole, userStore) => {
-    console.log('getDashboardPath called with:', { userRole, userStore });
-    
-    switch (userRole?.toUpperCase()) {
-      case 'ADMIN':
-        return '/admin/dashboard';
-      case 'VENDOR':
-        // Only treat as having a store if userStore && userStore.id
-        if (userStore && userStore.id) {
-          return '/vendor/store';
-        } else {
-          return '/vendor/create-store';
-        }
-      default:
-        return '/';
+    if (userRole?.toUpperCase() === 'ADMIN') return '/admin/dashboard';
+    if (userRole?.toUpperCase() === 'VENDOR') {
+      return userStore?.id ? '/vendor/store' : '/vendor/create-store';
     }
+    return '/';
   };
 
+  // Handle redirect after authentication
   useEffect(() => {
     if (isAuthenticated && role) {
-      console.log('Already authenticated - Role:', role, 'Store:', store, 'Has Store:', !!store);
+      console.log('Already authenticated - Role:', role, 'Store:', store);
       const from = location.state?.from?.pathname || getDashboardPath(role, store);
-      console.log('Redirecting authenticated user to:', from);
+      console.log('Redirecting to:', from);
       navigate(from, { replace: true });
     }
   }, [isAuthenticated, role, store, navigate, location]);
@@ -54,8 +46,8 @@ const Login = () => {
       const response = await login(formData);
       
       console.log('Login successful - Full response:', response);
-      console.log('Login successful - Role from response:', response.role);
-      console.log('Login successful - Store from response:', response.store);
+      console.log('Role from response:', response.role);
+      console.log('Store from response:', response.store);
       
       // Get the data from response
       const userRole = response.role;
@@ -63,7 +55,7 @@ const Login = () => {
       
       // Navigate based on the response data
       const redirectPath = location.state?.from?.pathname || getDashboardPath(userRole, userStore);
-      console.log('Navigating to:', redirectPath, 'based on role:', userRole, 'and store:', userStore);
+      console.log('Navigating to:', redirectPath, 'based on role:', userRole);
       
       // Small delay to ensure state is updated
       setTimeout(() => {
@@ -73,7 +65,7 @@ const Login = () => {
       
     } catch (err) {
       console.error('Login error:', err);
-      setError(err.message || 'Login failed. Please check your credentials.');
+      handleError(err);
       setIsRedirecting(false);
     }
   };

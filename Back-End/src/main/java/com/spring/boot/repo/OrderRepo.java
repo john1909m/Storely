@@ -7,9 +7,10 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface OrderRepo extends JpaRepository<Order,Long> {
-    List<Order> findByStore_Id(Long storeId);
-    Optional<Order> findByIdAndStore_Id(Long orderId,Long storeId);
+public interface OrderRepo extends JpaRepository<Order, UUID> {
+    List<Order> findByStore_Id(UUID storeId);
+    Optional<Order> findByIdAndStore_Id(UUID orderId,UUID storeId);
 }

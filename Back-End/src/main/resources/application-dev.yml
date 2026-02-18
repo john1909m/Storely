@@ -5,6 +5,22 @@ spring:
     username: Storely
     password: Storely1909
 
+  data:
+    redis:
+      host: localhost
+      port: 6379
+    mail:
+      host: smtp.gmail.com
+      port: 587
+      username: johnemil21@gmail.com
+      password: johnEmil@1909
+      properties:
+        mail:
+          smtp:
+            auth: true
+            starttls:
+              enable: true
+
   jpa:
     hibernate:
       ddl-auto: update
@@ -25,3 +41,15 @@ logging:
 token:
   secret: hjfs46687kjsfkj@#@$#$@$%ffeddf@#sADDS
   time: 36000000
+
+
+
+cloudflare:
+  r2:
+    bucket: storely-assets
+    public-url: https://pub-e3f67119581e41a09e34c0a920c52720.r2.dev
+    access-key: 4adfeadc1d78f84c6da78ba85e176aa4
+    secret-key: 35fdff5b70bde9b7eb2f58e7a07ff95e5ad678c940fa593e946b96dd028bcc15
+    account-id: 63ea452477a1a0be1a674adeab912669
+
+

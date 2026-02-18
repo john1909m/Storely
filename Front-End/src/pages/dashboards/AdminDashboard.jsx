@@ -105,7 +105,7 @@ const AdminDashboard = () => {
         )}
 
         {/* Platform Stats */}
-        <div className="grid md:grid-cols-4 gap-6 mb-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 grid-cols-2 gap-6 mb-8">
           <div className="bg-white rounded-2xl p-6 border border-gray-100">
             <div className="flex items-center justify-between mb-4">
               <div className="h-12 w-12 bg-indigo-50 rounded-xl flex items-center justify-center">

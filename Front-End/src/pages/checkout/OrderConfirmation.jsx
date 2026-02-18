@@ -1,14 +1,16 @@
 // src/pages/checkout/OrderConfirmation.jsx
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import {
   CheckCircle, ShoppingBag, Home, Package,
-  Truck, Clock, Loader2
+  Truck, Clock, Loader2, Palette, Ruler
 } from 'lucide-react';
 import { orderAPI } from '../../api/order.api';
+import StoreFooter from '../../components/StoreFooter';
 
 const OrderConfirmation = () => {
   const { orderId } = useParams();
+  const location = useLocation();
   const [order, setOrder] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -21,35 +23,59 @@ const OrderConfirmation = () => {
   const fetchOrderDetails = async () => {
     try {
       setIsLoading(true);
-      // In a real app, you would fetch the order by ID
-      // For now, simulate with localStorage data
-      const orders = JSON.parse(localStorage.getItem('store_orders') || '[]');
+      
+      // Check if we have state from navigation
+      if (location.state) {
+        setOrder({
+          id: location.state.orderId,
+          orderNumber: location.state.orderNumber,
+          date: new Date().toISOString(),
+          status: 'confirmed',
+          items: location.state.orderData?.items || [],
+          total: calculateTotal(location.state.orderData?.items),
+          customerInfo: location.state.customerInfo
+        });
+        setIsLoading(false);
+        return;
+      }
+      
+      // Otherwise try to fetch from localStorage or API
+      const orders = JSON.parse(localStorage.getItem('user_orders') || '[]');
       const foundOrder = orders.find(o => o.id === orderId);
       
       if (foundOrder) {
         setOrder(foundOrder);
-      } else {
-        // Simulate order data
-        setOrder({
-          id: orderId,
-          orderNumber: `ORD-${orderId}`,
-          date: new Date().toISOString(),
-          status: 'confirmed',
-          items: JSON.parse(localStorage.getItem('store_cart') || '[]'),
-          total: 452.76,
-          shippingAddress: {
-            street: '123 Main Street',
-            city: 'New York',
-            state: 'NY',
-            zipCode: '10001'
-          }
-        });
       }
     } catch (error) {
       console.error('Error fetching order:', error);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const calculateTotal = (items) => {
+    if (!items) return 0;
+    return items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  };
+
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat('en-EG', {
+      style: 'currency',
+      currency: 'EGP',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
+    }).format(price || 0);
+  };
+
+  const getVariantDisplay = (item) => {
+    if (item.color && item.size) {
+      return `${item.color} / ${item.size}`;
+    } else if (item.color) {
+      return item.color;
+    } else if (item.size) {
+      return item.size;
+    }
+    return null;
   };
 
   if (isLoading) {
@@ -102,52 +128,87 @@ const OrderConfirmation = () => {
                   <div className="flex justify-between">
                     <span className="text-gray-600">Total Amount</span>
                     <span className="text-xl font-bold text-gray-900">
-                      ${order?.total?.toFixed(2)}
+                      {formatPrice(order?.total || calculateTotal(order?.items))}
                     </span>
                   </div>
                 </div>
               </div>
 
               {/* Shipping Info */}
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Shipping Information</h3>
-                <div className="space-y-2">
-                  <div className="text-gray-900">
-                    {order?.shippingAddress?.street}
-                  </div>
-                  <div className="text-gray-600">
-                    {order?.shippingAddress?.city}, {order?.shippingAddress?.state} {order?.shippingAddress?.zipCode}
+              {order?.customerInfo && (
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Shipping Information</h3>
+                  <div className="space-y-2">
+                    <div className="text-gray-900 font-medium">
+                      {order.customerInfo.firstName} {order.customerInfo.lastName}
+                    </div>
+                    <div className="text-gray-600">
+                      {order.customerInfo.address}
+                    </div>
+                    <div className="text-gray-600">
+                      {order.customerInfo.city}, {order.customerInfo.country || 'Egypt'}
+                    </div>
+                    <div className="text-gray-600">
+                      {order.customerInfo.phoneNumber}
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Order Items */}
-            <div className="mt-8 pt-8 border-t border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Order Items</h3>
-              <div className="space-y-4">
-                {order?.items?.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                    <div className="flex items-center space-x-4">
-                      <div className="h-12 w-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                        {item.imageUrl ? (
-                          <img src={item.imageUrl} alt={item.name} className="h-10 w-10 object-cover rounded" />
-                        ) : (
-                          <div className="text-lg">📦</div>
-                        )}
+            {order?.items && order.items.length > 0 && (
+              <div className="mt-8 pt-8 border-t border-gray-100">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Order Items</h3>
+                <div className="space-y-4">
+                  {order.items.map((item, index) => {
+                    const variantDisplay = getVariantDisplay(item);
+                    return (
+                      <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                        <div className="flex items-center space-x-4">
+                          <div className="h-16 w-16 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+                            {item.imageUrls && item.imageUrls[0] ? (
+                              <img 
+                                src={item.imageUrls[0]} 
+                                alt={item.productName || item.name} 
+                                className="h-full w-full object-cover" 
+                              />
+                            ) : (
+                              <Package className="h-8 w-8 text-gray-400" />
+                            )}
+                          </div>
+                          <div>
+                            <div className="font-medium text-gray-900">{item.productName || item.name}</div>
+                            {variantDisplay && (
+                              <div className="flex items-center gap-2 mt-1">
+                                {item.color && (
+                                  <div className="flex items-center text-xs text-indigo-600">
+                                    <Palette className="h-3 w-3 mr-1" />
+                                    {item.color}
+                                  </div>
+                                )}
+                                {item.size && (
+                                  <div className="flex items-center text-xs text-indigo-600">
+                                    <Ruler className="h-3 w-3 mr-1" />
+                                    {item.size}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                            <div className="text-sm text-gray-600 mt-1">
+                              Qty: {item.quantity} × {formatPrice(item.price)}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="font-semibold text-lg">
+                          {formatPrice(item.price * item.quantity)}
+                        </div>
                       </div>
-                      <div>
-                        <div className="font-medium text-gray-900">{item.name}</div>
-                        <div className="text-sm text-gray-600">Qty: {item.quantity}</div>
-                      </div>
-                    </div>
-                    <div className="font-semibold">
-                      ${(item.price * item.quantity).toFixed(2)}
-                    </div>
-                  </div>
-                ))}
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Next Steps */}
@@ -173,7 +234,7 @@ const OrderConfirmation = () => {
                   <Clock className="h-6 w-6 text-purple-600" />
                 </div>
                 <div className="font-medium text-gray-900 mb-2">Delivery</div>
-                <div className="text-sm text-gray-600">Expected in 5-7 days</div>
+                <div className="text-sm text-gray-600">Expected in 2-4 days</div>
               </div>
             </div>
           </div>
@@ -197,6 +258,7 @@ const OrderConfirmation = () => {
           </div>
         </div>
       </div>
+      <StoreFooter />
     </div>
   );
 };

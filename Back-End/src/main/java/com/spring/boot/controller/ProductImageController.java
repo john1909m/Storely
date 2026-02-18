@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/product/images")
@@ -21,7 +22,7 @@ public class ProductImageController {
     }
 
     @GetMapping("/get/{productId}")
-    public ResponseEntity<List<ProductImageDto>> getProductImage(@PathVariable Long productId) {
+    public ResponseEntity<List<ProductImageDto>> getProductImage(@PathVariable UUID productId) {
         return ResponseEntity.ok(productImageService.getProductImageByProductId(productId));
     }
 
@@ -39,8 +40,9 @@ public class ProductImageController {
 
     @DeleteMapping("/delete/{productImageId}")
     @PreAuthorize("hasAnyRole('VENDOR','ADMIN')")
-    public ResponseEntity<Void> deleteProductImage(@PathVariable Long productImageId) {
+    public ResponseEntity<Void> deleteProductImage(@PathVariable UUID productImageId) {
         productImageService.deleteProductImageFromProduct(productImageId);
         return ResponseEntity.noContent().build();
     }
+
 }

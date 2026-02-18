@@ -1,11 +1,11 @@
-// Authentication API service
-import { fetchJSON, fetchWithAuth, tokenManager } from './fetchWithAuth';
+// Authentication API service (Cookie-based)
+import { fetchJSON, fetchWithAuth, cookieManager } from './fetchWithAuth';
 import { API_ENDPOINTS } from '../config/api.config';
 
 /**
- * Login user and store token
+ * Login user - backend will set HTTP-only cookie
  * @param {object} credentials - { email, password }
- * @returns {Promise<object>} - { token, user, role, vendor? }
+ * @returns {Promise<object>} - { user, role, vendor? }
  */
 export const login = async (credentials) => {
   try {
@@ -33,21 +33,21 @@ export const login = async (credentials) => {
     if (!role && (response.adminId || response.admin)) {
       role = 'ADMIN';
     }
-    
-    
-
 
     // Normalize role to uppercase
-    role = role.toUpperCase();
+    if (role) {
+      role = role.toUpperCase();
+    }
 
-    // Store token and user info
-    if (response.token) {
-      tokenManager.set(response.token);
-      sessionStorage.setItem('userRole', role);
+    // Store user info in sessionStorage (but NOT the token - it's in cookie)
+    if (response.userId || response.user?.id) {
       sessionStorage.setItem('userId', response.userId || response.user?.id || '');
+      sessionStorage.setItem('userRole', role || 'CUSTOMER');
+      
       if (response.vendorId || response.vendor?.id) {
         sessionStorage.setItem('vendorId', response.vendorId || response.vendor.id);
       }
+      
       if (response.store) {
         sessionStorage.setItem('storeId', response.store.id);
         sessionStorage.setItem('storeName', response.store.storeName);
@@ -57,7 +57,7 @@ export const login = async (credentials) => {
     // Return response with normalized role
     return {
       ...response,
-      role: role
+      role: role || 'CUSTOMER'
     };
   } catch (error) {
     console.error('Login error:', error);
@@ -81,13 +81,18 @@ export const signup = async (userData) => {
       false // No auth required for signup
     );
 
-    // If signup returns token, store it
-    if (response && response.token) {
-      tokenManager.set(response.token);
-      sessionStorage.setItem('userRole', response.role || 'VENDOR');
-      sessionStorage.setItem('userId', response.userId || '');
-      if (response.vendorId) {
-        sessionStorage.setItem('vendorId', response.vendorId);
+    // If signup returns user data, store info in sessionStorage
+    if (response && (response.userId || response.user?.id)) {
+      sessionStorage.setItem('userId', response.userId || response.user?.id || '');
+      sessionStorage.setItem('userRole', response.role || 'CUSTOMER');
+      
+      if (response.vendorId || response.vendor?.id) {
+        sessionStorage.setItem('vendorId', response.vendorId || response.vendor.id);
+      }
+      
+      if (response.store) {
+        sessionStorage.setItem('storeId', response.store.id);
+        sessionStorage.setItem('storeName', response.store.storeName);
       }
     }
 
@@ -102,9 +107,50 @@ export const signup = async (userData) => {
 };
 
 /**
- * Logout user
+ * Logout user - call backend to clear cookie
  */
-export const logout = () => {
-  tokenManager.clear();
-  // Additional cleanup can be added here
+export const logout = async () => {
+  try {
+    // Call logout endpoint to clear the cookie on server side
+    await fetchJSON(
+      API_ENDPOINTS.AUTH.LOGOUT,
+      {
+        method: 'POST',
+      },
+      true // Auth required for logout
+    );
+  } catch (error) {
+    console.error('Logout error:', error);
+  } finally {
+    // Always clear session storage regardless of API response
+    cookieManager.clear();
+  }
+};
+
+/**
+ * Check if user is authenticated (by checking session storage)
+ * Note: For a more reliable check, you might want to call a /verify endpoint
+ */
+export const isAuthenticated = () => {
+  return cookieManager.isAuthenticated();
+};
+
+/**
+ * Get current user info from session storage
+ */
+export const getCurrentUser = () => {
+  const userId = sessionStorage.getItem('userId');
+  const userRole = sessionStorage.getItem('userRole');
+  const vendorId = sessionStorage.getItem('vendorId');
+  const storeId = sessionStorage.getItem('storeId');
+  const storeName = sessionStorage.getItem('storeName');
+  
+  if (!userId) return null;
+  
+  return {
+    id: userId,
+    role: userRole,
+    vendorId: vendorId || null,
+    store: storeId ? { id: storeId, storeName } : null
+  };
 };

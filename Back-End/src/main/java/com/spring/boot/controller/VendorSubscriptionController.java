@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/vendor-subscription")
@@ -28,8 +29,14 @@ public class VendorSubscriptionController {
 
     @GetMapping("/get/{id}")
     @PreAuthorize("hasAnyRole('ADMIN')")
-    public ResponseEntity<VendorSubscriptionDto> getVendorSubscriptionById(@PathVariable Long id) {
+    public ResponseEntity<VendorSubscriptionDto> getVendorSubscriptionById(@PathVariable UUID id) {
         return ResponseEntity.ok().body(vendorSubscriptionService.findVendorSubscriptionById(id));
+    }
+
+    @GetMapping("/get/vendor/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','VENDOR')")
+    public ResponseEntity<VendorSubscriptionDto> getVendorSubscriptionByVendorId(@PathVariable UUID id) {
+        return ResponseEntity.ok().body(vendorSubscriptionService.findVendorSubscriptionByVendorId(id));
     }
 
     @PutMapping("/update")
@@ -40,7 +47,7 @@ public class VendorSubscriptionController {
 
     @DeleteMapping("/delete/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','VENDOR')")
-    public ResponseEntity<Void> deleteVendorSubscription(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteVendorSubscription(@PathVariable UUID id) {
         vendorSubscriptionService.deleteVendorSubscriptionById(id);
         return ResponseEntity.ok().build();
     }

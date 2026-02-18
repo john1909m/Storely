@@ -1,6 +1,7 @@
 // Store API service
-import { fetchJSON } from './fetchWithAuth';
+import { fetchJSON,fetchWithAuth } from './fetchWithAuth';
 import { API_ENDPOINTS } from '../config/api.config';
+
 
 export const storeAPI = {
   /**
@@ -66,4 +67,21 @@ export const storeAPI = {
       method: 'DELETE',
     });
   },
+
+
+  /**
+   * Upload store image
+   */
+  uploadImage: async (storeId, imageFile,type) => {
+    const formData = new FormData();
+    formData.append('file', imageFile);
+    formData.append('type', type);
+    return fetchWithAuth(API_ENDPOINTS.STORE.UPLOAD_IMAGE(storeId), {
+      method: 'POST',
+      body: formData,
+    });
+  },
+
+  
+
 };

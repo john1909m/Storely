@@ -7,16 +7,17 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
 @RequiredArgsConstructor
 public class CategoryDto {
-    private Long id;
+    private UUID id;
 
     private String name;
 
     private List<ProductDto> products;
 
-    private Long storeId;
+    private UUID storeId;
 }

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/vendor")
@@ -28,8 +29,8 @@ public class VendorController {
     }
 
     @GetMapping("/get/{vendorId}")
-    @PreAuthorize("hasAnyRole('ADMIN')")
-    public ResponseEntity<VendorDto> getVendorById(@PathVariable("vendorId") Long vendorId) {
+    @PreAuthorize("hasAnyRole('ADMIN','VENDOR')")
+    public ResponseEntity<VendorDto> getVendorById(@PathVariable("vendorId") UUID vendorId) {
         return ResponseEntity.ok(vendorService.getVendorById(vendorId));
     }
 
@@ -48,7 +49,7 @@ public class VendorController {
 
     @DeleteMapping("/delete/{vendorId}")
     @PreAuthorize("hasAnyRole('ADMIN')")
-    public ResponseEntity<Void> deleteVendor(@PathVariable("vendorId") Long id){
+    public ResponseEntity<Void> deleteVendor(@PathVariable("vendorId") UUID id){
         vendorService.deleteVendor(id);
         return ResponseEntity.noContent().build();
     }
@@ -61,7 +62,7 @@ public class VendorController {
 
     @GetMapping("/get/store/{storeId}")
     @PreAuthorize("hasAnyRole('ADMIN')")
-    public ResponseEntity<VendorDto> getVendorByStoreId(@PathVariable("storeId") Long storeId) {
+    public ResponseEntity<VendorDto> getVendorByStoreId(@PathVariable("storeId") UUID storeId) {
         return ResponseEntity.ok(vendorService.getVendorByStoreId(storeId));
     }
 
