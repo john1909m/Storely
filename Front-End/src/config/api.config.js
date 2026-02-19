@@ -1,6 +1,6 @@
 // API Configuration
 // Update this with your Spring Boot backend URL
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://storely-webservice.onrender.com';
 import Pricing from './../pages/vendor/Pricing';
 
 // API endpoints
