@@ -94,9 +94,10 @@ public class AuthServiceImpl implements AuthService {
 
         Cookie cookie = new Cookie("access_token", token);
         cookie.setHttpOnly(true);     // أهم حاجة
-        cookie.setSecure(false);      // true في production
+        cookie.setSecure(true);      // true في production
         cookie.setPath("/");
         cookie.setMaxAge(60 * 60 * 24); // 1 day
+        
 
         response.addCookie(cookie);
 
