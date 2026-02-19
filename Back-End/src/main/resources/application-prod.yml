@@ -2,11 +2,14 @@ spring:
   datasource:
     driver-class-name: org.postgresql.Driver
     url: ${SUPABASE_URL}
-    username: Storely
+    username: ${SUPABASE_USERNAME}
     password: ${SUPABASE_PASSWORD}
 
   jpa:
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
+      dialect: org.hibernate.dialect.PostgreSQLDialect
       ddl-auto: create-only
     show-sql: false
     properties:
@@ -16,9 +19,12 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+    baseline-on-migrate: true
 
 logging:
   level:
+    org.hibernate.engine.jdbc.env.internal: debug
+    org.springframework.jdbc.datasource: debug
     org.hibernate.SQL: debug
     org.hibernate.type.descriptor.sql: trace
 
