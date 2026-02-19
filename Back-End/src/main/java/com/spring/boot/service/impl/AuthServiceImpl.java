@@ -99,7 +99,7 @@ public class AuthServiceImpl implements AuthService {
         cookie.setMaxAge(60 * 60 * 24); // 1 day
 
 
-        String cookieValue=String.format("%s=%s; Path=/; Max-Age=%d; HttpOnly; Secure; SameSite=None", cookie.getName(), cookie.getValue(), cookie.getMaxAge());
+        String cookieValue=String.format("%s=%s; Path=/; Domain=.storely-eg.com; Max-Age=%d; HttpOnly; Secure; SameSite=None", cookie.getName(), cookie.getValue(), cookie.getMaxAge());
 
         response.addHeader("Set-Cookie", cookieValue);
 
