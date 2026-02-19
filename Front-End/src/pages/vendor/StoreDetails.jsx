@@ -14,6 +14,7 @@ import { storeAPI } from '../../api/store.api';
 import { categoryAPI } from '../../api/category.api';
 import StoreFooter from '../../components/StoreFooter';
 import { useErrorHandler } from '../../hooks/useErrorHandler';
+import useAuthStore from '../../store/authStore';
 
 const StoreDetails = () => {
   const { store, vendor, logout, isVendor, isLoading: authLoading } = useAuth();
@@ -24,7 +25,8 @@ const StoreDetails = () => {
   const [activeTab, setActiveTab] = useState('basic');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const { handleError } = useErrorHandler();
-  
+    const {authInialized,isAuthenticated} = useAuthStore();
+
   // Store info state
   const [storeInfo, setStoreInfo] = useState({
     storeName: '',
@@ -54,10 +56,10 @@ const StoreDetails = () => {
   const [uploadingLogo, setUploadingLogo] = useState(false);
 
   useEffect(() => {
-    if (!authLoading && store) {
+    if (!authLoading && store && authInialized) {
       fetchStoreData();
     }
-  }, [authLoading, store]);
+  }, [authLoading, store, authInialized]);
 
   const fetchStoreData = async () => {
     try {

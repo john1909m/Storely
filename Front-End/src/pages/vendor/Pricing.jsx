@@ -21,6 +21,7 @@ const Pricing = () => {
   
   const { vendor: authVendor, isAuthenticated, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
+  
 
   // Fetch all data
   useEffect(() => {

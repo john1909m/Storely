@@ -14,6 +14,7 @@ import { productAPI } from '../../api/product.api';
 import { orderAPI } from '../../api/order.api';
 import StoreFooter from '../../components/StoreFooter';
 import { useErrorHandler } from '../../hooks/useErrorHandler';
+import useAuthStore from '../../store/authStore';
 // import { useErrorHandler } from './../../hooks/useErrorHandler';
 
 const VendorStore = () => {
@@ -36,8 +37,13 @@ const VendorStore = () => {
   const navigate = useNavigate();
   const location = useLocation();
     const { handleError } = useErrorHandler();
+  const {authInialized,isAuthenticated} = useAuthStore();
 
   useEffect(() => {
+    if(!authInialized){
+      navigate('/login');
+      return;
+    }
     fetchStoreData();
     const handleRefresh = () => fetchStoreData();
     window.addEventListener('focus', handleRefresh);
@@ -45,7 +51,7 @@ const VendorStore = () => {
     return () => {
       window.removeEventListener('focus', handleRefresh);
     };
-  }, [location]);
+  }, [authInialized, location]);
 
   const fetchStoreData = async () => {
     try {

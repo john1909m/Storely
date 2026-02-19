@@ -20,6 +20,7 @@ import { customerAPI } from '../../api/customer.api';
 import { subscriptionAPI } from '../../api/subscription.api';
 import { storeAPI } from '../../api/store.api';
 import { useErrorHandler } from '../../hooks/useErrorHandler';
+import useAuthStore from '../../store/authStore';
 
 const VendorAnalytics = () => {
   const [timeRange, setTimeRange] = useState('30days');
@@ -47,13 +48,15 @@ const VendorAnalytics = () => {
   const { vendor } = useAuth();
   const navigate = useNavigate();
     const { handleError } = useErrorHandler();
+      const {authInialized,isAuthenticated} = useAuthStore();
+
 
   useEffect(() => {
-    if (vendor?.id) {
+    if (vendor?.id && authInialized) {
       checkAnalyticsAccess();
       fetchStoreData();
     }
-  }, [vendor]);
+  }, [vendor, authInialized]);
 
   useEffect(() => {
     if (hasAnalyticsAccess && store?.id) {

@@ -14,6 +14,7 @@ import { storeAPI } from '../../api/store.api';
 import { vendorAPI } from '../../api/vendor.api';
 import { pricingAPI } from '../../api/pricing.api';
 import { subscriptionAPI } from '../../api/subscription.api';
+import useAuthStore from '../../store/authStore';
 
 const ManageStores = () => {
   const [stores, setStores] = useState([]);
@@ -40,11 +41,16 @@ const ManageStores = () => {
   });
   
   const navigate = useNavigate();
+    const {authInialized,isAuthenticated} = useAuthStore();
+
 
   useEffect(() => {
+    if(!authInialized){
+      return;
+    }
     fetchStores();
     fetchPlans();
-  }, []);
+  }, [authInialized]);
 
   const fetchStores = async () => {
     try {

@@ -6,6 +6,7 @@ import {
   Save, Loader2
 } from 'lucide-react';
 import { pricingAPI } from '../../api/pricing.api';
+import useAuthStore from '../../store/authStore';
 
 const PricingManagement = () => {
   const [plans, setPlans] = useState([]);
@@ -15,11 +16,16 @@ const PricingManagement = () => {
   const [editingPlan, setEditingPlan] = useState(null);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
-  
+    const {authInialized,isAuthenticated} = useAuthStore();
+
 
   useEffect(() => {
+    if(!authInialized){
+      window.location.href = '/login';
+      return;
+    }
     fetchPlans();
-  }, []);
+  }, [authInialized]);
 
   const fetchPlans = async () => {
     try {

@@ -45,6 +45,7 @@ import AdminDashboard from './pages/dashboards/AdminDashboard';
 // Protected Route Components
 import ProtectedRoute, { VendorRoute, AdminRoute, CustomerRoute } from './routes/ProtectedRoutes';
 import { ToastProvider } from './contexts/ToastContext';
+import useAuthStore from './store/authStore';
 
 // Create a wrapper component that uses useLocation
 const AppContent = () => {
@@ -201,11 +202,12 @@ const AppContent = () => {
 
 function App() {
   // Handle redirect logic on component mount
+  const {initializeAuth} = useAuthStore();
   useEffect(() => {
     // Check authentication on initial load
     const token = sessionStorage.getItem('authToken');
     const currentPath = window.location.pathname;
-    
+    initializeAuth();
     if (!token && currentPath !== '/login' && currentPath !== '/signup' && 
         currentPath !== '/' && currentPath !== '/customer/signup' &&
         currentPath !== '/forgot-password' && currentPath !== '/verify-otp' &&
@@ -214,7 +216,7 @@ function App() {
       // Store intended destination
       sessionStorage.setItem('redirectAfterLogin', currentPath);
     }
-  }, []); // Run only on initial mount
+  }, [initializeAuth]); // Run only on initial mount
 
   return (
     <Router>

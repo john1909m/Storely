@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { vendorAPI } from '../../api/vendor.api';
 import { storeAPI } from '../../api/store.api';
+import useAuthStore from '../../store/authStore';
 
 const ManageVendors = () => {
   const [vendors, setVendors] = useState([]);
@@ -21,10 +22,16 @@ const ManageVendors = () => {
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [expandedRows, setExpandedRows] = useState([]);
   const navigate = useNavigate();
+    const {authInialized,isAuthenticated} = useAuthStore();
+
 
   useEffect(() => {
+    if(!authInialized){
+      navigate('/login');
+      return;
+    }
     fetchVendors();
-  }, []);
+  }, [authInialized]);
 
   const fetchVendors = async () => {
     try {

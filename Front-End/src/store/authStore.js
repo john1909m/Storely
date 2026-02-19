@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { login as loginAPI, logout as logoutAPI, signup as signupAPI, getCurrentUser } from '../api/auth.api';
 import { storeAPI } from '../api/store.api';
 import { cookieManager } from '../api/fetchWithAuth';
+import { ca } from 'date-fns/locale';
 
 const useAuthStore = create((set, get) => ({
   // State
@@ -11,7 +12,8 @@ const useAuthStore = create((set, get) => ({
   store: null, // Store information
   role: null,
   isAuthenticated: false,
-  isLoading: false,
+  isLoading: true,
+  authInialized: false,
   error: null,
 
   // Actions
@@ -161,8 +163,9 @@ const useAuthStore = create((set, get) => ({
   /**
    * Initialize auth from session storage
    */
-  initializeAuth: () => {
-    const currentUser = getCurrentUser();
+  initializeAuth: async () => {
+    try{
+          const currentUser = await getCurrentUser();
     
     if (currentUser) {
       const store = currentUser.store;
@@ -175,6 +178,11 @@ const useAuthStore = create((set, get) => ({
         role: currentUser.role,
         isAuthenticated: true,
       });
+    }
+    }catch(error){
+      console.error('Error initializing auth:', error);
+    }finally{
+      set({ isLoading: false, authInialized: true });
     }
   },
 

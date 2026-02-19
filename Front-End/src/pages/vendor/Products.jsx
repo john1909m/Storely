@@ -17,6 +17,7 @@ import { format } from 'date-fns';
 import StoreFooter from '../../components/StoreFooter';
 import { id } from 'date-fns/locale';
 import { useErrorHandler } from '../../hooks/useErrorHandler';
+import useAuthStore from '../../store/authStore';
 
 const VendorProducts = () => {
   const [products, setProducts] = useState([]);
@@ -119,6 +120,8 @@ const VendorProducts = () => {
     name: '',
     description: ''
   });
+    const {authInialized,isAuthenticated} = useAuthStore();
+
 
   useEffect(() => {
     if (authLoading) return;

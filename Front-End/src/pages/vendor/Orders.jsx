@@ -18,6 +18,7 @@ import { customerAPI } from '../../api/customer.api';
 import { Link } from 'react-router-dom';
 import StoreFooter from '../../components/StoreFooter';
 import { useErrorHandler } from '../../hooks/useErrorHandler';
+import useAuthStore from '../../store/authStore';
 
 const VendorOrders = () => {
   const [orders, setOrders] = useState([]);
@@ -39,15 +40,17 @@ const VendorOrders = () => {
   const { store, vendor } = useAuth();
   const navigate = useNavigate();
     const { handleError } = useErrorHandler();
+      const {authInialized,isAuthenticated} = useAuthStore();
+
 
   useEffect(() => {
-    if (store?.id) {
+    if (store?.id && authInialized) {
       fetchOrders();
     } else {
       setError('Store not found. Please create a store first.');
       setIsLoading(false);
     }
-  }, [store]);
+  }, [store, authInialized]);
 
   const fetchOrders = async () => {
     try {

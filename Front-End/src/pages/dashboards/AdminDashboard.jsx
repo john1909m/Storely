@@ -14,10 +14,14 @@ const AdminDashboard = () => {
   const [vendors, setVendors] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const {authInialized,isAuthenticated} = useAuthStore();
 
   useEffect(() => {
+    if(!authInialized){
+      return;
+    }
     fetchDashboardData();
-  }, []);
+  }, [authInialized]);
 
   const fetchDashboardData = async () => {
     try {
