@@ -8,6 +8,7 @@ import {
 import { storeAPI } from '../../api/store.api';
 import { vendorAPI } from '../../api/vendor.api';
 import { logout } from './../../api/auth.api';
+import useAuthStore from '../../store/authStore';
 
 const AdminDashboard = () => {
   const [stores, setStores] = useState([]);
