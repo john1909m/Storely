@@ -120,7 +120,7 @@ const VendorProducts = () => {
     name: '',
     description: ''
   });
-    const {authInialized,isAuthenticated} = useAuthStore();
+    // const {authInialized} = useAuthStore();
 
 
   useEffect(() => {
