@@ -1,7 +1,7 @@
 spring:
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: ${SUPABASE_URL}
+    url: jdbc:postgresql://${SUPABASE_URL}:5432/postgres?sslmode=require
     username: ${SUPABASE_USERNAME}
     password: ${SUPABASE_PASSWORD}
 
