@@ -51,8 +51,8 @@ const Pricing = () => {
           let description = '';
           
           
-          if (plan.name.toLowerCase().includes('pro') || plan.name.toLowerCase().includes('professional')) {
-            tier = 'professional';
+          if (plan.name.toLowerCase().includes('pro') || plan.name.toLowerCase().includes('pro')) {
+            tier = 'pro';
             color = 'from-indigo-500 to-purple-500';
             description = 'Best for growing businesses';
             
@@ -117,16 +117,16 @@ const Pricing = () => {
   }, [authLoading, isAuthenticated, authVendor?.id]);
 
   const generateFeaturesComparison = (plans) => {
-    const basicPlan = plans.find(p => p.tier === 'Basic') || plans[0];
-    const proPlan = plans.find(p => p.tier === 'Professional') || plans.find(p => p.name.toLowerCase().includes('pro')) || plans[1];
-    const businessPlan = plans.find(p => p.tier === 'Business') || plans.find(p => p.name.toLowerCase().includes('business')) || plans[2];
+    const basicPlan = plans.find(p => p.tier === 'Starter') || plans[0];
+    const proPlan = plans.find(p => p.tier === 'Basic') || plans.find(p => p.name.toLowerCase().includes('basic')) || plans[1];
+    const businessPlan = plans.find(p => p.tier === 'Pro') || plans.find(p => p.name.toLowerCase().includes('pro')) || plans[2];
     
     return [
       { 
         name: 'Plan Name', 
-        starter: basicPlan?.name || 'Basic', 
-        pro: proPlan?.name || 'Professional', 
-        business: businessPlan?.name || 'Business' 
+        starter: basicPlan?.name || 'Starter', 
+        pro: proPlan?.name || 'Basic', 
+        business: businessPlan?.name || 'Pro' 
       },
       { 
         name: 'Monthly Price', 
@@ -144,9 +144,9 @@ const Pricing = () => {
       
       { 
         name: 'Advanced Analytics', 
-        starter: basicPlan?.tier === 'Basic' ? false : true, 
-        pro: proPlan?.tier === 'Professional' ? false : false, 
-        business: businessPlan?.tier === 'Business' ? true : false 
+        starter: basicPlan?.tier === 'Starter' ? false : true, 
+        pro: proPlan?.tier === 'Basic' ? false : false, 
+        business: businessPlan?.tier === 'Pro' ? true : false 
       },
       
       { 
@@ -370,53 +370,7 @@ const Pricing = () => {
             </div>
 
             {/* Features Comparison Table */}
-            {featuresComparison.length > 0 && (
-              <div className="mb-20">
-                <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">
-                  Compare All Features
-                </h2>
-                
-                <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="bg-gray-50 border-b border-gray-200">
-                          <th className="text-left p-6 font-semibold text-gray-900">Feature</th>
-                          {plans.slice(1, 4).map((plan, index) => (
-                            <th key={index} className="text-center p-6 font-semibold text-gray-900">
-                              {plan.name}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {featuresComparison.map((feature, index) => (
-                          <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
-                            <td className="p-6 font-medium text-gray-900">{feature.name}</td>
-                            {['Basic', 'pro', 'business'].map((tier, idx) => {
-                              const value = feature[tier];
-                              return (
-                                <td key={idx} className="p-6 text-center">
-                                  {typeof value === 'boolean' ? (
-                                    value ? (
-                                      <Check className="h-5 w-5 text-green-500 mx-auto" />
-                                    ) : (
-                                      <X className="h-5 w-5 text-gray-300 mx-auto" />
-                                    )
-                                  ) : (
-                                    <span className="text-gray-700">{value}</span>
-                                  )}
-                                </td>
-                              );
-                            })}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            )}
+            
           </>
         )}
 
@@ -428,7 +382,7 @@ const Pricing = () => {
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-3">No Setup Fees</h3>
             <p className="text-gray-600">
-              Start selling immediately with zero upfront costs. Only pay when you make sales.
+              Start selling immediately with zero upfront costs. Only pay when you are ready to sell.
             </p>
           </div>
           <div className="bg-white rounded-2xl p-8 border border-gray-100 text-center">
@@ -444,9 +398,9 @@ const Pricing = () => {
             <div className="h-16 w-16 bg-purple-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
               <Shield className="h-8 w-8 text-purple-600" />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-3">30-Day Money Back</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-3">5-Day Money Back</h3>
             <p className="text-gray-600">
-              Try any paid plan risk-free. Get a full refund within 30 days if not satisfied.
+              Try any paid plan risk-free. Get a full refund within 5 days if not satisfied.
             </p>
           </div>
         </div>
@@ -458,10 +412,7 @@ const Pricing = () => {
           </h2>
           <div className="space-y-6">
             {[
-              {
-                q: 'How does the commission work?',
-                a: 'We charge a percentage commission only on successful sales. No commission on shipping or taxes. The commission rate decreases as you upgrade to higher plans.'
-              },
+              
               {
                 q: 'Can I switch plans later?',
                 a: 'Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately and are prorated.'
@@ -484,37 +435,7 @@ const Pricing = () => {
         </div>
 
         {/* Final CTA */}
-        <div className="mt-20 text-center">
-          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-3xl p-12 text-white">
-            <h2 className="text-3xl font-bold mb-6">Ready to Start Selling?</h2>
-            <p className="text-indigo-100 text-xl mb-8 max-w-2xl mx-auto">
-              Join thousands of successful vendors who trust Storely to power their online business.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              {isAuthenticated ? (
-                <Link
-                  to="/vendor/pricing"
-                  className="px-8 py-4 bg-white text-indigo-600 font-bold rounded-xl hover:bg-gray-100 shadow-2xl"
-                >
-                  View Plans
-                </Link>
-              ) : (
-                <Link
-                  to="/vendor/signup"
-                  className="px-8 py-4 bg-white text-indigo-600 font-bold rounded-xl hover:bg-gray-100 shadow-2xl"
-                >
-                  Start Free Trial
-                </Link>
-              )}
-              <Link
-                to="/contact"
-                className="px-8 py-4 bg-transparent border-2 border-white text-white font-bold rounded-xl hover:bg-white/10"
-              >
-                Schedule a Demo
-              </Link>
-            </div>
-          </div>
-        </div>
+        
       </div>
       <StoreFooter />
     </div>

@@ -2,13 +2,14 @@
 import React, { useState } from 'react';
 import {
   Mail, MessageSquare, HelpCircle,
-  CheckCircle, Send, Clock
+  CheckCircle, Send, Clock, Phone, MessageCircle
 } from 'lucide-react';
+import { useForm, ValidationError } from '@formspree/react';
 
 const CustomerContact = () => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-
+  // Formspree hook
+  const [state, handleSubmit] = useForm("xvzbwzaw");
+  
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -17,42 +18,23 @@ const CustomerContact = () => {
     inquiryType: 'general'
   });
 
-  const faqs = [
-    {
-      q: 'How do I track my order?',
-      a: 'You can track your order from your account dashboard or using the tracking link provided in your confirmation email.'
-    },
-    {
-      q: 'What is your return policy?',
-      a: 'We offer a 30-day return policy for most items. Some products may have specific return conditions.'
-    },
-    {
-      q: 'How long does shipping take?',
-      a: 'Shipping times vary by location and shipping method, typically 3-7 business days for standard shipping.'
-    },
-    {
-      q: 'Do you ship internationally?',
-      a: 'Yes! We ship to most countries. Shipping costs and times vary by destination.'
-    }
-  ];
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setIsSubmitted(true);
-    }, 1500);
+  // بيانات التواصل
+  const contactInfo = {
+    phone: '+201200158852', // غير الرقم ده لرقمك الفعلي
+    whatsapp: '201200158852', // رقم الواتساب بدون + (مثال: 201012345678)
+    email: 'johnemil21@yahoo.com',
+    supportHours: '9AM - 6PM (Egypt Time)'
   };
+
+  
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  if (isSubmitted) {
+  // لو الفورم اتقدم بنجاح
+  if (state.succeeded) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="w-full max-w-md">
@@ -65,7 +47,7 @@ const CustomerContact = () => {
               Thank you for contacting us. We'll get back to you within 24 hours.
             </p>
             <button
-              onClick={() => setIsSubmitted(false)}
+              onClick={() => window.location.reload()}
               className="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700"
             >
               Send Another Message
@@ -143,9 +125,8 @@ const CustomerContact = () => {
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
                   >
                     <option value="general">General Inquiry</option>
-                    <option value="order">Order Issue</option>
+                    <option value="order">Orders Issue</option>
                     <option value="product">Product Question</option>
-                    <option value="shipping">Shipping & Delivery</option>
                     <option value="returns">Returns & Refunds</option>
                     <option value="account">Account Help</option>
                   </select>
@@ -183,13 +164,27 @@ const CustomerContact = () => {
                   />
                 </div>
 
+                {/* Validation Errors from Formspree */}
+                <ValidationError 
+                  prefix="Email" 
+                  field="email"
+                  errors={state.errors}
+                  className="text-sm text-red-600 mt-1"
+                />
+                <ValidationError 
+                  prefix="Message" 
+                  field="message"
+                  errors={state.errors}
+                  className="text-sm text-red-600 mt-1"
+                />
+
                 {/* Submit Button */}
                 <button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={state.submitting}
                   className="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                 >
-                  {isSubmitting ? (
+                  {state.submitting ? (
                     <>
                       <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                       <span>Sending Message...</span>
@@ -211,33 +206,53 @@ const CustomerContact = () => {
             <div className="bg-white rounded-2xl p-8 border border-gray-100">
               <h3 className="font-semibold text-gray-900 mb-6">Contact Information</h3>
               <div className="space-y-6">
+                {/* Email */}
                 <div className="flex items-center space-x-4">
                   <div className="h-12 w-12 bg-blue-50 rounded-xl flex items-center justify-center">
                     <Mail className="h-6 w-6 text-blue-600" />
                   </div>
                   <div>
                     <div className="font-medium text-gray-900">Email Support</div>
-                    <div className="text-gray-600">support@storely.com</div>
+                    <a href={`mailto:${contactInfo.email}`} className="text-gray-600 hover:text-indigo-600">
+                      {contactInfo.email}
+                    </a>
                   </div>
                 </div>
+
+                {/* Phone - جديد */}
                 <div className="flex items-center space-x-4">
                   <div className="h-12 w-12 bg-green-50 rounded-xl flex items-center justify-center">
-                    <MessageSquare className="h-6 w-6 text-green-600" />
+                    <Phone className="h-6 w-6 text-green-600" />
                   </div>
                   <div>
-                    <div className="font-medium text-gray-900">Live Chat</div>
-                    <div className="text-gray-600">Available 9AM-6PM EST</div>
+                    <div className="font-medium text-gray-900">Phone Support</div>
+                    <a href={`tel:${contactInfo.phone}`} className="text-gray-600 hover:text-indigo-600">
+                      {contactInfo.phone}
+                    </a>
+                    <div className="text-xs text-gray-500 mt-1">{contactInfo.supportHours}</div>
                   </div>
                 </div>
+
+                {/* WhatsApp - جديد */}
                 <div className="flex items-center space-x-4">
-                  <div className="h-12 w-12 bg-purple-50 rounded-xl flex items-center justify-center">
-                    <HelpCircle className="h-6 w-6 text-purple-600" />
+                  <div className="h-12 w-12 bg-emerald-50 rounded-xl flex items-center justify-center">
+                    <MessageCircle className="h-6 w-6 text-emerald-600" />
                   </div>
                   <div>
-                    <div className="font-medium text-gray-900">Help Center</div>
-                    <div className="text-gray-600">Browse FAQs & Guides</div>
+                    <div className="font-medium text-gray-900">WhatsApp</div>
+                    <a 
+                      href={`https://wa.me/${contactInfo.whatsapp}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gray-600 hover:text-emerald-600"
+                    >
+                      Chat on WhatsApp
+                    </a>
                   </div>
                 </div>
+
+                {/* Live Chat */}
+                
               </div>
 
               {/* Response Time */}
@@ -248,80 +263,25 @@ const CustomerContact = () => {
                 </div>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Email Support</span>
+                    <span className="text-gray-600">Email/Form</span>
                     <span className="font-medium">Within 24 hours</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Live Chat</span>
-                    <span className="font-medium">Within 5 minutes</span>
+                    <span className="text-gray-600">WhatsApp</span>
+                    <span className="font-medium">Within 2 hours</span>
                   </div>
+                  
                 </div>
               </div>
             </div>
 
-            {/* FAQ Preview */}
-            <div className="bg-white rounded-2xl p-8 border border-gray-100">
-              <h3 className="font-semibold text-gray-900 mb-6">Frequently Asked Questions</h3>
-              <div className="space-y-6">
-                {faqs.map((faq, index) => (
-                  <div key={index}>
-                    <div className="font-medium text-gray-900 mb-2">{faq.q}</div>
-                    <div className="text-sm text-gray-600">{faq.a}</div>
-                    {index < faqs.length - 1 && (
-                      <div className="mt-4 border-t border-gray-100"></div>
-                    )}
-                  </div>
-                ))}
-              </div>
-              <button className="w-full mt-6 py-3 text-indigo-600 hover:text-indigo-500 font-medium">
-                View all FAQs →
-              </button>
-            </div>
+
+            
           </div>
         </div>
 
-        {/* Support Channels */}
-        <div className="mt-16">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">Other Ways to Get Help</h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-white rounded-2xl p-8 text-center border border-gray-100">
-              <div className="h-16 w-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <MessageSquare className="h-8 w-8 text-blue-600" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Community Forum</h3>
-              <p className="text-gray-600 mb-6">
-                Connect with other customers and get answers from the community
-              </p>
-              <button className="text-indigo-600 hover:text-indigo-500 font-medium">
-                Visit Forum →
-              </button>
-            </div>
-            <div className="bg-white rounded-2xl p-8 text-center border border-gray-100">
-              <div className="h-16 w-16 bg-green-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <HelpCircle className="h-8 w-8 text-green-600" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Help Center</h3>
-              <p className="text-gray-600 mb-6">
-                Browse our comprehensive guides and tutorials
-              </p>
-              <button className="text-indigo-600 hover:text-indigo-500 font-medium">
-                Visit Help Center →
-              </button>
-            </div>
-            <div className="bg-white rounded-2xl p-8 text-center border border-gray-100">
-              <div className="h-16 w-16 bg-purple-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <CheckCircle className="h-8 w-8 text-purple-600" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Status Page</h3>
-              <p className="text-gray-600 mb-6">
-                Check the current status of Storely services
-              </p>
-              <button className="text-indigo-600 hover:text-indigo-500 font-medium">
-                Check Status →
-              </button>
-            </div>
-          </div>
-        </div>
+
+        
       </div>
     </div>
   );
