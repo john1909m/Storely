@@ -22,6 +22,13 @@ const Pricing = () => {
   const { vendor: authVendor, isAuthenticated, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   
+  // دالة مساعدة لحساب السعر الأصلي (الأعلى) من السعر الحالي
+  // بافتراض أن السعر الحالي هو السعر بعد الخصم بنسبة 35%
+  const calculateOriginalPrice = (discountedPrice) => {
+    // إذا كان السعر المخفّض هو 65% من السعر الأصلي، فإن:
+    // originalPrice = discountedPrice / 0.65
+    return (discountedPrice / 0.65).toFixed(0); // نعيده كعدد صحيح
+  };
 
   // Fetch all data
   useEffect(() => {
@@ -290,6 +297,9 @@ const Pricing = () => {
             <div className="grid md:grid-cols-3 gap-8 mb-20">
               {plans.map((plan) => {
                 const price = billingCycle === 'monthly' ? plan.price.monthly : plan.price.yearly;
+                // --- التعديل هنا: حساب السعر الأصلي (الأعلى) ---
+                const originalPrice = calculateOriginalPrice(price);
+                // ------------------------------------------------
                 const isYearly = billingCycle === 'yearly';
                 const yearlySavings = isYearly && plan.price.monthly > 0 
                   ? (plan.price.monthly * 12 - plan.price.yearly) 
@@ -322,9 +332,13 @@ const Pricing = () => {
                         <p className="text-gray-600">{plan.description}</p>
                       </div>
 
-                      {/* Price */}
+                      {/* Price - تم تعديل هذا القسم */}
                       <div className="text-center mb-8">
-                        <div className="flex items-baseline justify-center">
+                        {/* عرض السعر الأصلي مشطوباً */}
+                        <div className="text-red-700 line-through text-xl">
+                          {originalPrice} EGP /month
+                        </div>
+                        <div className="flex items-baseline justify-center mt-1">
                           <span className="text-5xl font-bold text-gray-900">
                             {price.toFixed(0)}
                           </span>
@@ -333,12 +347,17 @@ const Pricing = () => {
                             /{isYearly ? 'year' : 'month'}
                           </span>
                         </div>
+                        {/* عرض نسبة الخصم */}
+                        <div className="text-green-600 font-medium mt-2">
+                         save 35% 🎉
+                        </div>
                         {yearlySavings > 0 && (
-                          <div className="text-green-600 font-medium mt-2">
-                            Save {yearlySavings.toFixed(0)} EGP annually
+                          <div className="text-green-600 font-medium text-sm">
+                            بالإضافة إلى توفير {yearlySavings.toFixed(0)} EGP سنوياً
                           </div>
                         )}
                       </div>
+                      {/* -------------------------- */}
 
                       {/* Features */}
                       <div className="space-y-4 mb-8">
