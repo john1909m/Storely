@@ -63,13 +63,13 @@ const Pricing = () => {
             color = 'from-indigo-500 to-purple-500';
             description = 'Best for growing businesses';
             
-          } else if (plan.name.toLowerCase().includes('business') || plan.name.toLowerCase().includes('enterprise')) {
-            tier = 'business';
+          } else if (plan.name.toLowerCase().includes('basic') || plan.name.toLowerCase().includes('enterprise')) {
+            tier = 'Basic';
             color = 'from-purple-500 to-pink-500';
             description = 'For established businesses and teams';
             
           } else {
-            description = 'Perfect for new vendors just getting started';
+            description = '';
             
           }
           
@@ -103,11 +103,18 @@ const Pricing = () => {
           };
         });
         
-        setPlans(transformedPlans);
+        // ترتيب الخطط تصاعدياً حسب السعر الشهري
+        const sortedPlans = [...transformedPlans].sort((a, b) => {
+          const priceA = a.price.monthly;
+          const priceB = b.price.monthly;
+          return priceA - priceB; // ترتيب تصاعدي (من الأقل للأعلى)
+        });
+        
+        setPlans(sortedPlans);
         setVendorData(vendorApiData);
         
         // Generate features comparison
-        const comparison = generateFeaturesComparison(transformedPlans);
+        const comparison = generateFeaturesComparison(sortedPlans);
         setFeaturesComparison(comparison);
         
       } catch (err) {
@@ -295,7 +302,7 @@ const Pricing = () => {
         ) : (
           <>
             <div className="grid md:grid-cols-3 gap-8 mb-20">
-              {plans.map((plan) => {
+              {plans.map((plan, index) => {
                 const price = billingCycle === 'monthly' ? plan.price.monthly : plan.price.yearly;
                 // --- التعديل هنا: حساب السعر الأصلي (الأعلى) ---
                 const originalPrice = calculateOriginalPrice(price);
