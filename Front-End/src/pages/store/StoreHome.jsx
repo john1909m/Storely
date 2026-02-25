@@ -1,4 +1,4 @@
-// StoreHome.jsx - Mobile Optimized with Variant Support
+// StoreHome.jsx - مع دعم الألوان المخصصة وتأثيرات Fade In
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { storeAPI } from '../../api/store.api';
@@ -36,6 +36,79 @@ import StoreFooter from '../../components/StoreFooter';
 import SEO from '../../components/SEO';
 import { useErrorHandler } from '../../hooks/useErrorHandler';
 
+// ✨ إضافة أنماط CSS للـ animations
+const fadeInStyles = `
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(40px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes fadeInScale {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  
+  .animate-fade-in {
+    animation: fadeIn 0.6s ease-out forwards;
+  }
+  
+  .animate-fade-in-up {
+    animation: fadeInUp 0.8s ease-out forwards;
+  }
+  
+  .animate-fade-in-scale {
+    animation: fadeInScale 0.5s ease-out forwards;
+  }
+  
+  .animate-stagger-1 {
+    animation: fadeIn 0.6s ease-out 0.1s forwards;
+    opacity: 0;
+  }
+  
+  .animate-stagger-2 {
+    animation: fadeIn 0.6s ease-out 0.2s forwards;
+    opacity: 0;
+  }
+  
+  .animate-stagger-3 {
+    animation: fadeIn 0.6s ease-out 0.3s forwards;
+    opacity: 0;
+  }
+  
+  .animate-stagger-4 {
+    animation: fadeIn 0.6s ease-out 0.4s forwards;
+    opacity: 0;
+  }
+  
+  .animate-stagger-5 {
+    animation: fadeIn 0.6s ease-out 0.5s forwards;
+    opacity: 0;
+  }
+`;
+
 const StoreHome = () => {
   const { storeName } = useParams();
   const navigate = useNavigate();
@@ -47,8 +120,9 @@ const StoreHome = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
-  const [sortBy, setSortBy] = useState('featured'); // 'featured', 'price-low', 'price-high', 'newest'
+  const [viewMode, setViewMode] = useState('grid');
+  const [sortBy, setSortBy] = useState('featured');
+  const [pageLoaded, setPageLoaded] = useState(false);
   
   // Variant selection modal state
   const [selectedProductForVariant, setSelectedProductForVariant] = useState(null);
@@ -58,7 +132,7 @@ const StoreHome = () => {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showCategoriesDrawer, setShowCategoriesDrawer] = useState(false);
   const [showSearchBar, setShowSearchBar] = useState(false);
-    const { handleError } = useErrorHandler();
+  const { handleError } = useErrorHandler();
   
   // Cart state
   const [cart, setCart] = useState([]);
@@ -71,11 +145,28 @@ const StoreHome = () => {
   const mobileMenuButtonRef = useRef(null);
   const categoriesButtonRef = useRef(null);
 
+  // 🎨 دالة للحصول على الألوان المخصصة مع قيم افتراضية
+  const getStoreColors = () => {
+    return {
+      primary: store?.primaryColor || '#4f46e5', // indigo-600 كلون افتراضي
+      secondary: store?.secondaryColor || '#9333ea', // purple-600 كلون افتراضي
+      primaryLight: store?.primaryColor ? `${store.primaryColor}20` : '#e0e7ff', // نسخة شفافة من primary
+      secondaryLight: store?.secondaryColor ? `${store.secondaryColor}20` : '#f3e8ff' // نسخة شفافة من secondary
+    };
+  };
+
   useEffect(() => {
     if (storeName) {
       fetchStoreData();
     }
   }, [storeName]);
+
+  // 🔄 جلب المنتجات عند تغيير التصنيف
+  useEffect(() => {
+    if (store?.id) {
+      fetchProductsByCategory();
+    }
+  }, [selectedCategory, store?.id]);
 
   useEffect(() => {
     // Load cart and wishlist from localStorage
@@ -103,14 +194,12 @@ const StoreHome = () => {
   useEffect(() => {
     // Save cart to localStorage for checkout
     if (storeName && cart.length > 0) {
-      // Save to store-specific key
       localStorage.setItem(`cart_${storeName}`, JSON.stringify(cart));
       
-      // Also save to global checkout key with store info
       localStorage.setItem('checkout_cart', JSON.stringify({
         storeId: store?.id,
         storeName: store?.storeName,
-        storeLogo: store?.logoUrl,
+        storeLogo: store?.storeLogoUrl,
         items: cart.map(item => ({
           id: item.id,
           productId: item.id,
@@ -125,29 +214,24 @@ const StoreHome = () => {
         timestamp: new Date().toISOString()
       }));
     } else {
-      // Clear checkout cart if cart is empty
       localStorage.removeItem('checkout_cart');
     }
   }, [cart, storeName, store]);
 
   useEffect(() => {
-    // Save wishlist to localStorage
     if (storeName) {
       localStorage.setItem(`wishlist_${storeName}`, JSON.stringify(wishlist));
     }
   }, [wishlist, storeName]);
 
-  // Focus management for modals
   useEffect(() => {
     if (showSearchBar && searchInputRef.current) {
-      // Small delay to ensure animation completes before focusing
       setTimeout(() => {
         searchInputRef.current?.focus();
       }, 300);
     }
   }, [showSearchBar]);
 
-  // Prevent body scroll when modals are open
   useEffect(() => {
     if (showMobileMenu || showCategoriesDrawer || showSearchBar || showVariantModal || showCart) {
       document.body.style.overflow = 'hidden';
@@ -160,10 +244,20 @@ const StoreHome = () => {
     };
   }, [showMobileMenu, showCategoriesDrawer, showSearchBar, showVariantModal, showCart]);
 
+  // ✨ تحديد أن الصفحة تم تحميلها
+  useEffect(() => {
+    if (!loading && store) {
+      setTimeout(() => {
+        setPageLoaded(true);
+      }, 100);
+    }
+  }, [loading, store]);
+
   const fetchStoreData = async () => {
     try {
       setLoading(true);
       setError(null);
+      setPageLoaded(false);
 
       // Fetch store by name
       const storeData = await storeAPI.getByName(storeName);
@@ -172,24 +266,18 @@ const StoreHome = () => {
       }
       setStore(storeData);
 
-      // Fetch products for this store
-      const storeProducts = await productAPI.getAll(storeData.id);
-      
-      // Enhance products with variant info
-      const enhancedProducts = storeProducts.map(product => ({
-        ...product,
-        hasVariants: product.variants && product.variants.length > 0,
-        variantCount: product.variants?.length || 0,
-        totalStock: product.variants 
-          ? product.variants.reduce((sum, v) => sum + (v.quantity || 0), 0)
-          : product.quantity || 0
-      }));
-      
-      setProducts(enhancedProducts || []);
-
       // Fetch categories for this store
       const storeCategories = await categoryAPI.getByStore(storeData.id);
-      setCategories(storeCategories || []);
+      console.log('Categories from API:', storeCategories);
+      
+      // Ensure category ids are numbers
+      const enhancedCategories = storeCategories.map(cat => ({
+        id: cat.id,
+        categoryName: cat.categoryName || cat.name || `Category ${cat.id}`,
+        name: cat.name || cat.categoryName || `Category ${cat.id}`
+      }));
+      
+      setCategories(enhancedCategories);
 
     } catch (err) {
       handleError(err);
@@ -199,9 +287,48 @@ const StoreHome = () => {
     }
   };
 
+  // 🆕 دالة جديدة لجلب المنتجات حسب التصنيف
+  const fetchProductsByCategory = async () => {
+    try {
+      setLoading(true);
+      
+      let productsData;
+      
+      if (selectedCategory === 'all') {
+        // جلب كل المنتجات
+        productsData = await productAPI.getAll(store.id);
+        console.log('All products:', productsData);
+      } else {
+        // جلب المنتجات حسب التصنيف
+        const categoryId = selectedCategory;
+        productsData = await productAPI.getByCategory(categoryId, store.id);
+        console.log(`Products for category ${categoryId}:`, productsData);
+      }
+      
+      // تحسين بيانات المنتجات
+      const enhancedProducts = productsData.map(product => ({
+        ...product,
+        hasVariants: product.variants && product.variants.length > 0,
+        variantCount: product.variants?.length || 0,
+        totalStock: product.variants 
+          ? product.variants.reduce((sum, v) => sum + (v.quantity || 0), 0)
+          : product.quantity || 0,
+        productName: product.productName || product.name,
+        name: product.name || product.productName
+      }));
+      
+      setProducts(enhancedProducts);
+      
+    } catch (err) {
+      handleError(err);
+      setError(err.message || 'Failed to load products');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleAddToCart = (product, selectedVariant = null) => {
     setCart(prevCart => {
-      // Create cart item with variant information
       const cartItem = {
         id: product.id,
         productName: product.productName || product.name,
@@ -211,7 +338,6 @@ const StoreHome = () => {
         addedAt: new Date().toISOString()
       };
 
-      // Add variant information if provided
       if (selectedVariant) {
         cartItem.selectedColor = selectedVariant.productColor;
         cartItem.color = selectedVariant.productColor;
@@ -219,21 +345,17 @@ const StoreHome = () => {
         cartItem.size = selectedVariant.productSize;
         cartItem.variantId = selectedVariant.id;
       } else if (product.hasVariants) {
-        // If product has variants but no variant selected, open variant selector
         setSelectedProductForVariant(product);
         setShowVariantModal(true);
         return prevCart;
       }
 
-      // Check if item already exists in cart (with same variant)
       const existingItemIndex = prevCart.findIndex(item => {
         if (selectedVariant) {
-          // For variant products, match by variant combination
           return item.id === product.id && 
                  item.selectedColor === cartItem.selectedColor &&
                  item.selectedSize === cartItem.selectedSize;
         }
-        // For simple products, just match by id
         return item.id === product.id;
       });
       
@@ -248,7 +370,6 @@ const StoreHome = () => {
         updatedCart = [...prevCart, cartItem];
       }
       
-      // Trigger cart pulse animation
       setCartPulse(true);
       setTimeout(() => setCartPulse(false), 500);
       
@@ -294,25 +415,21 @@ const StoreHome = () => {
     }
   };
 
+  // فلترة حسب البحث فقط (المنتجات جاهزة من API)
   const filteredProducts = handleSortProducts(
     products.filter(product => {
+      const productName = product.productName || product.name || '';
       const matchesSearch = !searchQuery || 
-        (product.productName || product.name).toLowerCase().includes(searchQuery.toLowerCase());
+        productName.toLowerCase().includes(searchQuery.toLowerCase());
       
-      const matchesCategory = selectedCategory === 'all' || 
-        product.categoryId === parseInt(selectedCategory) ||
-        product.category?.id === parseInt(selectedCategory);
-      
-      return matchesSearch && matchesCategory;
+      return matchesSearch;
     })
   );
 
   const getStoreRating = () => {
-    // In a real app, this would come from the API
     return { rating: 4.8, reviews: 245 };
   };
 
-  // Format price in EGP
   const formatPrice = (price) => {
     return new Intl.NumberFormat('en-EG', {
       style: 'currency',
@@ -322,44 +439,56 @@ const StoreHome = () => {
     }).format(price);
   };
 
-  // Handle category selection for mobile
   const handleCategorySelect = (categoryId) => {
     setSelectedCategory(categoryId);
     setShowCategoriesDrawer(false);
-    // Scroll to top of products
+    // إعادة تعيين البحث عند تغيير التصنيف
+    setSearchQuery('');
     window.scrollTo({ top: 300, behavior: 'smooth' });
   };
 
-  // Mobile category drawer component
+  // 🎨 الحصول على الألوان المخصصة
+  const colors = getStoreColors();
+
+  // 🎨 دالة لتوليد style object للتدرجات
+  const getGradientStyle = (fromColor, toColor) => {
+    return {
+      background: `linear-gradient(to right, ${fromColor}, ${toColor})`
+    };
+  };
+
+  // 🎨 Mobile category drawer component مع الألوان المخصصة
   const MobileCategoriesDrawer = () => (
     <div 
       className={`fixed inset-0 z-50 lg:hidden transition-all duration-300 ${
         showCategoriesDrawer ? 'opacity-100 visible' : 'opacity-0 invisible'
       }`}
       onClick={(e) => {
-        // Prevent closing when clicking inside the drawer
         if (e.target === e.currentTarget) {
           setShowCategoriesDrawer(false);
         }
       }}
     >
-      {/* Backdrop */}
       <div 
-        className="absolute inset-0 bg-black bg-opacity-50"
+        className="absolute inset-0 bg-black bg-opacity-50 transition-opacity duration-300"
+        style={{ opacity: showCategoriesDrawer ? 1 : 0 }}
         onClick={() => setShowCategoriesDrawer(false)}
       />
       
-      {/* Drawer */}
       <div 
         className={`absolute right-0 top-0 h-full w-80 bg-white shadow-2xl transform transition-transform duration-300 ${
           showCategoriesDrawer ? 'translate-x-0' : 'translate-x-full'
         }`}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-100">
           <div className="flex items-center gap-3">
-            <Filter className="h-6 w-6 text-indigo-600" />
+            <div 
+              className="h-10 w-10 rounded-lg flex items-center justify-center"
+              style={{ backgroundColor: colors.primaryLight }}
+            >
+              <Filter className="h-5 w-5" style={{ color: colors.primary }} />
+            </div>
             <h2 className="text-xl font-bold text-gray-900">Categories</h2>
           </div>
           <button
@@ -370,64 +499,67 @@ const StoreHome = () => {
           </button>
         </div>
         
-        {/* Categories List */}
         <div className="p-4 overflow-y-auto max-h-[calc(100vh-140px)]">
           <div className="space-y-1">
-            {/* All Products */}
             <button
               onClick={() => handleCategorySelect('all')}
               className={`w-full flex items-center justify-between p-4 rounded-xl transition-all ${
                 selectedCategory === 'all'
-                  ? 'bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 border-2 border-indigo-100'
+                  ? 'text-white'
                   : 'text-gray-700 hover:bg-gray-50'
               }`}
+              style={selectedCategory === 'all' ? getGradientStyle(colors.primary, colors.secondary) : {}}
             >
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 bg-indigo-100 rounded-lg flex items-center justify-center">
-                  <ShoppingBag className="h-5 w-5 text-indigo-600" />
+                <div 
+                  className="h-10 w-10 rounded-lg flex items-center justify-center"
+                  style={{ 
+                    backgroundColor: selectedCategory === 'all' ? 'rgba(255,255,255,0.2)' : colors.primaryLight,
+                    color: selectedCategory === 'all' ? 'white' : colors.primary
+                  }}
+                >
+                  <ShoppingBag className="h-5 w-5" />
                 </div>
                 <div className="text-left">
                   <div className="font-semibold">All Products</div>
-                  <div className="text-sm text-gray-500">{products.length} items</div>
+                  <div className="text-sm opacity-75">All items</div>
                 </div>
               </div>
-              <ChevronRight className="h-5 w-5 text-gray-400" />
+              <ChevronRight className="h-5 w-5 opacity-75" />
             </button>
             
-            {/* Category Items */}
-            {categories.map((category) => {
-              const categoryProductCount = products.filter(p => 
-                p.categoryId === category.id || p.category?.id === category.id
-              ).length;
-              
-              return (
-                <button
-                  key={category.id}
-                  onClick={() => handleCategorySelect(category.id.toString())}
-                  className={`w-full flex items-center justify-between p-4 rounded-xl transition-all ${
-                    selectedCategory === category.id.toString()
-                      ? 'bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 border-2 border-indigo-100'
-                      : 'text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                      <div className="text-gray-600 text-lg">
-                        {category.categoryName?.charAt(0) || '🏷️'}
-                      </div>
-                    </div>
-                    <div className="text-left">
-                      <div className="font-semibold">{category.categoryName || category.name}</div>
-                      <div className="text-sm text-gray-500">{categoryProductCount} items</div>
+            {categories.map((category) => (
+              <button
+                key={category.id}
+                onClick={() => handleCategorySelect(category.id.toString())}
+                className={`w-full flex items-center justify-between p-4 rounded-xl transition-all ${
+                  selectedCategory === category.id.toString()
+                    ? 'text-white'
+                    : 'text-gray-700 hover:bg-gray-50'
+                }`}
+                style={selectedCategory === category.id.toString() ? getGradientStyle(colors.primary, colors.secondary) : {}}
+              >
+                <div className="flex items-center gap-3">
+                  <div 
+                    className="h-10 w-10 rounded-lg flex items-center justify-center"
+                    style={{ 
+                      backgroundColor: selectedCategory === category.id.toString() ? 'rgba(255,255,255,0.2)' : colors.primaryLight,
+                      color: selectedCategory === category.id.toString() ? 'white' : colors.primary
+                    }}
+                  >
+                    <div className="text-lg font-bold">
+                      {category.categoryName?.charAt(0) || '📦'}
                     </div>
                   </div>
-                  <ChevronRight className="h-5 w-5 text-gray-400" />
-                </button>
-              );
-            })}
+                  <div className="text-left">
+                    <div className="font-semibold">{category.categoryName || category.name}</div>
+                  </div>
+                </div>
+                <ChevronRight className="h-5 w-5 opacity-75" />
+              </button>
+            ))}
           </div>
           
-          {/* Store Info in Drawer */}
           <div className="mt-8 pt-6 border-t border-gray-100">
             <h3 className="font-bold text-gray-900 mb-4">Store Info</h3>
             <div className="space-y-3">
@@ -451,11 +583,11 @@ const StoreHome = () => {
           </div>
         </div>
         
-        {/* Footer */}
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-100 bg-white">
           <button
             onClick={() => setShowCategoriesDrawer(false)}
-            className="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all"
+            className="w-full py-3 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all"
+            style={getGradientStyle(colors.primary, colors.secondary)}
           >
             Apply Filter
           </button>
@@ -464,7 +596,6 @@ const StoreHome = () => {
     </div>
   );
 
-  // Mobile Search Bar Component - Fixed to prevent auto-focus on mount
   const MobileSearchBar = () => (
     <div 
       className={`fixed inset-x-0 top-0 z-40 lg:hidden bg-white shadow-lg transform transition-transform duration-300 ${
@@ -487,8 +618,9 @@ const StoreHome = () => {
               placeholder="Search products..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
-              // Remove autoFocus to prevent keyboard from opening automatically
+              className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 outline-none"
+              style={{ '--tw-ring-color': colors.primary }}
+              onFocus={(e) => e.target.style.setProperty('--tw-ring-color', colors.primary)}
             />
             {searchQuery && (
               <button
@@ -504,7 +636,6 @@ const StoreHome = () => {
     </div>
   );
 
-  // Variant Selection Modal
   const VariantSelectionModal = () => {
     if (!selectedProductForVariant) return null;
     
@@ -514,31 +645,36 @@ const StoreHome = () => {
           showVariantModal ? 'opacity-100 visible' : 'opacity-0 invisible'
         }`}
         onClick={(e) => {
-          // Prevent closing when clicking inside the modal
           if (e.target === e.currentTarget) {
             setShowVariantModal(false);
             setSelectedProductForVariant(null);
           }
         }}
       >
-        {/* Backdrop */}
         <div 
-          className="absolute inset-0 bg-black bg-opacity-50"
+          className="absolute inset-0 bg-black bg-opacity-50 transition-opacity duration-300"
+          style={{ opacity: showVariantModal ? 1 : 0 }}
           onClick={() => {
             setShowVariantModal(false);
             setSelectedProductForVariant(null);
           }}
         />
         
-        {/* Modal */}
         <div 
-          className="relative bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl animate-scale-in"
+          className="relative bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl transform transition-all duration-300"
+          style={{ 
+            opacity: showVariantModal ? 1 : 0,
+            transform: showVariantModal ? 'scale(1)' : 'scale(0.95)'
+          }}
           onClick={(e) => e.stopPropagation()}
         >
           <div className="sticky top-0 bg-white border-b border-gray-100 p-6 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="h-12 w-12 bg-indigo-100 rounded-xl flex items-center justify-center">
-                <Package className="h-6 w-6 text-indigo-600" />
+              <div 
+                className="h-12 w-12 rounded-xl flex items-center justify-center"
+                style={{ backgroundColor: colors.primaryLight }}
+              >
+                <Package className="h-6 w-6" style={{ color: colors.primary }} />
               </div>
               <div>
                 <h3 className="text-xl font-bold text-gray-900">Select Options</h3>
@@ -565,6 +701,7 @@ const StoreHome = () => {
                 setSelectedProductForVariant(null);
               }}
               formatPrice={formatPrice}
+              colors={colors}
             />
           </div>
         </div>
@@ -572,14 +709,23 @@ const StoreHome = () => {
     );
   };
 
-  if (loading) {
+  if (loading && !store) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="relative">
-            <div className="h-16 w-16 border-4 border-gray-200 border-t-indigo-600 rounded-full animate-spin"></div>
+            <div 
+              className="h-16 w-16 border-4 rounded-full animate-spin"
+              style={{ 
+                borderColor: `${colors.primaryLight}`, 
+                borderTopColor: colors.primary 
+              }}
+            ></div>
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="h-8 w-8 bg-indigo-100 rounded-full animate-pulse"></div>
+              <div 
+                className="h-8 w-8 rounded-full animate-pulse"
+                style={{ backgroundColor: colors.primaryLight }}
+              ></div>
             </div>
           </div>
           <p className="text-gray-600 font-medium">Loading store...</p>
@@ -601,7 +747,8 @@ const StoreHome = () => {
               <p className="text-gray-600 mb-8">{error || 'This store does not exist or has been removed.'}</p>
               <Link
                 to="/"
-                className="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all font-medium shadow-sm hover:shadow"
+                className="inline-flex items-center justify-center px-6 py-3 text-white rounded-xl hover:opacity-90 transition-all font-medium shadow-sm hover:shadow"
+                style={getGradientStyle(colors.primary, colors.secondary)}
               >
                 Go Back Home
               </Link>
@@ -622,7 +769,7 @@ const StoreHome = () => {
                 <div className="text-3xl text-gray-400">🏪</div>
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-3">Store is Not Active</h2>
-              <p className="text-gray-600 mb-8">{error || 'This store is currently inactive.'}</p>
+              <p className="text-gray-600 mb-8">This store is currently inactive.</p>
             </div>
           </div>
         </div>
@@ -630,75 +777,77 @@ const StoreHome = () => {
     );
   }
 
+  console.log('Store data:', store);
+  console.log('Store colors:', colors);
+
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* ✨ إضافة أنماط CSS */}
+      <style>{fadeInStyles}</style>
+      
       <SEO 
-      title={store.storeName}
-      description={store.storeDescription || `تسوق أفضل المنتجات من ${store.storeName} - متجر إلكتروني متكامل`}
-      keywords={`${store.storeName}, متجر, تسوق, منتجات, ${store.storeCategory || ''}, ${store.storeCity || ''}`}
-      image={store.storeLogoUrl}
-      url={`https://storely.com/store/${store.storeName}`}
-      schema={{
-        "@context": "https://schema.org",
-        "@type": "Store",
-        "name": store.storeName,
-        "description": store.storeDescription,
-        "image": store.storeLogoUrl,
-        "address": {
-          "@type": "PostalAddress",
-          "streetAddress": store.storeAddress,
-          "addressLocality": store.storeCity,
-          "addressCountry": "EG"
-        },
-        "telephone": store.storePhone,
-        "priceRange": "₪₪",
-        "openingHours": "Mo-Su 09:00-22:00",
-        "sameAs": [
-          store.facebook,
-          store.instagram
-        ].filter(Boolean)
-      }}
-    />
-      {/* Mobile Search Bar */}
+        title={store.storeName}
+        description={store.storeDescription || `Shop the best products from ${store.storeName}`}
+        keywords={`${store.storeName}, store, shop, products, ${store.storeCategory || ''}, ${store.storeCity || ''}`}
+        image={store.storeLogoUrl}
+        url={`https://storely.com/store/${store.storeName}`}
+        schema={{
+          "@context": "https://schema.org",
+          "@type": "Store",
+          "name": store.storeName,
+          "description": store.storeDescription,
+          "image": store.storeLogoUrl,
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": store.storeAddress,
+            "addressLocality": store.storeCity,
+            "addressCountry": "EG"
+          },
+          "telephone": store.storePhone,
+          "priceRange": "₪₪",
+          "openingHours": "Mo-Su 09:00-22:00",
+          "sameAs": [
+            store.facebook,
+            store.instagram
+          ].filter(Boolean)
+        }}
+      />
+      
       <MobileSearchBar />
-
-      {/* Mobile Categories Drawer */}
       <MobileCategoriesDrawer />
-
-      {/* Variant Selection Modal */}
       <VariantSelectionModal />
 
-      {/* Top Navigation Bar - Mobile Optimized */}
-      <div className="bg-white border-b border-gray-100 sticky top-0 z-30">
-        {/* Top Bar with Store Name and Cart */}
+      {/* 🎨 Top Navigation Bar مع الألوان المخصصة وتأثير Fade In */}
+      <div className={`bg-white border-b border-gray-100 sticky top-0 z-30 transition-all duration-700 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16 lg:hidden">
-            {/* Mobile Menu Button */}
             <button
               ref={mobileMenuButtonRef}
               onClick={() => setShowMobileMenu(!showMobileMenu)}
-              className="p-2 hover:bg-gray-100 rounded-lg"
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
             >
               {showMobileMenu ? (
-                <X className="h-6 w-6 text-gray-600" />
+                <X className="h-6 w-6" style={{ color: colors.primary }} />
               ) : (
-                <Menu className="h-6 w-6 text-gray-600" />
+                <Menu className="h-6 w-6" style={{ color: colors.primary }} />
               )}
             </button>
             
-            {/* Store Logo and Name */}
             <Link to={`/store/${storeName}`} className="flex items-center gap-3">
-              {store.logoUrl ? (
+              {store.storeLogoUrl ? (
                 <div className="h-10 w-10 rounded-lg overflow-hidden bg-gray-100">
                   <img 
-                    src={store.logoUrl} 
+                    src={store.storeLogoUrl} 
                     alt={store.storeName}
                     className="h-full w-full object-cover"
                   />
                 </div>
               ) : (
-                <div className="h-10 w-10 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-lg flex items-center justify-center">
-                  <ShoppingBag className="h-5 w-5 text-indigo-600" />
+                <div 
+                  className="h-10 w-10 rounded-lg flex items-center justify-center"
+                  style={{ backgroundColor: colors.primaryLight }}
+                >
+                  <ShoppingBag className="h-5 w-5" style={{ color: colors.primary }} />
                 </div>
               )}
               <div>
@@ -707,66 +856,63 @@ const StoreHome = () => {
               </div>
             </Link>
             
-            {/* Mobile Cart Button with Animation */}
             <button
               onClick={() => setShowCart(true)}
               className="relative p-2 hover:bg-gray-100 rounded-lg transition-all active:scale-95"
             >
-              <ShoppingCart className="h-6 w-6 text-gray-700" />
+              <ShoppingCart className="h-6 w-6" style={{ color: colors.primary }} />
               {getCartItemCount() > 0 && (
-                <span className={`absolute -top-1 -right-1 h-6 w-6 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-lg transform transition-all ${
-                  cartPulse ? 'scale-125' : 'scale-100'
-                }`}>
+                <span 
+                  className="absolute -top-1 -right-1 h-6 w-6 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-lg transform transition-all"
+                  style={getGradientStyle(colors.primary, colors.secondary)}
+                >
                   {getCartItemCount() > 9 ? '9+' : getCartItemCount()}
                 </span>
               )}
             </button>
           </div>
           
-          {/* Desktop Top Bar */}
           <div className="hidden lg:flex items-center justify-between h-20">
             <div className="flex items-center gap-6">
               <Link to={`/store/${storeName}`} className="flex items-center gap-4">
-                {store.logoUrl ? (
+                {store.storeLogoUrl ? (
                   <div className="h-14 w-14 rounded-xl overflow-hidden bg-gray-100 border-2 border-white shadow">
                     <img 
-                      src={store.logoUrl} 
+                      src={store.storeLogoUrl} 
                       alt={store.storeName}
                       className="h-full w-full object-cover"
                     />
                   </div>
                 ) : (
-                  <div className="h-14 w-14 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-xl flex items-center justify-center border-2 border-white shadow">
-                    <ShoppingBag className="h-7 w-7 text-indigo-600" />
+                  <div 
+                    className="h-14 w-14 rounded-xl flex items-center justify-center border-2 border-white shadow"
+                    style={{ backgroundColor: colors.primaryLight }}
+                  >
+                    <ShoppingBag className="h-7 w-7" style={{ color: colors.primary }} />
                   </div>
                 )}
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">{store.storeName}</h1>
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="h-4 w-4 text-amber-400 fill-current" />
-                      ))}
-                    </div>
-                    <span className="text-sm text-gray-600">
-                      {getStoreRating().rating} ({getStoreRating().reviews})
-                    </span>
-                  </div>
+                  
                 </div>
               </Link>
             </div>
             
-            {/* Desktop Cart Button */}
             <button
               onClick={() => setShowCart(true)}
-              className="relative px-5 py-3 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-xl hover:from-gray-800 hover:to-gray-700 transition-all shadow-lg hover:shadow-xl group flex items-center gap-3"
+              className="relative px-5 py-3 text-white rounded-xl hover:opacity-90 transition-all shadow-lg hover:shadow-xl group flex items-center gap-3"
+              style={getGradientStyle(colors.primary, colors.secondary)}
             >
               <div className="relative">
                 <ShoppingCart className="h-5 w-5" />
                 {getCartItemCount() > 0 && (
-                  <span className={`absolute -top-2 -right-2 h-5 w-5 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full flex items-center justify-center text-xs font-bold text-white shadow transform transition-all ${
-                    cartPulse ? 'scale-125' : 'scale-100'
-                  }`}>
+                  <span 
+                    className="absolute -top-2 -right-2 h-5 w-5 bg-white rounded-full flex items-center justify-center text-xs font-bold shadow transform transition-all"
+                    style={{ 
+                      color: colors.primary,
+                      ...(cartPulse ? { transform: 'scale(1.25)' } : {})
+                    }}
+                  >
                     {getCartItemCount() > 9 ? '9+' : getCartItemCount()}
                   </span>
                 )}
@@ -792,20 +938,22 @@ const StoreHome = () => {
           }}
         >
           <div className="absolute inset-y-0 left-0 w-80 bg-white shadow-2xl">
-            {/* Menu Header */}
             <div className="p-6 border-b border-gray-100">
               <div className="flex items-center gap-3 mb-6">
-                {store.logoUrl ? (
+                {store.storeLogoUrl ? (
                   <div className="h-12 w-12 rounded-lg overflow-hidden bg-gray-100">
                     <img 
-                      src={store.logoUrl} 
+                      src={store.storeLogoUrl} 
                       alt={store.storeName}
                       className="h-full w-full object-cover"
                     />
                   </div>
                 ) : (
-                  <div className="h-12 w-12 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-lg flex items-center justify-center">
-                    <ShoppingBag className="h-6 w-6 text-indigo-600" />
+                  <div 
+                    className="h-12 w-12 rounded-lg flex items-center justify-center"
+                    style={{ backgroundColor: colors.primaryLight }}
+                  >
+                    <ShoppingBag className="h-6 w-6" style={{ color: colors.primary }} />
                   </div>
                 )}
                 <div>
@@ -822,7 +970,6 @@ const StoreHome = () => {
               </button>
             </div>
             
-            {/* Menu Items */}
             <div className="p-4">
               <button
                 onClick={() => {
@@ -852,7 +999,6 @@ const StoreHome = () => {
                 <ChevronRight className="h-5 w-5 text-gray-400" />
               </button>
               
-              {/* Store Info in Mobile Menu */}
               <div className="mt-8">
                 <h3 className="font-bold text-gray-900 mb-4 px-4">Store Info</h3>
                 <div className="space-y-3">
@@ -876,7 +1022,6 @@ const StoreHome = () => {
               </div>
             </div>
             
-            {/* Menu Footer */}
             <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-gray-100">
               <Link
                 to="/"
@@ -890,19 +1035,20 @@ const StoreHome = () => {
         </div>
       )}
 
-      {/* Search and Filter Section - Mobile Optimized */}
-      <div className="bg-white border-b border-gray-100 lg:sticky lg:top-0 lg:z-20">
+      {/* Search and Filter Section مع تأثير Fade In */}
+      <div className={`bg-white border-b border-gray-100 lg:sticky lg:top-0 lg:z-20 transition-all duration-700 delay-100 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
         <div className="container mx-auto px-4 py-4">
-          {/* Desktop Search - Hidden on Mobile */}
           <div className="hidden lg:block">
             <div className="relative max-w-2xl mx-auto">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5" style={{ color: colors.primary }} />
               <input
                 type="text"
                 placeholder="Search products..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 outline-none"
+                style={{ '--tw-ring-color': colors.primary } }
+                onFocus={(e) => e.target.style.setProperty('--tw-ring-color', colors.primary)}
               />
               {searchQuery && (
                 <button
@@ -915,19 +1061,21 @@ const StoreHome = () => {
             </div>
           </div>
           
-          {/* Mobile Filter Bar */}
           <div className="flex items-center justify-between lg:justify-end gap-3 lg:gap-4 mt-4 lg:mt-0">
-            {/* Mobile Category Button */}
             <button
               ref={categoriesButtonRef}
               onClick={() => setShowCategoriesDrawer(true)}
-              className="flex-1 lg:hidden flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 border border-indigo-100 rounded-xl font-medium"
+              className="flex-1 lg:hidden flex items-center justify-center gap-2 px-4 py-3 border rounded-xl font-medium"
+              style={{ 
+                backgroundColor: colors.primaryLight,
+                color: colors.primary,
+                borderColor: colors.primary
+              }}
             >
               <Filter className="h-5 w-5" />
               <span>Categories</span>
             </button>
             
-            {/* Mobile Search Button */}
             <button
               onClick={() => setShowSearchBar(true)}
               className="lg:hidden p-3 bg-gray-50 border border-gray-200 rounded-xl"
@@ -935,26 +1083,19 @@ const StoreHome = () => {
               <Search className="h-5 w-5 text-gray-600" />
             </button>
             
-            {/* Desktop Controls */}
             <div className="hidden lg:flex items-center gap-4">
               <div className="flex items-center gap-2 bg-gray-50 rounded-xl p-1">
                 <button
                   onClick={() => setViewMode('grid')}
-                  className={`p-2 rounded-lg transition-all ${
-                    viewMode === 'grid'
-                      ? 'bg-white shadow-sm text-indigo-600'
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
+                  className={`p-2 rounded-lg transition-all`}
+                  style={viewMode === 'grid' ? { backgroundColor: colors.primaryLight, color: colors.primary } : {}}
                 >
                   <Grid className="h-5 w-5" />
                 </button>
                 <button
                   onClick={() => setViewMode('list')}
-                  className={`p-2 rounded-lg transition-all ${
-                    viewMode === 'list'
-                      ? 'bg-white shadow-sm text-indigo-600'
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
+                  className={`p-2 rounded-lg transition-all`}
+                  style={viewMode === 'list' ? { backgroundColor: colors.primaryLight, color: colors.primary } : {}}
                 >
                   <List className="h-5 w-5" />
                 </button>
@@ -963,7 +1104,8 @@ const StoreHome = () => {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm"
+                className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 outline-none text-sm"
+                style={{ '--tw-ring-color': colors.primary }}
               >
                 <option value="featured">Featured</option>
                 <option value="price-low">Price: Low to High</option>
@@ -972,47 +1114,46 @@ const StoreHome = () => {
               </select>
               
               <button
-                onClick={fetchStoreData}
+                onClick={fetchProductsByCategory}
                 className="p-3 bg-gray-50 border border-gray-200 rounded-xl hover:bg-gray-100 transition-colors"
                 title="Refresh"
               >
-                <RefreshCw className="h-5 w-5 text-gray-600" />
+                <RefreshCw className="h-5 w-5" style={{ color: colors.primary }} />
               </button>
             </div>
             
-            {/* Mobile View Controls */}
             <div className="lg:hidden flex items-center gap-2">
               <button
                 onClick={() => setViewMode('grid')}
-                className={`p-2 rounded-lg ${
-                  viewMode === 'grid' ? 'bg-indigo-100 text-indigo-600' : 'text-gray-500'
-                }`}
+                className={`p-2 rounded-lg`}
+                style={viewMode === 'grid' ? { backgroundColor: colors.primaryLight, color: colors.primary } : {}}
               >
                 <Grid className="h-5 w-5" />
               </button>
               <button
                 onClick={() => setViewMode('list')}
-                className={`p-2 rounded-lg ${
-                  viewMode === 'list' ? 'bg-indigo-100 text-indigo-600' : 'text-gray-500'
-                }`}
+                className={`p-2 rounded-lg`}
+                style={viewMode === 'list' ? { backgroundColor: colors.primaryLight, color: colors.primary } : {}}
               >
                 <List className="h-5 w-5" />
               </button>
             </div>
           </div>
           
-          {/* Selected Category Indicator - Mobile */}
           <div className="lg:hidden mt-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 {selectedCategory === 'all' ? (
                   <>
-                    <ShoppingBag className="h-4 w-4 text-gray-600" />
+                    <ShoppingBag className="h-4 w-4" style={{ color: colors.primary }} />
                     <span className="font-medium text-gray-900">All Products</span>
                   </>
                 ) : (
                   <>
-                    <div className="h-4 w-4 bg-indigo-100 rounded"></div>
+                    <div 
+                      className="h-4 w-4 rounded"
+                      style={{ backgroundColor: colors.primaryLight }}
+                    ></div>
                     <span className="font-medium text-gray-900">
                       {categories.find(c => c.id.toString() === selectedCategory)?.categoryName || 'Category'}
                     </span>
@@ -1026,7 +1167,8 @@ const StoreHome = () => {
                   prev === 'price-low' ? 'price-high' : 
                   prev === 'price-high' ? 'newest' : 'featured'
                 )}
-                className="text-sm text-indigo-600 font-medium"
+                className="text-sm font-medium"
+                style={{ color: colors.primary }}
               >
                 Sort: {sortBy === 'featured' ? 'Featured' :
                        sortBy === 'price-low' ? 'Low Price' :
@@ -1037,15 +1179,19 @@ const StoreHome = () => {
         </div>
       </div>
 
-      {/* Floating Cart Button for Mobile */}
+      {/* Floating Cart Button for Mobile مع تأثير Fade In */}
       {getCartItemCount() > 0 && (
         <button
           onClick={() => setShowCart(true)}
-          className="fixed bottom-6 right-6 lg:hidden z-40 h-14 w-14 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full shadow-2xl flex items-center justify-center text-white transform transition-all hover:scale-110 active:scale-95"
+          className={`fixed bottom-6 right-6 lg:hidden z-40 h-14 w-14 rounded-full shadow-2xl flex items-center justify-center text-white transform transition-all hover:scale-110 active:scale-95 animate-fade-in-scale`}
+          style={getGradientStyle(colors.primary, colors.secondary)}
         >
           <div className="relative">
             <ShoppingCart className="h-6 w-6" />
-            <span className="absolute -top-2 -right-2 h-5 w-5 bg-white text-indigo-600 rounded-full flex items-center justify-center text-xs font-bold shadow">
+            <span 
+              className="absolute -top-2 -right-2 h-5 w-5 bg-white rounded-full flex items-center justify-center text-xs font-bold shadow"
+              style={{ color: colors.primary }}
+            >
               {getCartItemCount() > 9 ? '9+' : getCartItemCount()}
             </span>
           </div>
@@ -1054,12 +1200,12 @@ const StoreHome = () => {
 
       <div className="container mx-auto px-4 py-6 lg:py-8">
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
-          {/* Desktop Categories Sidebar */}
-          <div className="hidden lg:block lg:w-64 flex-shrink-0">
+          {/* Desktop Categories Sidebar مع تأثير Fade In */}
+          <div className={`hidden lg:block lg:w-64 flex-shrink-0 transition-all duration-700 delay-200 ${pageLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'}`}>
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sticky top-28">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="font-bold text-gray-900">Categories</h3>
-                <Filter className="h-5 w-5 text-gray-400" />
+                <Filter className="h-5 w-5" style={{ color: colors.primary }} />
               </div>
               
               <div className="space-y-2">
@@ -1067,48 +1213,49 @@ const StoreHome = () => {
                   onClick={() => setSelectedCategory('all')}
                   className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
                     selectedCategory === 'all'
-                      ? 'bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 border border-indigo-100'
+                      ? 'text-white'
                       : 'text-gray-700 hover:bg-gray-50'
                   }`}
+                  style={selectedCategory === 'all' ? getGradientStyle(colors.primary, colors.secondary) : {}}
                 >
                   <span className="font-medium">All Products</span>
-                  <span className="text-sm bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+                  <span 
+                    className="text-sm px-2 py-1 rounded-full"
+                    style={selectedCategory === 'all' 
+                      ? { backgroundColor: 'rgba(255,255,255,0.2)' }
+                      : { backgroundColor: colors.primaryLight, color: colors.primary }
+                    }
+                  >
                     {products.length}
                   </span>
                 </button>
                 
-                {categories.map((category) => {
-                  const categoryProductCount = products.filter(p => 
-                    p.categoryId === category.id || p.category?.id === category.id
-                  ).length;
-                  
-                  return (
-                    <button
-                      key={category.id}
-                      onClick={() => setSelectedCategory(category.id.toString())}
-                      className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
-                        selectedCategory === category.id.toString()
-                          ? 'bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 border border-indigo-100'
-                          : 'text-gray-700 hover:bg-gray-50'
-                      }`}
-                    >
-                      <span className="font-medium">{category.categoryName || category.name}</span>
-                      <span className="text-sm bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
-                        {categoryProductCount}
-                      </span>
-                    </button>
-                  );
-                })}
+                {categories.map((category) => (
+                  <button
+                    key={category.id}
+                    onClick={() => setSelectedCategory(category.id.toString())}
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
+                      selectedCategory === category.id.toString()
+                        ? 'text-white'
+                        : 'text-gray-700 hover:bg-gray-50'
+                    }`}
+                    style={selectedCategory === category.id.toString() ? getGradientStyle(colors.primary, colors.secondary) : {}}
+                  >
+                    <span className="font-medium">{category.categoryName || category.name}</span>
+                  </button>
+                ))}
               </div>
               
-              {/* Store Info */}
               <div className="mt-8 pt-8 border-t border-gray-100">
                 <h4 className="font-bold text-gray-900 mb-4">Store Info</h4>
                 <div className="space-y-4">
                   {store.storeAddress && (
                     <div className="flex items-start gap-3">
-                      <div className="h-10 w-10 bg-gray-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <MapPin className="h-5 w-5 text-gray-500" />
+                      <div 
+                        className="h-10 w-10 rounded-lg flex items-center justify-center flex-shrink-0"
+                        style={{ backgroundColor: colors.primaryLight }}
+                      >
+                        <MapPin className="h-5 w-5" style={{ color: colors.primary }} />
                       </div>
                       <div>
                         <div className="font-medium text-gray-900">Location</div>
@@ -1119,8 +1266,11 @@ const StoreHome = () => {
                   
                   {store.storePhone && (
                     <div className="flex items-start gap-3">
-                      <div className="h-10 w-10 bg-gray-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <Phone className="h-5 w-5 text-gray-500" />
+                      <div 
+                        className="h-10 w-10 rounded-lg flex items-center justify-center flex-shrink-0"
+                        style={{ backgroundColor: colors.primaryLight }}
+                      >
+                        <Phone className="h-5 w-5" style={{ color: colors.primary }} />
                       </div>
                       <div>
                         <div className="font-medium text-gray-900">Contact</div>
@@ -1135,12 +1285,12 @@ const StoreHome = () => {
 
           {/* Main Content */}
           <div className="flex-1">
-            {/* Mobile Category Pills */}
-            <div className="lg:hidden mb-6">
+            {/* Mobile Category Pills مع تأثير Fade In */}
+            <div className={`lg:hidden mb-6 transition-all duration-700 delay-150 ${pageLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold text-gray-900">
                   {selectedCategory === 'all' 
-                    ? `All Products`
+                    ? 'All Products'
                     : categories.find(c => c.id.toString() === selectedCategory)?.categoryName || 'Category'
                   }
                 </h2>
@@ -1151,11 +1301,11 @@ const StoreHome = () => {
                 <div className="flex gap-2 min-w-max">
                   <button
                     onClick={() => setSelectedCategory('all')}
-                    className={`px-4 py-2 rounded-lg whitespace-nowrap transition-all ${
-                      selectedCategory === 'all'
-                        ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
-                        : 'bg-white border border-gray-200 text-gray-700'
-                    }`}
+                    className={`px-4 py-2 rounded-lg whitespace-nowrap transition-all text-white`}
+                    style={selectedCategory === 'all' 
+                      ? getGradientStyle(colors.primary, colors.secondary)
+                      : { backgroundColor: 'white', borderColor: colors.primaryLight, color: colors.primary, borderWidth: 1 }
+                    }
                   >
                     All Products
                   </button>
@@ -1164,10 +1314,12 @@ const StoreHome = () => {
                       key={category.id}
                       onClick={() => setSelectedCategory(category.id.toString())}
                       className={`px-4 py-2 rounded-lg whitespace-nowrap transition-all ${
-                        selectedCategory === category.id.toString()
-                          ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
-                          : 'bg-white border border-gray-200 text-gray-700'
+                        selectedCategory === category.id.toString() ? 'text-white' : ''
                       }`}
+                      style={selectedCategory === category.id.toString() 
+                        ? getGradientStyle(colors.primary, colors.secondary)
+                        : { backgroundColor: 'white', borderColor: colors.primaryLight, color: colors.primary, borderWidth: 1 }
+                      }
                     >
                       {category.categoryName || category.name}
                     </button>
@@ -1184,8 +1336,8 @@ const StoreHome = () => {
               </div>
             </div>
 
-            {/* Desktop Products Header */}
-            <div className="hidden lg:block mb-8">
+            {/* Desktop Products Header مع تأثير Fade In */}
+            <div className={`hidden lg:block mb-8 transition-all duration-700 delay-300 ${pageLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900">
@@ -1201,12 +1353,11 @@ const StoreHome = () => {
                 
                 <div className="flex items-center gap-3">
                   <div className="text-sm text-gray-600">
-                    Showing {filteredProducts.length} of {products.length} products
+                    Showing {filteredProducts.length} products
                   </div>
                 </div>
               </div>
               
-              {/* Category Pills */}
               {categories.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-8">
                   {categories.slice(0, 6).map((category) => (
@@ -1214,10 +1365,12 @@ const StoreHome = () => {
                       key={category.id}
                       onClick={() => setSelectedCategory(category.id.toString())}
                       className={`px-4 py-2 rounded-lg transition-all ${
-                        selectedCategory === category.id.toString()
-                          ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
-                          : 'bg-white border border-gray-200 text-gray-700 hover:border-indigo-300 hover:shadow'
+                        selectedCategory === category.id.toString() ? 'text-white' : ''
                       }`}
+                      style={selectedCategory === category.id.toString() 
+                        ? getGradientStyle(colors.primary, colors.secondary)
+                        : { backgroundColor: 'white', borderColor: colors.primaryLight, color: colors.primary, borderWidth: 1 }
+                      }
                     >
                       {category.categoryName || category.name}
                     </button>
@@ -1227,8 +1380,21 @@ const StoreHome = () => {
             </div>
 
             {/* Products Grid/List */}
-            {filteredProducts.length === 0 ? (
-              <div className="bg-white rounded-2xl border border-gray-100 p-8 lg:p-12 text-center">
+            {loading ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="text-center">
+                  <div 
+                    className="h-12 w-12 border-4 rounded-full animate-spin mx-auto mb-4"
+                    style={{ 
+                      borderColor: colors.primaryLight,
+                      borderTopColor: colors.primary
+                    }}
+                  ></div>
+                  <p className="text-gray-600">Loading products...</p>
+                </div>
+              </div>
+            ) : filteredProducts.length === 0 ? (
+              <div className={`bg-white rounded-2xl border border-gray-100 p-8 lg:p-12 text-center transition-all duration-700 delay-500 ${pageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
                 <div className="h-20 w-20 lg:h-24 lg:w-24 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
                   <Search className="h-10 w-10 lg:h-12 lg:w-12 text-gray-400" />
                 </div>
@@ -1236,7 +1402,9 @@ const StoreHome = () => {
                 <p className="text-gray-600 mb-8 max-w-md mx-auto">
                   {searchQuery 
                     ? `No products match "${searchQuery}"`
-                    : 'No products available in this category'
+                    : selectedCategory !== 'all'
+                    ? 'No products available in this category'
+                    : 'No products available'
                   }
                 </p>
                 <button
@@ -1244,7 +1412,8 @@ const StoreHome = () => {
                     setSearchQuery('');
                     setSelectedCategory('all');
                   }}
-                  className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all font-medium shadow-sm hover:shadow"
+                  className="inline-flex items-center px-6 py-3 text-white rounded-xl hover:opacity-90 transition-all font-medium shadow-sm hover:shadow"
+                  style={getGradientStyle(colors.primary, colors.secondary)}
                 >
                   View All Products
                 </button>
@@ -1254,30 +1423,37 @@ const StoreHome = () => {
                 ? "grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6"
                 : "space-y-4 lg:space-y-6"
               }>
-                {filteredProducts.map((product) => (
-                  <ProductCard
+                {filteredProducts.map((product, index) => (
+                  <div
                     key={product.id}
-                    product={product}
-                    viewMode={viewMode}
-                    onAddToCart={() => {
-                      if (product.hasVariants) {
-                        setSelectedProductForVariant(product);
-                        setShowVariantModal(true);
-                      } else {
-                        handleAddToCart(product);
-                      }
+                    className={`transition-all duration-700 ${
+                      pageLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                    }`}
+                    style={{ 
+                      transitionDelay: `${400 + (index * 50)}ms`
                     }}
-                    onToggleWishlist={handleToggleWishlist}
-                    isInWishlist={isInWishlist(product.id)}
-                    onViewDetails={() => navigate(`/store/${storeName}/product/${product.id}`)}
-                    formatPrice={formatPrice}
-                  />
+                  >
+                    <ProductCard
+                      product={product}
+                      viewMode={viewMode}
+                      onAddToCart={() => {
+                        if (product.hasVariants) {
+                          setSelectedProductForVariant(product);
+                          setShowVariantModal(true);
+                        } else {
+                          handleAddToCart(product);
+                        }
+                      }}
+                      onToggleWishlist={handleToggleWishlist}
+                      isInWishlist={isInWishlist(product.id)}
+                      onViewDetails={() => navigate(`/store/${storeName}/product/${product.id}`)}
+                      formatPrice={formatPrice}
+                      colors={colors}
+                    />
+                  </div>
                 ))}
               </div>
             )}
-
-            {/* Store Features */}
-            <StoreFooter />
           </div>
         </div>
       </div>
@@ -1289,6 +1465,7 @@ const StoreHome = () => {
         cart={cart}
         store={store}
         formatPrice={formatPrice}
+        colors={colors}
         onUpdateQuantity={(productId, quantity, variantInfo = null) => {
           if (quantity < 1) {
             setCart(prev => prev.filter(item => {

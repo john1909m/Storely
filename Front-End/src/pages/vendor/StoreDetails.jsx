@@ -16,6 +16,50 @@ import StoreFooter from '../../components/StoreFooter';
 import { useErrorHandler } from '../../hooks/useErrorHandler';
 import useAuthStore from '../../store/authStore';
 
+// Add styles for animations
+const styles = `
+  @keyframes slideLeft {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes slideDown {
+    from {
+      transform: translateY(-20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .animate-slide-left {
+    animation: slideLeft 0.3s ease-out;
+  }
+
+  .animate-slide-down {
+    animation: slideDown 0.3s ease-out;
+  }
+
+  .ml-13 {
+    margin-left: 3.25rem;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+`;
+
 const StoreDetails = () => {
   const { store, vendor, logout, isVendor, isLoading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -24,8 +68,8 @@ const StoreDetails = () => {
   const [success, setSuccess] = useState(null);
   const [activeTab, setActiveTab] = useState('basic');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const { handleError } = useErrorHandler();
-    const {authInialized,isAuthenticated} = useAuthStore();
+  const { handleError } = useErrorHandler();
+  const {authInialized,isAuthenticated} = useAuthStore();
 
   // Store info state
   const [storeInfo, setStoreInfo] = useState({
@@ -101,6 +145,30 @@ const StoreDetails = () => {
     }
   };
 
+  // ✅ دالة تحديث معلومات المتجر
+  const handleStoreInfoChange = (field, value) => {
+    setStoreInfo(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  // ✅ دالة تحديث العلامة التجارية
+  const handleBrandingChange = (field, value) => {
+    setBranding(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  // ✅ دالة تحديث وسائل التواصل الاجتماعي
+  const handleSocialMediaChange = (field, value) => {
+    setSocialMedia(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
   const getStoreUrl = () => {
     if (!store?.storeName) return '';
     return `${window.location.origin}/store/${store.storeName}`;
@@ -148,7 +216,15 @@ const StoreDetails = () => {
     try {
       type === "logo" && setUploadingLogo(true);
       
-      const res = await storeAPI.uploadImage(store.id, file, type);
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', UPLOAD_PRESET);
+      formData.append('cloud_name', CLOUD_NAME);
+
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+        method: 'POST',
+        body: formData
+      });
 
       if (!res.ok) throw new Error("Upload failed");
 
@@ -157,8 +233,14 @@ const StoreDetails = () => {
       if (type === "logo") {
         setBranding(prev => ({
           ...prev,
-          storeLogoUrl: data.url,
+          storeLogoUrl: data.secure_url,
         }));
+        
+        // Save the logo URL to the store
+        await storeAPI.update({
+          id: store.id,
+          storeLogoUrl: data.secure_url
+        });
       }
 
       setSuccess(`${type === "logo" ? "Logo" : "Favicon"} uploaded successfully`);
@@ -176,7 +258,7 @@ const StoreDetails = () => {
         return;
       }
 
-      const updateData = { storeId: store.id };
+      const updateData = { id: store.id };
 
       if (type === 'logo') {
         updateData.storeLogoUrl = '';
@@ -284,6 +366,9 @@ const StoreDetails = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
+      {/* Add styles */}
+      <style>{styles}</style>
+      
       {/* Sticky Header */}
       <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-gray-200/80 shadow-sm">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -370,7 +455,7 @@ const StoreDetails = () => {
                     </div>
                     <div>
                       <div className="font-semibold text-gray-900">Store Settings</div>
-                      <div className="text-xs text-gray-500">v{storeInfo.storeName}</div>
+                      <div className="text-xs text-gray-500">{storeInfo.storeName}</div>
                     </div>
                   </div>
                   <button
@@ -520,7 +605,7 @@ const StoreDetails = () => {
               className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-gray-900 font-medium"
             >
               {tabs.map((tab) => (
-                <option key={tab.id} value={tab.id} className='w-full mb-2 pb-5 rounded-2xl text-[12px] md:text-[16px]'>
+                <option key={tab.id} value={tab.id}>
                   {tab.label} - {tab.description}
                 </option>
               ))}
@@ -1196,49 +1281,5 @@ const StoreDetails = () => {
     </div>
   );
 };
-
-// Add to your global CSS
-const styles = `
-  @keyframes slideLeft {
-    from {
-      transform: translateX(100%);
-    }
-    to {
-      transform: translateX(0);
-    }
-  }
-
-  @keyframes slideDown {
-    from {
-      transform: translateY(-20px);
-      opacity: 0;
-    }
-    to {
-      transform: translateY(0);
-      opacity: 1;
-    }
-  }
-
-  .animate-slide-left {
-    animation: slideLeft 0.3s ease-out;
-  }
-
-  .animate-slide-down {
-    animation: slideDown 0.3s ease-out;
-  }
-
-  .ml-13 {
-    margin-left: 3.25rem;
-  }
-
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
-  
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-`;
 
 export default StoreDetails;

@@ -1,11 +1,59 @@
 // pages/ProductDetail.jsx
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { productAPI } from '../../api/product.api';
 import { storeAPI } from '../../api/store.api';
-import { Palette, Ruler, Check, AlertCircle } from 'lucide-react';
+import { Palette, Ruler, Check, AlertCircle, ChevronLeft, ShoppingBag } from 'lucide-react';
 import StoreFooter from '../../components/StoreFooter';
 import { useErrorHandler } from '../../hooks/useErrorHandler';
+
+// ✨ إضافة أنماط CSS للـ animations
+const fadeInStyles = `
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(40px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes fadeInScale {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  
+  .animate-fade-in {
+    animation: fadeIn 0.6s ease-out forwards;
+  }
+  
+  .animate-fade-in-up {
+    animation: fadeInUp 0.8s ease-out forwards;
+  }
+  
+  .animate-fade-in-scale {
+    animation: fadeInScale 0.5s ease-out forwards;
+  }
+`;
 
 const ProductDetail = () => {
   const { storeName, productId } = useParams();
@@ -17,6 +65,7 @@ const ProductDetail = () => {
   const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [pageLoaded, setPageLoaded] = useState(false);
   
   // Variant selection states
   const [selectedColor, setSelectedColor] = useState(null);
@@ -25,11 +74,37 @@ const ProductDetail = () => {
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [variantQuantity, setVariantQuantity] = useState(0);
   const [uniqueColors, setUniqueColors] = useState([]);
-    const { handleError } = useErrorHandler();
+  const { handleError } = useErrorHandler();
+
+  // 🎨 دالة للحصول على الألوان المخصصة مع قيم افتراضية
+  const getStoreColors = () => {
+    return {
+      primary: store?.primaryColor || '#4f46e5', // indigo-600 كلون افتراضي
+      secondary: store?.secondaryColor || '#9333ea', // purple-600 كلون افتراضي
+      primaryLight: store?.primaryColor ? `${store.primaryColor}20` : '#e0e7ff', // نسخة شفافة من primary
+      secondaryLight: store?.secondaryColor ? `${store.secondaryColor}20` : '#f3e8ff' // نسخة شفافة من secondary
+    };
+  };
+
+  // 🎨 دالة لتوليد style object للتدرجات
+  const getGradientStyle = (fromColor, toColor) => {
+    return {
+      background: `linear-gradient(to right, ${fromColor}, ${toColor})`
+    };
+  };
 
   useEffect(() => {
     fetchProductData();
   }, [storeName, productId]);
+
+  // ✨ تحديد أن الصفحة تم تحميلها
+  useEffect(() => {
+    if (!loading && product && store) {
+      setTimeout(() => {
+        setPageLoaded(true);
+      }, 100);
+    }
+  }, [loading, product, store]);
 
   useEffect(() => {
     if (product && product.variants && product.variants.length > 0) {
@@ -86,6 +161,7 @@ const ProductDetail = () => {
   const fetchProductData = async () => {
     try {
       setLoading(true);
+      setPageLoaded(false);
       
       // Fetch store first
       const storeData = await storeAPI.getByName(storeName);
@@ -172,8 +248,7 @@ const ProductDetail = () => {
         ? ` (${selectedColor})`
         : '';
     
-    
-    handleError({message_en: `Added ${quantity} ${quantity > 1 ? 'items' : 'item'}${variantText} to cart!`})
+    // handleError({message_en: `Added ${quantity} ${quantity > 1 ? 'items' : 'item'}${variantText} to cart!`})
     
     // Navigate to cart or stay on page
     navigate(`/store/${storeName}?addedToCart=true`);
@@ -187,11 +262,20 @@ const ProductDetail = () => {
     }).format(price || 0);
   };
 
+  // 🎨 الحصول على الألوان المخصصة
+  const colors = store ? getStoreColors() : { primary: '#4f46e5', secondary: '#9333ea', primaryLight: '#e0e7ff', secondaryLight: '#f3e8ff' };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <div 
+            className="h-12 w-12 border-4 rounded-full animate-spin mx-auto mb-4"
+            style={{ 
+              borderColor: `${colors.primaryLight}`, 
+              borderTopColor: colors.primary 
+            }}
+          ></div>
           <p className="text-gray-600">Loading product...</p>
         </div>
       </div>
@@ -207,7 +291,8 @@ const ProductDetail = () => {
           <p className="text-gray-600 mb-6">{error || 'This product does not exist or has been removed.'}</p>
           <button
             onClick={() => navigate(`/store/${storeName}`)}
-            className="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all"
+            className="inline-flex items-center px-6 py-3 text-white rounded-xl hover:opacity-90 transition-all"
+            style={getGradientStyle(colors.primary, colors.secondary)}
           >
             Back to Store
           </button>
@@ -225,20 +310,36 @@ const ProductDetail = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      {/* ✨ إضافة أنماط CSS */}
+      <style>{fadeInStyles}</style>
+      
       <div className="container mx-auto px-4 py-8">
+        {/* Back Button مع تأثير Fade In */}
         <button
           onClick={() => navigate(`/store/${storeName}`)}
-          className="mb-6 flex items-center space-x-2 text-indigo-600 hover:text-indigo-700"
+          className={`mb-6 flex items-center space-x-2 transition-all duration-700 ${
+            pageLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'
+          }`}
+          style={{ color: colors.primary }}
         >
-          <span>←</span>
+          <ChevronLeft className="h-5 w-5" />
           <span>Back to {store?.storeName}</span>
         </button>
 
-        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-lg">
+        {/* Product Card مع تأثير Fade In */}
+        <div 
+          className={`bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-lg transition-all duration-700 ${
+            pageLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          }`}
+        >
           <div className="grid md:grid-cols-2 gap-8 p-8">
             {/* Product Images */}
-            <div>
-              <div className="aspect-square bg-gray-50 rounded-2xl overflow-hidden mb-4">
+            <div className="space-y-4">
+              {/* Main Image */}
+              <div 
+                className="aspect-square bg-gray-50 rounded-2xl overflow-hidden transition-all duration-700 delay-100"
+                style={pageLoaded ? { opacity: 1 } : { opacity: 0 }}
+              >
                 {product.imageUrls && product.imageUrls[selectedImageIndex] ? (
                   <img 
                     src={product.imageUrls[selectedImageIndex]} 
@@ -250,17 +351,19 @@ const ProductDetail = () => {
                 )}
               </div>
               
+              {/* Thumbnail Images */}
               {product.imageUrls && product.imageUrls.length > 1 && (
                 <div className="flex space-x-4 overflow-x-auto pb-2">
                   {product.imageUrls.map((image, index) => (
                     <button
                       key={index}
                       onClick={() => setSelectedImageIndex(index)}
-                      className={`flex-shrink-0 h-20 w-20 rounded-lg overflow-hidden border-2 ${
+                      className={`flex-shrink-0 h-20 w-20 rounded-lg overflow-hidden border-2 transition-all ${
                         selectedImageIndex === index 
-                          ? 'border-indigo-600' 
+                          ? 'border-2'
                           : 'border-gray-200'
                       }`}
+                      style={selectedImageIndex === index ? { borderColor: colors.primary } : {}}
                     >
                       <img 
                         src={image} 
@@ -274,20 +377,22 @@ const ProductDetail = () => {
             </div>
 
             {/* Product Info */}
-            <div>
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <span className="inline-block px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-sm font-medium mb-3">
-                    {product.categoryName || product.category?.name || 'Uncategorized'}
-                  </span>
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                    {product.productName || product.name}
-                  </h1>
-                </div>
-                
+            <div className="space-y-6">
+              {/* Category & Title */}
+              <div className={`transition-all duration-700 delay-200 ${pageLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+                <span 
+                  className="inline-block px-3 py-1 rounded-full text-sm font-medium mb-3"
+                  style={{ backgroundColor: colors.primaryLight, color: colors.primary }}
+                >
+                  {product.categoryName || product.category?.name || 'Uncategorized'}
+                </span>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                  {product.productName || product.name}
+                </h1>
               </div>
 
-              <div className="mb-6">
+              {/* Price */}
+              <div className={`transition-all duration-700 delay-300 ${pageLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
                 <div className="text-4xl font-bold text-gray-900 mb-2">
                   {formatPrice(product.price || 0)}
                 </div>
@@ -296,7 +401,10 @@ const ProductDetail = () => {
                     <span className="text-lg text-gray-500 line-through">
                       {formatPrice(product.oldPrice)}
                     </span>
-                    <span className="px-2 py-1 bg-red-100 text-red-700 rounded-lg text-sm font-medium">
+                    <span 
+                      className="px-2 py-1 rounded-lg text-sm font-medium"
+                      style={{ backgroundColor: colors.primaryLight, color: colors.primary }}
+                    >
                       {Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)}% OFF
                     </span>
                   </div>
@@ -305,14 +413,16 @@ const ProductDetail = () => {
 
               {/* Variant Selection */}
               {hasVariants && (
-                <div className="mb-8 space-y-6">
+                <div className={`space-y-6 transition-all duration-700 delay-400 ${pageLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
                   {/* Color Selection */}
                   {uniqueColors.length > 0 && (
                     <div>
                       <div className="flex items-center gap-2 mb-3">
-                        <Palette className="h-5 w-5 text-gray-600" />
+                        <Palette className="h-5 w-5" style={{ color: colors.primary }} />
                         <label className="text-sm font-medium text-gray-700">Color:</label>
-                        <span className="text-sm font-semibold text-indigo-600">{selectedColor || 'Select'}</span>
+                        <span className="text-sm font-semibold" style={{ color: colors.primary }}>
+                          {selectedColor || 'Select'}
+                        </span>
                       </div>
                       <div className="flex flex-wrap gap-3">
                         {uniqueColors.map(color => {
@@ -326,11 +436,15 @@ const ProductDetail = () => {
                               disabled={!isAvailable}
                               className={`px-4 py-2 rounded-xl border-2 transition-all ${
                                 selectedColor === color
-                                  ? 'border-indigo-600 bg-indigo-50 text-indigo-700'
+                                  ? 'text-white'
                                   : isAvailable
-                                    ? 'border-gray-200 hover:border-gray-300 text-gray-700'
+                                    ? 'text-gray-700 hover:border-gray-300'
                                     : 'border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed opacity-50'
                               }`}
+                              style={selectedColor === color 
+                                ? getGradientStyle(colors.primary, colors.secondary)
+                                : { borderColor: selectedColor === color ? colors.primary : colors.primaryLight }
+                              }
                             >
                               {color}
                               {!isAvailable && (
@@ -347,9 +461,11 @@ const ProductDetail = () => {
                   {availableSizes.length > 0 && (
                     <div>
                       <div className="flex items-center gap-2 mb-3">
-                        <Ruler className="h-5 w-5 text-gray-600" />
+                        <Ruler className="h-5 w-5" style={{ color: colors.primary }} />
                         <label className="text-sm font-medium text-gray-700">Size:</label>
-                        <span className="text-sm font-semibold text-indigo-600">{selectedSize || 'Select'}</span>
+                        <span className="text-sm font-semibold" style={{ color: colors.primary }}>
+                          {selectedSize || 'Select'}
+                        </span>
                       </div>
                       <div className="flex flex-wrap gap-3">
                         {availableSizes.map(size => {
@@ -364,11 +480,15 @@ const ProductDetail = () => {
                               disabled={!isAvailable}
                               className={`px-4 py-2 rounded-xl border-2 transition-all ${
                                 selectedSize === size
-                                  ? 'border-indigo-600 bg-indigo-50 text-indigo-700'
+                                  ? 'text-white'
                                   : isAvailable
-                                    ? 'border-gray-200 hover:border-gray-300 text-gray-700'
+                                    ? 'text-gray-700 hover:border-gray-300'
                                     : 'border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed opacity-50'
                               }`}
+                              style={selectedSize === size 
+                                ? getGradientStyle(colors.primary, colors.secondary)
+                                : { borderColor: colors.primaryLight }
+                              }
                             >
                               {size}
                               {!isAvailable && (
@@ -383,14 +503,17 @@ const ProductDetail = () => {
 
                   {/* Stock Info */}
                   {selectedVariant && (
-                    <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                    <div 
+                      className="rounded-xl p-4 transition-all duration-700"
+                      style={{ backgroundColor: colors.primaryLight }}
+                    >
                       <div className="flex items-start gap-3">
-                        <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                        <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" style={{ color: colors.primary }} />
                         <div>
-                          <p className="text-sm font-medium text-blue-900">
+                          <p className="text-sm font-medium" style={{ color: colors.primary }}>
                             Selected: {selectedColor} {selectedSize && `/ ${selectedSize}`}
                           </p>
-                          <p className="text-sm text-blue-700">
+                          <p className="text-sm opacity-75" style={{ color: colors.primary }}>
                             {availableStock} units available
                           </p>
                         </div>
@@ -401,7 +524,7 @@ const ProductDetail = () => {
               )}
 
               {/* Description */}
-              <div className="mb-8">
+              <div className={`transition-all duration-700 delay-500 ${pageLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">Description</h3>
                 <p className="text-gray-600 whitespace-pre-line">
                   {product.description || 'No description available.'}
@@ -409,7 +532,7 @@ const ProductDetail = () => {
               </div>
 
               {/* Quantity Selector */}
-              <div className="mb-8">
+              <div className={`transition-all duration-700 delay-600 ${pageLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Quantity
                 </label>
@@ -443,11 +566,14 @@ const ProductDetail = () => {
               <button
                 onClick={handleAddToCart}
                 disabled={isOutOfStock || (hasVariants && !selectedVariant)}
-                className={`w-full py-4 rounded-xl font-semibold text-lg transition-all ${
+                className={`w-full py-4 rounded-xl font-semibold text-lg transition-all duration-700 cursor-pointer ${
+                  pageLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                } ${
                   !isOutOfStock && (!hasVariants || selectedVariant)
-                    ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 shadow-lg hover:shadow-xl'
+                    ? 'text-white hover:opacity-90 shadow-lg hover:shadow-xl'
                     : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                 }`}
+                style={!isOutOfStock && (!hasVariants || selectedVariant) ? getGradientStyle(colors.primary, colors.secondary) : {}}
               >
                 {hasVariants && !selectedVariant
                   ? 'Select Options'
@@ -458,17 +584,20 @@ const ProductDetail = () => {
               </button>
 
               {/* Store Info */}
-              <div className="mt-8 pt-8 border-t border-gray-200">
+              <div className={`pt-8 border-t border-gray-200 transition-all duration-700 delay-800 ${pageLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
                 <div className="flex items-center space-x-4">
-                  <div className="h-12 w-12 bg-gray-100 rounded-xl flex items-center justify-center">
+                  <div 
+                    className="h-12 w-12 rounded-xl flex items-center justify-center overflow-hidden"
+                    style={{ backgroundColor: colors.primaryLight }}
+                  >
                     {store?.logoUrl ? (
                       <img 
                         src={store.logoUrl} 
                         alt={store.storeName}
-                        className="h-full w-full object-cover rounded-xl"
+                        className="h-full w-full object-cover"
                       />
                     ) : (
-                      <span className="text-xl">🏪</span>
+                      <ShoppingBag className="h-6 w-6" style={{ color: colors.primary }} />
                     )}
                   </div>
                   <div>
@@ -476,6 +605,19 @@ const ProductDetail = () => {
                     <div className="text-sm text-gray-600">
                       {store?.storeDescription || 'Verified seller'}
                     </div>
+                    {store?.primaryColor && (
+                      <div className="flex items-center gap-2 mt-1">
+                        <div 
+                          className="h-3 w-3 rounded-full" 
+                          style={{ backgroundColor: colors.primary }}
+                        />
+                        <div 
+                          className="h-3 w-3 rounded-full" 
+                          style={{ backgroundColor: colors.secondary }}
+                        />
+                        <span className="text-xs text-gray-500">Store colors</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
