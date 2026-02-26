@@ -37,7 +37,7 @@ public class R2ConfigBeans {
                 .build();
 
         return S3Client.builder()
-                .endpointOverride(URI.create("https://" + r2Config.getAccountId() + ".r2.cloudflarestorage.com"))
+                .endpointOverride(URI.create("https://" + "63ea452477a1a0be1a674adeab912669" + ".r2.cloudflarestorage.com"))
                 .region(Region.of("auto"))
                 .credentialsProvider(StaticCredentialsProvider.create(credentials))
                 .httpClient(httpClient)
