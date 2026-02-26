@@ -43,6 +43,8 @@ public class Store {
 
     private String instagram;
 
+    private Double shippingCost;
+
     @Enumerated(EnumType.STRING)
     private StoreStatus storeStatus;
 

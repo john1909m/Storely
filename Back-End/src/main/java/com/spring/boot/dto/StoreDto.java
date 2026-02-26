@@ -42,6 +42,8 @@ public class StoreDto {
 
     private String fontFamily;
 
+    private Double shippingCost;
+
     private String facebook;
 
     private String instagram;
