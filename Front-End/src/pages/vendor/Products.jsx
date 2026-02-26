@@ -1,4 +1,5 @@
 // Vendor Products Page - Updated with Cloudflare R2 image upload and Product Variants
+// Mobile optimized with always-visible action buttons
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import {
@@ -1918,7 +1919,7 @@ const VendorProducts = () => {
               </div>
             )}
 
-            {/* Grid View */}
+            {/* Grid View - مع أزرار مرئية دائماً للموبايل */}
             {viewMode === 'grid' ? (
               <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                 {filteredProducts.map((product) => {
@@ -1991,8 +1992,35 @@ const VendorProducts = () => {
                           </label>
                         </div>
                         
-                        {/* Quick Actions */}
-                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-2">
+                        {/* 📱 Mobile Action Buttons - Visible Always */}
+                        <div className="md:hidden absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3">
+                          <div className="flex items-center justify-center space-x-3">
+                            <button
+                              onClick={() => navigate(`/store/${store?.storeName}/product/${product.id}`)}
+                              className="p-2.5 bg-white/90 backdrop-blur-sm text-gray-700 rounded-full hover:bg-white transition-colors shadow-lg"
+                              title="View"
+                            >
+                              <Eye className="h-5 w-5" />
+                            </button>
+                            <button
+                              onClick={() => handleEditClick(product)}
+                              className="p-2.5 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 transition-colors shadow-lg"
+                              title="Edit"
+                            >
+                              <Edit className="h-5 w-5" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(product.id)}
+                              className="p-2.5 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors shadow-lg"
+                              title="Delete"
+                            >
+                              <Trash2 className="h-5 w-5" />
+                            </button>
+                          </div>
+                        </div>
+                        
+                        {/* 🖥️ Desktop Action Buttons - On Hover */}
+                        <div className="hidden md:flex absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity items-center justify-center space-x-2">
                           <button
                             onClick={() => navigate(`/store/${store?.storeName}/product/${product.id}`)}
                             className="p-2.5 bg-white text-gray-700 rounded-lg hover:bg-gray-100 transition-colors shadow-lg"

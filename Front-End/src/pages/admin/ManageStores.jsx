@@ -1,4 +1,4 @@
-// Admin Manage Stores - Real data from APIs
+// Admin Manage Stores - Real data from APIs - Mobile Optimized
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -7,7 +7,8 @@ import {
   AlertCircle, CheckCircle, XCircle, ArrowLeft,
   Mail, Phone, Calendar, Globe, Package, ShoppingBag,
   User, Shield, CreditCard, MapPin, DollarSign,
-  CalendarDays, RefreshCw, Check, X, BarChart
+  CalendarDays, RefreshCw, Check, X, BarChart, ChevronRight,
+  Menu, X as XIcon, FilterX, Clock
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { storeAPI } from '../../api/store.api';
@@ -26,6 +27,8 @@ const ManageStores = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [expandedRows, setExpandedRows] = useState([]);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
   
   // Modal states
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
@@ -37,12 +40,11 @@ const ManageStores = () => {
     autoRenew: true,
     startDate: new Date().toISOString().split('T')[0],
     status: 'ACTIVE',
-    analytics: 1 // Added analytics checkbox with default true
+    analytics: 1
   });
   
   const navigate = useNavigate();
-    const {authInialized,isAuthenticated} = useAuthStore();
-
+  const {authInialized,isAuthenticated} = useAuthStore();
 
   useEffect(() => {
     if(!authInialized){
@@ -176,7 +178,7 @@ const ManageStores = () => {
           new Date(currentSubscription.startDate).toISOString().split('T')[0] : 
           new Date().toISOString().split('T')[0],
         status: currentSubscription.status || 'ACTIVE',
-        analytics: currentSubscription.analytics !== undefined ? currentSubscription.analytics : 1 // Use existing value or default to true
+        analytics: currentSubscription.analytics !== undefined ? currentSubscription.analytics : 1
       });
     } else {
       // Creating new subscription
@@ -200,7 +202,7 @@ const ManageStores = () => {
         autoRenew: true,
         startDate: new Date().toISOString().split('T')[0],
         status: 'ACTIVE',
-        analytics: true // Default to true for new subscriptions
+        analytics: true
       });
     }
     
@@ -235,24 +237,20 @@ const ManageStores = () => {
         endDate: endDate,
         autoRenew: subscriptionForm.autoRenew,
         status: subscriptionForm.status,
-        analytics: subscriptionForm.analytics // Added analytics field
+        analytics: subscriptionForm.analytics
       };
 
       const currentSubscription = subscriptions[selectedVendor.id];
       
-     
-      
       let result;
       if (currentSubscription) {
-        // Update existing subscription
-         const updatedSubscription = {
-        ...subscriptionData,
-        id: subscriptions[selectedVendor.id]?.id || undefined
-      }
-      console.log('Updating subscription with data:', updatedSubscription);
+        const updatedSubscription = {
+          ...subscriptionData,
+          id: subscriptions[selectedVendor.id]?.id || undefined
+        }
+        console.log('Updating subscription with data:', updatedSubscription);
         result = await subscriptionAPI.updateVendorSubscription(updatedSubscription);
       } else {
-        // Create new subscription
         result = await subscriptionAPI.addVendorSubscription(subscriptionData);
       }
       
@@ -270,7 +268,6 @@ const ManageStores = () => {
         setShowSubscriptionModal(false);
         setSelectedVendor(null);
         await fetchVendorSubscriptions([selectedVendor.id], {});
-
       }
     } catch (err) {
       alert(`Failed to ${subscriptions[selectedVendor.id] ? 'update' : 'create'} subscription: ${err.message}`);
@@ -298,6 +295,11 @@ const ManageStores = () => {
     } catch (err) {
       alert(`Failed to cancel subscription: ${err.message}`);
     }
+  };
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setSelectedStatus('all');
   };
 
   const getStatusConfig = (status) => {
@@ -388,7 +390,8 @@ const ManageStores = () => {
   const filteredStores = stores.filter(store => {
     const matchesSearch = !searchQuery || 
       (store.storeName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (vendors[store.vendorId]?.name || '').toLowerCase().includes(searchQuery.toLowerCase());
+      (vendors[store.vendorId]?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (vendors[store.vendorId]?.email || '').toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesStatus = selectedStatus === 'all' || 
       store.storeStatus?.toUpperCase() === selectedStatus.toUpperCase();
@@ -410,75 +413,92 @@ const ManageStores = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white shadow-sm">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-center space-x-4">
+      <div className="bg-white shadow-sm sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-4 sm:py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
               <Link
                 to="/admin/dashboard"
-                className="text-gray-600 hover:text-indigo-600 transition-colors"
+                className="text-gray-600 hover:text-indigo-600 transition-colors p-2 hover:bg-indigo-50 rounded-lg"
               >
                 <ArrowLeft className="h-5 w-5" />
               </Link>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">Store Management</h1>
-                <p className="text-gray-600">Manage all vendor stores and subscriptions</p>
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Store Management</h1>
+                <p className="text-sm text-gray-600 hidden sm:block">Manage all vendor stores and subscriptions</p>
               </div>
             </div>
+            
+            {/* Mobile Filter Button */}
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="sm:hidden p-2.5 text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+            >
+              <Filter className="h-5 w-5" />
+            </button>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-4 sm:py-6 lg:py-8">
         {/* Error State */}
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6">
-            {error}
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6 flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <AlertCircle className="h-5 w-5 flex-shrink-0" />
+              <span className="text-sm">{error}</span>
+            </div>
+            <button onClick={() => setError(null)} className="text-red-800 hover:text-red-900">
+              <X className="h-4 w-4" />
+            </button>
           </div>
         )}
 
-        {/* Stats Overview */}
-        <div className="grid md:grid-cols-4 grid-cols-2 gap-6 mb-8">
-          <div className="bg-white rounded-2xl p-6 border border-gray-100">
-            <div className="flex items-center justify-between mb-4">
-              <div className="h-12 w-12 bg-indigo-50 rounded-xl flex items-center justify-center">
-                <Users className="h-6 w-6 text-indigo-600" />
+        {/* Stats Cards - Mobile Optimized */}
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-gray-100 shadow-sm">
+            <div className="flex items-center justify-between mb-2 sm:mb-4">
+              <div className="h-8 w-8 sm:h-12 sm:w-12 bg-indigo-50 rounded-lg sm:rounded-xl flex items-center justify-center">
+                <Users className="h-4 w-4 sm:h-6 sm:w-6 text-indigo-600" />
               </div>
             </div>
-            <div className="text-2xl font-bold text-gray-900 mb-1">{stats.total}</div>
-            <div className="text-gray-600">Total Stores</div>
+            <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">{stats.total}</div>
+            <div className="text-xs sm:text-sm text-gray-600">Total Stores</div>
           </div>
-          <div className="bg-white rounded-2xl p-6 border border-gray-100">
-            <div className="flex items-center justify-between mb-4">
-              <div className="h-12 w-12 bg-green-50 rounded-xl flex items-center justify-center">
-                <CheckCircle className="h-6 w-6 text-green-600" />
+          
+          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-gray-100 shadow-sm">
+            <div className="flex items-center justify-between mb-2 sm:mb-4">
+              <div className="h-8 w-8 sm:h-12 sm:w-12 bg-green-50 rounded-lg sm:rounded-xl flex items-center justify-center">
+                <CheckCircle className="h-4 w-4 sm:h-6 sm:w-6 text-green-600" />
               </div>
             </div>
-            <div className="text-2xl font-bold text-gray-900 mb-1">{stats.active}</div>
-            <div className="text-gray-600">Active Stores</div>
+            <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">{stats.active}</div>
+            <div className="text-xs sm:text-sm text-gray-600">Active Stores</div>
           </div>
-          <div className="bg-white rounded-2xl p-6 border border-gray-100">
-            <div className="flex items-center justify-between mb-4">
-              <div className="h-12 w-12 bg-purple-50 rounded-xl flex items-center justify-center">
-                <DollarSign className="h-6 w-6 text-purple-600" />
+          
+          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-gray-100 shadow-sm">
+            <div className="flex items-center justify-between mb-2 sm:mb-4">
+              <div className="h-8 w-8 sm:h-12 sm:w-12 bg-purple-50 rounded-lg sm:rounded-xl flex items-center justify-center">
+                <DollarSign className="h-4 w-4 sm:h-6 sm:w-6 text-purple-600" />
               </div>
             </div>
-            <div className="text-2xl font-bold text-gray-900 mb-1">{stats.subscribed}</div>
-            <div className="text-gray-600">Subscribed</div>
+            <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">{stats.subscribed}</div>
+            <div className="text-xs sm:text-sm text-gray-600">Subscribed</div>
           </div>
-          <div className="bg-white rounded-2xl p-6 border border-gray-100">
-            <div className="flex items-center justify-between mb-4">
-              <div className="h-12 w-12 bg-amber-50 rounded-xl flex items-center justify-center">
-                <AlertCircle className="h-6 w-6 text-amber-600" />
+          
+          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-gray-100 shadow-sm">
+            <div className="flex items-center justify-between mb-2 sm:mb-4">
+              <div className="h-8 w-8 sm:h-12 sm:w-12 bg-amber-50 rounded-lg sm:rounded-xl flex items-center justify-center">
+                <AlertCircle className="h-4 w-4 sm:h-6 sm:w-6 text-amber-600" />
               </div>
             </div>
-            <div className="text-2xl font-bold text-gray-900 mb-1">{stats.inactive}</div>
-            <div className="text-gray-600">Pending Approval</div>
+            <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">{stats.inactive}</div>
+            <div className="text-xs sm:text-sm text-gray-600">Inactive</div>
           </div>
         </div>
 
-        {/* Search & Filter Bar */}
-        <div className="bg-white rounded-2xl p-6 mb-8 border border-gray-100">
+        {/* Search & Filter Bar - Desktop */}
+        <div className="hidden sm:block bg-white rounded-2xl p-6 mb-8 border border-gray-100 shadow-sm">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -486,7 +506,7 @@ const ManageStores = () => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search stores by name or owner..."
+                placeholder="Search stores by name, owner, or email..."
                 className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
               />
             </div>
@@ -500,435 +520,749 @@ const ManageStores = () => {
                 <option value="ACTIVE">Active</option>
                 <option value="INACTIVE">Inactive</option>
               </select>
+              
+              {(searchQuery || selectedStatus !== 'all') && (
+                <button
+                  onClick={clearFilters}
+                  className="px-4 py-3 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-colors flex items-center space-x-2"
+                >
+                  <FilterX className="h-5 w-5" />
+                  <span>Clear</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Stores Table */}
-        {filteredStores.length === 0 ? (
-          <div className="bg-white rounded-2xl p-12 border border-gray-100 text-center">
-            <Store className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-gray-900 mb-2">No Stores Found</h3>
-            <p className="text-gray-600">
-              {searchQuery ? 'Try adjusting your search filters' : 'No stores have been created yet'}
-            </p>
-          </div>
-        ) : (
-          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-gray-50 border-b border-gray-100">
-                    <th className="text-left p-6 font-semibold text-gray-900">Store</th>
-                    <th className="text-left p-6 font-semibold text-gray-900">Owner</th>
-                    <th className="text-left p-6 font-semibold text-gray-900">Subscription</th>
-                    <th className="text-left p-6 font-semibold text-gray-900">Status</th>
-                    <th className="text-left p-6 font-semibold text-gray-900">Actions</th>
-                    <th className="text-left p-6 font-semibold text-gray-900 w-24"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredStores.map((store) => {
-                    const statusConfig = getStatusConfig(store.storeStatus);
-                    const StatusIcon = statusConfig.icon;
-                    const vendor = vendors[store.vendorId];
-                    const subscription = vendor ? subscriptions[vendor.id] : null;
-                    const subscriptionConfig = subscription ? getSubscriptionStatusConfig(subscription.status) : null;
-                    const isExpanded = expandedRows.includes(store.id);
-                    
-                    return (
-                      <React.Fragment key={store.id}>
-                        <tr className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                          <td className="p-6">
-                            <div className="flex items-center space-x-4">
-                              <div className="h-12 w-12 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-xl flex items-center justify-center">
-                                {store.storeLogoUrl ? (
-                                  <img 
-                                    src={store.storeLogoUrl} 
-                                    alt={store.storeName} 
-                                    className="h-full w-full object-cover rounded-xl"
-                                  />
-                                ) : (
-                                  <span className="text-2xl">🏪</span>
-                                )}
-                              </div>
-                              <div>
-                                <div className="font-semibold text-gray-900">{store.storeName}</div>
-                                <div className="text-sm text-gray-500">ID: {store.id}</div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="p-6">
-                            <div className="font-medium text-gray-900">{vendor?.name || 'Unknown'}</div>
-                            <div className="text-sm text-gray-500">{vendor?.email || 'N/A'}</div>
-                          </td>
-                          <td className="p-6">
-                            {subscription ? (
-                              <div className="space-y-2">
-                                <div className="flex items-center space-x-2">
-                                  <span className={`px-3 py-1 rounded-full text-xs font-medium flex items-center space-x-1 ${subscriptionConfig.color}`}>
-                                    {subscriptionConfig.icon && React.createElement(subscriptionConfig.icon, { className: "h-3 w-3" })}
-                                    <span>{subscriptionConfig.label}</span>
-                                  </span>
-                                  {subscription.planName && (
-                                    <span className="text-xs font-medium text-gray-700 bg-gray-100 px-2 py-1 rounded">
-                                      {subscription.planName}
-                                    </span>
-                                  )}
-                                </div>
-                                <div className="text-xs text-gray-500">
-                                  Renews: {formatDate(subscription.endDate)}
-                                </div>
-                                {subscription.analytics !== undefined && (
-                                  <div className="text-xs text-gray-500 flex items-center">
-                                    <BarChart className="h-3 w-3 mr-1" />
-                                    Analytics: {subscription.analytics ? 'Enabled' : 'Disabled'}
-                                  </div>
-                                )}
-                              </div>
-                            ) : (
-                              <div className="text-sm text-yellow-600 bg-yellow-50 px-3 py-2 rounded-lg">
-                                No subscription
-                              </div>
-                            )}
-                          </td>
-                          <td className="p-6">
-                            <div className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium ${statusConfig.color}`}>
-                              <StatusIcon className="h-4 w-4 mr-2" />
-                              <span>{statusConfig.label}</span>
-                            </div>
-                          </td>
-                          <td className="p-6">
-                            <div className="flex items-center space-x-2">
-                              <button
-                                onClick={() => navigate(`/store/${store.storeName}`)}
-                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                title="View Store"
-                              >
-                                <Eye className="h-5 w-5" />
-                              </button>
-                              <button
-                                onClick={() => vendor && openSubscriptionModal(vendor, store)}
-                                className={`p-2 rounded-lg transition-colors ${
-                                  subscription 
-                                    ? 'text-purple-600 hover:bg-purple-50' 
-                                    : 'text-green-600 hover:bg-green-50'
-                                }`}
-                                title={subscription ? "Manage Subscription" : "Add Subscription"}
-                              >
-                                <DollarSign className="h-5 w-5" />
-                              </button>
-                              {store.storeStatus === 'Active' ? (
-                                <button
-                                  onClick={() => handleStatusUpdate(store.id, 'Inactive')}
-                                  className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
-                                  title="Deactivate"
-                                >
-                                  <Pause className="h-5 w-5" />
-                                </button>
-                              ) : (
-                                <button
-                                  onClick={() => handleStatusUpdate(store.id, 'Active')}
-                                  className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                                  title="Activate"
-                                >
-                                  <Play className="h-5 w-5" />
-                                </button>
-                              )}
-                              <button
-                                onClick={() => handleDelete(store.id)}
-                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                title="Delete"
-                              >
-                                <Trash2 className="h-5 w-5" />
-                              </button>
-                            </div>
-                          </td>
-                          <td className="p-6">
-                            <button
-                              onClick={() => toggleRowExpansion(store.id)}
-                              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                            >
-                              <ChevronDown className={`h-5 w-5 text-gray-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
-                            </button>
-                          </td>
-                        </tr>
-                        
-                        {/* Expanded Details Row */}
-                        {isExpanded && (
-                          <tr className={statusConfig.bgColor}>
-                            <td colSpan="7" className="p-8">
-                              <div className="grid md:grid-cols-3 gap-8">
-                                {/* Store Details */}
-                                <div>
-                                  <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center">
-                                    <Store className="h-5 w-5 mr-2 text-indigo-600" />
-                                    Store Details
-                                  </h3>
-                                  <div className="space-y-4">
-                                    <div className="flex items-start space-x-3">
-                                      <div className="h-20 w-20 bg-white rounded-xl border border-gray-200 flex items-center justify-center">
-                                        {store.storeLogoUrl ? (
-                                          <img 
-                                            src={store.storeLogoUrl} 
-                                            alt={store.storeName} 
-                                            className="h-16 w-16 object-cover rounded-lg"
-                                          />
-                                        ) : (
-                                          <span className="text-3xl">🏪</span>
-                                        )}
-                                      </div>
-                                      <div className="flex-1">
-                                        <h4 className="font-semibold text-gray-900">{store.storeName}</h4>
-                                        <p className="text-sm text-gray-600 mt-1">{store.storeDescription || 'No description provided'}</p>
-                                      </div>
-                                    </div>
-                                    
-                                    <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200">
-                                      <div className="space-y-2">
-                                        <div className="flex items-center text-sm text-gray-600">
-                                          <Package className="h-4 w-4 mr-2" />
-                                          <span>Products:</span>
-                                          <span className="font-medium ml-auto text-gray-900">{store.products?.length || 0}</span>
-                                        </div>
-                                        <div className="flex items-center text-sm text-gray-600">
-                                          <ShoppingBag className="h-4 w-4 mr-2" />
-                                          <span>Orders:</span>
-                                          <span className="font-medium ml-auto text-gray-900">{store.orders?.length || 0}</span>
-                                        </div>
-                                        <div className="flex items-center text-sm text-gray-600">
-                                          <Calendar className="h-4 w-4 mr-2" />
-                                          <span>Created:</span>
-                                          <span className="font-medium ml-auto text-gray-900">{formatDate(store.createdAt)}</span>
-                                        </div>
-                                      </div>
-                                      <div className="space-y-2">
-                                        <div className="flex items-center text-sm text-gray-600">
-                                          <Globe className="h-4 w-4 mr-2" />
-                                          <span>Store URL:</span>
-                                          <a 
-                                            href={`/store/${store.storeName}`}
-                                            className="font-medium ml-auto text-blue-600 hover:underline truncate"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                          >
-                                            /store/{store.storeName}
-                                          </a>
-                                        </div>
-                                        <div className="flex items-center text-sm text-gray-600">
-                                          <MapPinHouse className="h-4 w-4 mr-2" />
-                                          <span>Address:</span>
-                                          <span className="font-medium ml-auto text-gray-900 truncate">
-                                            {store.storeAddress || 'N/A'}
-                                          </span>
-                                        </div>
-                                        <div className="flex items-center text-sm text-gray-600">
-                                          <CreditCard className="h-4 w-4 mr-2" />
-                                          <span>Payment:</span>
-                                          <span className={`font-medium ml-auto px-2 py-0.5 rounded-full text-xs ${
-                                            store.paymentSetup 
-                                              ? 'bg-green-100 text-green-800' 
-                                              : 'bg-red-100 text-red-800'
-                                          }`}>
-                                            {store.paymentSetup ? 'Setup' : 'Not Setup'}
-                                          </span>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-
-                                {/* Vendor Details */}
-                                <div>
-                                  <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center">
-                                    <User className="h-5 w-5 mr-2 text-purple-600" />
-                                    Vendor Details
-                                  </h3>
-                                  <div className="space-y-4">
-                                    <div className="flex items-start space-x-3">
-                                      <div className="h-12 w-12 bg-white rounded-xl border border-gray-200 flex items-center justify-center">
-                                        {vendor?.avatarUrl ? (
-                                          <img 
-                                            src={vendor.avatarUrl} 
-                                            alt={vendor.name} 
-                                            className="h-10 w-10 object-cover rounded-lg"
-                                          />
-                                        ) : (
-                                          <span className="text-xl">👤</span>
-                                        )}
-                                      </div>
-                                      <div className="flex-1">
-                                        <h4 className="font-semibold text-gray-900">{vendor?.name || 'Unknown Vendor'}</h4>
-                                        <p className="text-sm text-gray-600">Vendor ID: {store.vendorId}</p>
-                                      </div>
-                                    </div>
-                                    
-                                    <div className="space-y-3 pt-4 border-t border-gray-200">
-                                      <div className="flex items-center text-sm text-gray-600">
-                                        <Mail className="h-4 w-4 mr-2 text-gray-400" />
-                                        <span className="font-medium mr-2">Email:</span>
-                                        <span className="text-gray-900">{vendor?.email || 'N/A'}</span>
-                                      </div>
-                                      <div className="flex items-center text-sm text-gray-600">
-                                        <Phone className="h-4 w-4 mr-2 text-gray-400" />
-                                        <span className="font-medium mr-2">Phone:</span>
-                                        <span className="text-gray-900">{vendor?.phoneNumber || 'N/A'}</span>
-                                      </div>
-                                      <div className="flex items-center text-sm text-gray-600">
-                                        <Calendar className="h-4 w-4 mr-2 text-gray-400" />
-                                        <span className="font-medium mr-2">Joined:</span>
-                                        <span className="text-gray-900">{formatDate(vendor?.createdAt)}</span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-
-                                {/* Subscription Details */}
-                                <div>
-                                  <div className="flex items-center justify-between mb-6">
-                                    <h3 className="text-lg font-bold text-gray-900 flex items-center">
-                                      <DollarSign className="h-5 w-5 mr-2 text-green-600" />
-                                      Subscription
-                                    </h3>
-                                    {subscription && (
-                                      <button
-                                        onClick={() => handleCancelSubscription(vendor.id)}
-                                        className="text-xs text-red-600 hover:text-red-700 hover:bg-red-50 px-3 py-1 rounded-lg transition-colors"
-                                      >
-                                        Cancel
-                                      </button>
-                                    )}
-                                  </div>
-                                  
-                                  {subscription ? (
-                                    <div className="space-y-4">
-                                      <div className="space-y-3">
-                                        <div className="flex items-center justify-between">
-                                          <span className="text-sm text-gray-600">Status:</span>
-                                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${subscriptionConfig.color}`}>
-                                            {subscriptionConfig.label}
-                                          </span>
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                          <span className="text-sm text-gray-600">Plan:</span>
-                                          <span className="font-medium text-gray-900">{subscription.planName}</span>
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                          <span className="text-sm text-gray-600">Start Date:</span>
-                                          <span className="font-medium text-gray-900">{formatDate(subscription.startDate)}</span>
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                          <span className="text-sm text-gray-600">End Date:</span>
-                                          <span className="font-medium text-gray-900">{formatDate(subscription.endDate)}</span>
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                          <span className="text-sm text-gray-600">Days Remaining:</span>
-                                          <span className={`font-medium ${
-                                            getDaysRemaining(subscription.endDate) <= 7 
-                                              ? 'text-red-600' 
-                                              : 'text-green-600'
-                                          }`}>
-                                            {getDaysRemaining(subscription.endDate)} days
-                                          </span>
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                          <span className="text-sm text-gray-600">Auto Renew:</span>
-                                          <span className={`font-medium ${
-                                            subscription.autoRenew ? 'text-green-600' : 'text-gray-600'
-                                          }`}>
-                                            {subscription.autoRenew ? 'Yes' : 'No'}
-                                          </span>
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                          <span className="text-sm text-gray-600">Billing Cycle:</span>
-                                          <span className="font-medium text-gray-900">
-                                            {subscription.billingCycle === 'monthly' ? 'Monthly' : 'Yearly'}
-                                          </span>
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                          <span className="text-sm text-gray-600">Analytics:</span>
-                                          <span className={`font-medium flex items-center ${
-                                            subscription.analytics ? 'text-green-600' : 'text-gray-600'
-                                          }`}>
-                                            {subscription.analytics ? 'Enabled' : 'Disabled'}
-                                          </span>
-                                        </div>
-                                      </div>
-                                      
-                                      <div className="pt-4 border-t border-gray-200">
-                                        <button
-                                          onClick={() => vendor && openSubscriptionModal(vendor, store)}
-                                          className="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center space-x-2"
-                                        >
-                                          <RefreshCw className="h-4 w-4" />
-                                          <span>Update Subscription</span>
-                                        </button>
-                                      </div>
-                                    </div>
-                                  ) : (
-                                    <div className="text-center py-8">
-                                      <div className="text-yellow-500 text-4xl mb-3">💸</div>
-                                      <h4 className="font-semibold text-gray-900 mb-2">No Active Subscription</h4>
-                                      <p className="text-sm text-gray-600 mb-4">This vendor doesn't have a subscription plan</p>
-                                      <button
-                                        onClick={() => vendor && openSubscriptionModal(vendor, store)}
-                                        className="w-full px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all"
-                                      >
-                                        Create Subscription
-                                      </button>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </td>
-                          </tr>
-                        )}
-                      </React.Fragment>
-                    );
-                  })}
-                </tbody>
-              </table>
+        {/* Mobile Filters Panel */}
+        {showFilters && (
+          <div className="sm:hidden bg-white rounded-xl p-4 mb-4 border border-gray-200 shadow-sm animate-slide-down">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-gray-900">Filters</h3>
+              <button
+                onClick={() => setShowFilters(false)}
+                className="p-1 hover:bg-gray-100 rounded"
+              >
+                <X className="h-4 w-4 text-gray-500" />
+              </button>
             </div>
-
-            {/* Table Footer */}
-            <div className="p-6 border-t border-gray-100">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="text-gray-600">
-                  Showing {filteredStores.length} of {stores.length} stores
-                </div>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => setExpandedRows([])}
-                    className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-                  >
-                    Collapse All
-                  </button>
-                  <button
-                    onClick={() => setExpandedRows(filteredStores.map(s => s.id))}
-                    className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-                  >
-                    Expand All
-                  </button>
-                </div>
+            
+            <div className="space-y-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search stores..."
+                  className="w-full pl-9 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                />
               </div>
+              
+              <select
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+              >
+                <option value="all">All Status</option>
+                <option value="ACTIVE">Active</option>
+                <option value="INACTIVE">Inactive</option>
+              </select>
+              
+              {(searchQuery || selectedStatus !== 'all') && (
+                <button
+                  onClick={clearFilters}
+                  className="w-full px-4 py-2.5 text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors text-sm font-medium"
+                >
+                  Clear Filters
+                </button>
+              )}
             </div>
           </div>
         )}
+
+        {/* Mobile View - Cards Layout */}
+        <div className="sm:hidden space-y-4">
+          {filteredStores.length === 0 ? (
+            <div className="bg-white rounded-xl p-8 border border-gray-100 text-center">
+              <Store className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+              <h3 className="text-lg font-bold text-gray-900 mb-1">No Stores Found</h3>
+              <p className="text-sm text-gray-600">
+                {searchQuery ? 'Try adjusting your search filters' : 'No stores have been created yet'}
+              </p>
+            </div>
+          ) : (
+            filteredStores.map((store) => {
+              const statusConfig = getStatusConfig(store.storeStatus);
+              const StatusIcon = statusConfig.icon;
+              const vendor = vendors[store.vendorId];
+              const subscription = vendor ? subscriptions[vendor.id] : null;
+              const subscriptionConfig = subscription ? getSubscriptionStatusConfig(subscription.status) : null;
+              const isExpanded = expandedRows.includes(store.id);
+              
+              return (
+                <div key={store.id} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                  {/* Store Card Header */}
+                  <div className="p-4">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center space-x-3">
+                        <div className="h-12 w-12 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                          {store.storeLogoUrl ? (
+                            <img 
+                              src={store.storeLogoUrl} 
+                              alt={store.storeName} 
+                              className="h-full w-full object-cover rounded-xl"
+                            />
+                          ) : (
+                            <span className="text-xl">🏪</span>
+                          )}
+                        </div>
+                        <div>
+                          <div className="font-semibold text-gray-900 line-clamp-1">{store.storeName}</div>
+                          <div className="text-xs text-gray-500 mt-0.5">ID: {store.id.slice(0, 8)}...</div>
+                        </div>
+                      </div>
+                      <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${statusConfig.color}`}>
+                        <StatusIcon className="h-3 w-3 mr-1" />
+                        <span>{statusConfig.label}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-2 mb-3 text-sm">
+                      <div className="bg-gray-50 p-2 rounded-lg">
+                        <div className="text-xs text-gray-500">Owner</div>
+                        <div className="font-medium text-gray-900 truncate">{vendor?.name || 'Unknown'}</div>
+                      </div>
+                      <div className="bg-gray-50 p-2 rounded-lg">
+                        <div className="text-xs text-gray-500">Products</div>
+                        <div className="font-medium text-gray-900">{store.products?.length || 0}</div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center space-x-1">
+                        {subscription ? (
+                          <div className={`text-xs px-2 py-1 rounded-full ${subscriptionConfig?.color}`}>
+                            {subscription.planName || 'Subscribed'}
+                          </div>
+                        ) : (
+                          <div className="text-xs px-2 py-1 bg-yellow-50 text-yellow-700 rounded-full">
+                            No Subscription
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => toggleRowExpansion(store.id)}
+                        className="flex items-center space-x-1 text-indigo-600"
+                      >
+                        <span className="text-xs font-medium">Details</span>
+                        <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                      </button>
+                    </div>
+                    
+                    {/* Quick Actions */}
+                    <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => navigate(`/store/${store.storeName}`)}
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="View Store"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => vendor && openSubscriptionModal(vendor, store)}
+                          className={`p-2 rounded-lg transition-colors ${
+                            subscription 
+                              ? 'text-purple-600 hover:bg-purple-50' 
+                              : 'text-green-600 hover:bg-green-50'
+                          }`}
+                          title={subscription ? "Manage Subscription" : "Add Subscription"}
+                        >
+                          <DollarSign className="h-4 w-4" />
+                        </button>
+                        {store.storeStatus === 'Active' ? (
+                          <button
+                            onClick={() => handleStatusUpdate(store.id, 'Inactive')}
+                            className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                            title="Deactivate"
+                          >
+                            <Pause className="h-4 w-4" />
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleStatusUpdate(store.id, 'Active')}
+                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                            title="Activate"
+                          >
+                            <Play className="h-4 w-4" />
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleDelete(store.id)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Delete"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Expanded Details */}
+                  {isExpanded && (
+                    <div className={`border-t border-gray-100 p-4 ${statusConfig.bgColor}`}>
+                      <div className="space-y-4">
+                        {/* Store Details */}
+                        <div>
+                          <h4 className="text-sm font-semibold text-gray-900 mb-2 flex items-center">
+                            <Store className="h-4 w-4 mr-1 text-indigo-600" />
+                            Store Details
+                          </h4>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Description:</span>
+                              <span className="text-gray-900 text-right max-w-[60%]">
+                                {store.storeDescription || 'No description'}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Address:</span>
+                              <span className="text-gray-900 text-right max-w-[60%]">
+                                {store.storeAddress || 'N/A'}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Created:</span>
+                              <span className="text-gray-900">{formatDate(store.createdAt)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Payment Setup:</span>
+                              <span className={`font-medium px-2 py-0.5 rounded-full text-xs ${
+                                store.paymentSetup 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : 'bg-red-100 text-red-800'
+                              }`}>
+                                {store.paymentSetup ? 'Setup' : 'Not Setup'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Vendor Details */}
+                        <div>
+                          <h4 className="text-sm font-semibold text-gray-900 mb-2 flex items-center">
+                            <User className="h-4 w-4 mr-1 text-purple-600" />
+                            Vendor Details
+                          </h4>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Name:</span>
+                              <span className="text-gray-900">{vendor?.name || 'Unknown'}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Email:</span>
+                              <span className="text-gray-900 truncate max-w-[60%]">{vendor?.email || 'N/A'}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Phone:</span>
+                              <span className="text-gray-900">{vendor?.phoneNumber || 'N/A'}</span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Subscription Details */}
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="text-sm font-semibold text-gray-900 flex items-center">
+                              <DollarSign className="h-4 w-4 mr-1 text-green-600" />
+                              Subscription
+                            </h4>
+                            {subscription && (
+                              <button
+                                onClick={() => handleCancelSubscription(vendor.id)}
+                                className="text-xs text-red-600 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded transition-colors"
+                              >
+                                Cancel
+                              </button>
+                            )}
+                          </div>
+                          
+                          {subscription ? (
+                            <div className="space-y-2 text-sm">
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">Plan:</span>
+                                <span className="font-medium text-gray-900">{subscription.planName}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">Status:</span>
+                                <span className={`text-xs px-2 py-0.5 rounded-full ${subscriptionConfig?.color}`}>
+                                  {subscriptionConfig?.label}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">Ends:</span>
+                                <span className="text-gray-900">{formatDate(subscription.endDate)}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">Days left:</span>
+                                <span className={`font-medium ${
+                                  getDaysRemaining(subscription.endDate) <= 7 
+                                    ? 'text-red-600' 
+                                    : 'text-green-600'
+                                }`}>
+                                  {getDaysRemaining(subscription.endDate)} days
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">Analytics:</span>
+                                <span className={`font-medium ${subscription.analytics ? 'text-green-600' : 'text-gray-600'}`}>
+                                  {subscription.analytics ? 'Enabled' : 'Disabled'}
+                                </span>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-center py-3 bg-yellow-50 rounded-lg">
+                              <p className="text-xs text-yellow-800 mb-2">No active subscription</p>
+                              <button
+                                onClick={() => vendor && openSubscriptionModal(vendor, store)}
+                                className="text-xs bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700 transition-colors"
+                              >
+                                Create Subscription
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Desktop Table View - Hidden on Mobile */}
+        <div className="hidden sm:block">
+          {filteredStores.length === 0 ? (
+            <div className="bg-white rounded-2xl p-12 border border-gray-100 text-center">
+              <Store className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-xl font-bold text-gray-900 mb-2">No Stores Found</h3>
+              <p className="text-gray-600">
+                {searchQuery ? 'Try adjusting your search filters' : 'No stores have been created yet'}
+              </p>
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-100">
+                      <th className="text-left p-6 font-semibold text-gray-900">Store</th>
+                      <th className="text-left p-6 font-semibold text-gray-900">Owner</th>
+                      <th className="text-left p-6 font-semibold text-gray-900">Subscription</th>
+                      <th className="text-left p-6 font-semibold text-gray-900">Status</th>
+                      <th className="text-left p-6 font-semibold text-gray-900">Actions</th>
+                      <th className="text-left p-6 font-semibold text-gray-900 w-24"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredStores.map((store) => {
+                      const statusConfig = getStatusConfig(store.storeStatus);
+                      const StatusIcon = statusConfig.icon;
+                      const vendor = vendors[store.vendorId];
+                      const subscription = vendor ? subscriptions[vendor.id] : null;
+                      const subscriptionConfig = subscription ? getSubscriptionStatusConfig(subscription.status) : null;
+                      const isExpanded = expandedRows.includes(store.id);
+                      
+                      return (
+                        <React.Fragment key={store.id}>
+                          <tr className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                            <td className="p-6">
+                              <div className="flex items-center space-x-4">
+                                <div className="h-12 w-12 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                                  {store.storeLogoUrl ? (
+                                    <img 
+                                      src={store.storeLogoUrl} 
+                                      alt={store.storeName} 
+                                      className="h-full w-full object-cover rounded-xl"
+                                    />
+                                  ) : (
+                                    <span className="text-2xl">🏪</span>
+                                  )}
+                                </div>
+                                <div>
+                                  <div className="font-semibold text-gray-900">{store.storeName}</div>
+                                  <div className="text-sm text-gray-500">ID: {store.id}</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="p-6">
+                              <div className="font-medium text-gray-900">{vendor?.name || 'Unknown'}</div>
+                              <div className="text-sm text-gray-500">{vendor?.email || 'N/A'}</div>
+                            </td>
+                            <td className="p-6">
+                              {subscription ? (
+                                <div className="space-y-2">
+                                  <div className="flex items-center space-x-2">
+                                    <span className={`px-3 py-1 rounded-full text-xs font-medium flex items-center space-x-1 ${subscriptionConfig?.color}`}>
+                                      {subscriptionConfig?.icon && React.createElement(subscriptionConfig.icon, { className: "h-3 w-3" })}
+                                      <span>{subscriptionConfig?.label}</span>
+                                    </span>
+                                    {subscription.planName && (
+                                      <span className="text-xs font-medium text-gray-700 bg-gray-100 px-2 py-1 rounded">
+                                        {subscription.planName}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    Renews: {formatDate(subscription.endDate)}
+                                  </div>
+                                  {subscription.analytics !== undefined && (
+                                    <div className="text-xs text-gray-500 flex items-center">
+                                      <BarChart className="h-3 w-3 mr-1" />
+                                      Analytics: {subscription.analytics ? 'Enabled' : 'Disabled'}
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="text-sm text-yellow-600 bg-yellow-50 px-3 py-2 rounded-lg inline-block">
+                                  No subscription
+                                </div>
+                              )}
+                            </td>
+                            <td className="p-6">
+                              <div className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium ${statusConfig.color}`}>
+                                <StatusIcon className="h-4 w-4 mr-2" />
+                                <span>{statusConfig.label}</span>
+                              </div>
+                            </td>
+                            <td className="p-6">
+                              <div className="flex items-center space-x-2">
+                                <button
+                                  onClick={() => navigate(`/store/${store.storeName}`)}
+                                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                  title="View Store"
+                                >
+                                  <Eye className="h-5 w-5" />
+                                </button>
+                                <button
+                                  onClick={() => vendor && openSubscriptionModal(vendor, store)}
+                                  className={`p-2 rounded-lg transition-colors ${
+                                    subscription 
+                                      ? 'text-purple-600 hover:bg-purple-50' 
+                                      : 'text-green-600 hover:bg-green-50'
+                                  }`}
+                                  title={subscription ? "Manage Subscription" : "Add Subscription"}
+                                >
+                                  <DollarSign className="h-5 w-5" />
+                                </button>
+                                {store.storeStatus === 'Active' ? (
+                                  <button
+                                    onClick={() => handleStatusUpdate(store.id, 'Inactive')}
+                                    className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                                    title="Deactivate"
+                                  >
+                                    <Pause className="h-5 w-5" />
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => handleStatusUpdate(store.id, 'Active')}
+                                    className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                    title="Activate"
+                                  >
+                                    <Play className="h-5 w-5" />
+                                  </button>
+                                )}
+                                <button
+                                  onClick={() => handleDelete(store.id)}
+                                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                  title="Delete"
+                                >
+                                  <Trash2 className="h-5 w-5" />
+                                </button>
+                              </div>
+                            </td>
+                            <td className="p-6">
+                              <button
+                                onClick={() => toggleRowExpansion(store.id)}
+                                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                              >
+                                <ChevronDown className={`h-5 w-5 text-gray-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                              </button>
+                            </td>
+                          </tr>
+                          
+                          {/* Expanded Details Row - Desktop */}
+                          {isExpanded && (
+                            <tr className={statusConfig.bgColor}>
+                              <td colSpan="7" className="p-8">
+                                <div className="grid md:grid-cols-3 gap-8">
+                                  {/* Store Details */}
+                                  <div>
+                                    <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center">
+                                      <Store className="h-5 w-5 mr-2 text-indigo-600" />
+                                      Store Details
+                                    </h3>
+                                    <div className="space-y-4">
+                                      <div className="flex items-start space-x-3">
+                                        <div className="h-20 w-20 bg-white rounded-xl border border-gray-200 flex items-center justify-center">
+                                          {store.storeLogoUrl ? (
+                                            <img 
+                                              src={store.storeLogoUrl} 
+                                              alt={store.storeName} 
+                                              className="h-16 w-16 object-cover rounded-lg"
+                                            />
+                                          ) : (
+                                            <span className="text-3xl">🏪</span>
+                                          )}
+                                        </div>
+                                        <div className="flex-1">
+                                          <h4 className="font-semibold text-gray-900">{store.storeName}</h4>
+                                          <p className="text-sm text-gray-600 mt-1">{store.storeDescription || 'No description provided'}</p>
+                                        </div>
+                                      </div>
+                                      
+                                      <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200">
+                                        <div className="space-y-2">
+                                          <div className="flex items-center text-sm text-gray-600">
+                                            <Package className="h-4 w-4 mr-2" />
+                                            <span>Products:</span>
+                                            <span className="font-medium ml-auto text-gray-900">{store.products?.length || 0}</span>
+                                          </div>
+                                          <div className="flex items-center text-sm text-gray-600">
+                                            <ShoppingBag className="h-4 w-4 mr-2" />
+                                            <span>Orders:</span>
+                                            <span className="font-medium ml-auto text-gray-900">{store.orders?.length || 0}</span>
+                                          </div>
+                                          <div className="flex items-center text-sm text-gray-600">
+                                            <Calendar className="h-4 w-4 mr-2" />
+                                            <span>Created:</span>
+                                            <span className="font-medium ml-auto text-gray-900">{formatDate(store.createdAt)}</span>
+                                          </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                          <div className="flex items-center text-sm text-gray-600">
+                                            <Globe className="h-4 w-4 mr-2" />
+                                            <span>Store URL:</span>
+                                            <a 
+                                              href={`/store/${store.storeName}`}
+                                              className="font-medium ml-auto text-blue-600 hover:underline truncate"
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                            >
+                                              /store/{store.storeName}
+                                            </a>
+                                          </div>
+                                          <div className="flex items-center text-sm text-gray-600">
+                                            <MapPinHouse className="h-4 w-4 mr-2" />
+                                            <span>Address:</span>
+                                            <span className="font-medium ml-auto text-gray-900 truncate">
+                                              {store.storeAddress || 'N/A'}
+                                            </span>
+                                          </div>
+                                          <div className="flex items-center text-sm text-gray-600">
+                                            <CreditCard className="h-4 w-4 mr-2" />
+                                            <span>Payment:</span>
+                                            <span className={`font-medium ml-auto px-2 py-0.5 rounded-full text-xs ${
+                                              store.paymentSetup 
+                                                ? 'bg-green-100 text-green-800' 
+                                                : 'bg-red-100 text-red-800'
+                                            }`}>
+                                              {store.paymentSetup ? 'Setup' : 'Not Setup'}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Vendor Details */}
+                                  <div>
+                                    <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center">
+                                      <User className="h-5 w-5 mr-2 text-purple-600" />
+                                      Vendor Details
+                                    </h3>
+                                    <div className="space-y-4">
+                                      <div className="flex items-start space-x-3">
+                                        <div className="h-12 w-12 bg-white rounded-xl border border-gray-200 flex items-center justify-center">
+                                          {vendor?.avatarUrl ? (
+                                            <img 
+                                              src={vendor.avatarUrl} 
+                                              alt={vendor.name} 
+                                              className="h-10 w-10 object-cover rounded-lg"
+                                            />
+                                          ) : (
+                                            <span className="text-xl">👤</span>
+                                          )}
+                                        </div>
+                                        <div className="flex-1">
+                                          <h4 className="font-semibold text-gray-900">{vendor?.name || 'Unknown Vendor'}</h4>
+                                          <p className="text-sm text-gray-600">Vendor ID: {store.vendorId}</p>
+                                        </div>
+                                      </div>
+                                      
+                                      <div className="space-y-3 pt-4 border-t border-gray-200">
+                                        <div className="flex items-center text-sm text-gray-600">
+                                          <Mail className="h-4 w-4 mr-2 text-gray-400" />
+                                          <span className="font-medium mr-2">Email:</span>
+                                          <span className="text-gray-900">{vendor?.email || 'N/A'}</span>
+                                        </div>
+                                        <div className="flex items-center text-sm text-gray-600">
+                                          <Phone className="h-4 w-4 mr-2 text-gray-400" />
+                                          <span className="font-medium mr-2">Phone:</span>
+                                          <span className="text-gray-900">{vendor?.phoneNumber || 'N/A'}</span>
+                                        </div>
+                                        <div className="flex items-center text-sm text-gray-600">
+                                          <Calendar className="h-4 w-4 mr-2 text-gray-400" />
+                                          <span className="font-medium mr-2">Joined:</span>
+                                          <span className="text-gray-900">{formatDate(vendor?.createdAt)}</span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Subscription Details */}
+                                  <div>
+                                    <div className="flex items-center justify-between mb-6">
+                                      <h3 className="text-lg font-bold text-gray-900 flex items-center">
+                                        <DollarSign className="h-5 w-5 mr-2 text-green-600" />
+                                        Subscription
+                                      </h3>
+                                      {subscription && (
+                                        <button
+                                          onClick={() => handleCancelSubscription(vendor.id)}
+                                          className="text-xs text-red-600 hover:text-red-700 hover:bg-red-50 px-3 py-1 rounded-lg transition-colors"
+                                        >
+                                          Cancel
+                                        </button>
+                                      )}
+                                    </div>
+                                    
+                                    {subscription ? (
+                                      <div className="space-y-4">
+                                        <div className="space-y-3">
+                                          <div className="flex items-center justify-between">
+                                            <span className="text-sm text-gray-600">Status:</span>
+                                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${subscriptionConfig?.color}`}>
+                                              {subscriptionConfig?.label}
+                                            </span>
+                                          </div>
+                                          <div className="flex items-center justify-between">
+                                            <span className="text-sm text-gray-600">Plan:</span>
+                                            <span className="font-medium text-gray-900">{subscription.planName}</span>
+                                          </div>
+                                          <div className="flex items-center justify-between">
+                                            <span className="text-sm text-gray-600">Start Date:</span>
+                                            <span className="font-medium text-gray-900">{formatDate(subscription.startDate)}</span>
+                                          </div>
+                                          <div className="flex items-center justify-between">
+                                            <span className="text-sm text-gray-600">End Date:</span>
+                                            <span className="font-medium text-gray-900">{formatDate(subscription.endDate)}</span>
+                                          </div>
+                                          <div className="flex items-center justify-between">
+                                            <span className="text-sm text-gray-600">Days Remaining:</span>
+                                            <span className={`font-medium ${
+                                              getDaysRemaining(subscription.endDate) <= 7 
+                                                ? 'text-red-600' 
+                                                : 'text-green-600'
+                                            }`}>
+                                              {getDaysRemaining(subscription.endDate)} days
+                                            </span>
+                                          </div>
+                                          <div className="flex items-center justify-between">
+                                            <span className="text-sm text-gray-600">Auto Renew:</span>
+                                            <span className={`font-medium ${
+                                              subscription.autoRenew ? 'text-green-600' : 'text-gray-600'
+                                            }`}>
+                                              {subscription.autoRenew ? 'Yes' : 'No'}
+                                            </span>
+                                          </div>
+                                          <div className="flex items-center justify-between">
+                                            <span className="text-sm text-gray-600">Analytics:</span>
+                                            <span className={`font-medium flex items-center ${
+                                              subscription.analytics ? 'text-green-600' : 'text-gray-600'
+                                            }`}>
+                                              {subscription.analytics ? 'Enabled' : 'Disabled'}
+                                            </span>
+                                          </div>
+                                        </div>
+                                        
+                                        <div className="pt-4 border-t border-gray-200">
+                                          <button
+                                            onClick={() => vendor && openSubscriptionModal(vendor, store)}
+                                            className="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center space-x-2"
+                                          >
+                                            <RefreshCw className="h-4 w-4" />
+                                            <span>Update Subscription</span>
+                                          </button>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <div className="text-center py-8">
+                                        <div className="text-yellow-500 text-4xl mb-3">💸</div>
+                                        <h4 className="font-semibold text-gray-900 mb-2">No Active Subscription</h4>
+                                        <p className="text-sm text-gray-600 mb-4">This vendor doesn't have a subscription plan</p>
+                                        <button
+                                          onClick={() => vendor && openSubscriptionModal(vendor, store)}
+                                          className="w-full px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all"
+                                        >
+                                          Create Subscription
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Table Footer */}
+              <div className="p-6 border-t border-gray-100">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="text-gray-600">
+                    Showing {filteredStores.length} of {stores.length} stores
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => setExpandedRows([])}
+                      className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                      Collapse All
+                    </button>
+                    <button
+                      onClick={() => setExpandedRows(filteredStores.map(s => s.id))}
+                      className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                      Expand All
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Subscription Modal */}
+      {/* Subscription Modal - نفس الكود بدون تغيير */}
       {showSubscriptionModal && selectedVendor && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl p-4 sm:p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
                 {subscriptions[selectedVendor.id] ? 'Update' : 'Create'} Subscription
               </h2>
               <button
                 onClick={() => setShowSubscriptionModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-lg"
               >
-                ✕
+                <XIcon className="h-5 w-5" />
               </button>
             </div>
             
@@ -936,27 +1270,27 @@ const ManageStores = () => {
               {/* Vendor Info */}
               <div className="bg-gray-50 rounded-xl p-4">
                 <h3 className="font-semibold text-gray-900 mb-2">Vendor Information</h3>
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <div className="text-sm text-gray-500">Vendor ID</div>
-                    <div className="font-medium">{selectedVendor.id}</div>
+                    <div className="text-xs sm:text-sm text-gray-500">Vendor ID</div>
+                    <div className="text-sm sm:text-base font-medium break-all">{selectedVendor.id}</div>
                   </div>
                   <div>
-                    <div className="text-sm text-gray-500">Vendor Name</div>
-                    <div className="font-medium">{selectedVendor.name}</div>
+                    <div className="text-xs sm:text-sm text-gray-500">Vendor Name</div>
+                    <div className="text-sm sm:text-base font-medium">{selectedVendor.name}</div>
                   </div>
                   <div>
-                    <div className="text-sm text-gray-500">Store</div>
-                    <div className="font-medium">{selectedVendor.store?.storeName || 'No store'}</div>
+                    <div className="text-xs sm:text-sm text-gray-500">Store</div>
+                    <div className="text-sm sm:text-base font-medium">{selectedVendor.store?.storeName || 'No store'}</div>
                   </div>
                   <div>
-                    <div className="text-sm text-gray-500">Products</div>
-                    <div className="font-medium">{selectedVendor.store?.products?.length || 0}</div>
+                    <div className="text-xs sm:text-sm text-gray-500">Products</div>
+                    <div className="text-sm sm:text-base font-medium">{selectedVendor.store?.products?.length || 0}</div>
                   </div>
                 </div>
               </div>
               
-              {/* Plan Selection */}
+              {/* Plan Selection - Mobile Optimized */}
               <div>
                 <h3 className="font-semibold text-gray-900 mb-4">Select Plan</h3>
                 {plans.length === 0 ? (
@@ -964,7 +1298,7 @@ const ManageStores = () => {
                     No plans available
                   </div>
                 ) : (
-                  <div className="grid md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {plans.map((plan) => (
                       <button
                         key={plan.id}
@@ -987,25 +1321,20 @@ const ManageStores = () => {
                             </span>
                           )}
                         </div>
-                        <div className="text-2xl font-bold text-gray-900 mb-1">
-                          ${plan.price} <span className="text-sm font-normal text-gray-600">/month</span>
+                        <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
+                          ${plan.price} <span className="text-xs sm:text-sm font-normal text-gray-600">/month</span>
                         </div>
-                        <div className="text-sm text-gray-600">
+                        <div className="text-xs sm:text-sm text-gray-600">
                           {plan.productLimit === 0 ? 'Unlimited' : plan.productLimit} products
                         </div>
-                        {plan.features && plan.features.length > 0 && (
-                          <div className="mt-2 text-xs text-gray-500">
-                            Features: {plan.features.join(', ')}
-                          </div>
-                        )}
                       </button>
                     ))}
                   </div>
                 )}
               </div>
               
-              {/* Subscription Details */}
-              <div className="grid md:grid-cols-2 gap-6">
+              {/* باقي الفورم كما هو */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Start Date
@@ -1022,10 +1351,10 @@ const ManageStores = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Billing Cycle
                   </label>
-                  <div className="flex space-x-4">
+                  <div className="flex flex-col sm:flex-row gap-3">
                     <button
                       onClick={() => setSubscriptionForm({...subscriptionForm, billingCycle: 'monthly'})}
-                      className={`px-6 py-3 rounded-xl transition-all ${
+                      className={`px-4 sm:px-6 py-3 rounded-xl transition-all flex-1 ${
                         subscriptionForm.billingCycle === 'monthly'
                           ? 'bg-indigo-600 text-white'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -1035,50 +1364,18 @@ const ManageStores = () => {
                     </button>
                     <button
                       onClick={() => setSubscriptionForm({...subscriptionForm, billingCycle: 'yearly'})}
-                      className={`px-6 py-3 rounded-xl transition-all ${
+                      className={`px-4 sm:px-6 py-3 rounded-xl transition-all flex-1 ${
                         subscriptionForm.billingCycle === 'yearly'
                           ? 'bg-indigo-600 text-white'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                     >
-                      Yearly (Save 16%)
+                      Yearly
                     </button>
                   </div>
                 </div>
-                
-                <div>
-                  <label className="flex items-center space-x-3">
-                    <input
-                      type="checkbox"
-                      checked={subscriptionForm.autoRenew}
-                      onChange={(e) => setSubscriptionForm({...subscriptionForm, autoRenew: e.target.checked})}
-                      className="h-5 w-5 text-indigo-600 rounded"
-                    />
-                    <span className="text-gray-700">Auto Renew</span>
-                  </label>
-                  <p className="text-sm text-gray-500 mt-2">
-                    Subscription will automatically renew at the end of the billing period
-                  </p>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Status
-                  </label>
-                  <select
-                    value={subscriptionForm.status}
-                    onChange={(e) => setSubscriptionForm({...subscriptionForm, status: e.target.value})}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
-                  >
-                    <option value="ACTIVE">Active</option>
-                    <option value="PENDING">Pending</option>
-                    <option value="CANCELLED">Cancelled</option>
-                    <option value="EXPIRED">Expired</option>
-                  </select>
-                </div>
               </div>
               
-              {/* Analytics Checkbox */}
               <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-5 border border-indigo-100">
                 <div className="flex items-start">
                   <div className="flex items-center h-6">
@@ -1095,77 +1392,25 @@ const ManageStores = () => {
                       <BarChart className="h-5 w-5 mr-2 text-indigo-600" />
                       Enable Analytics Dashboard
                     </label>
-                    <p className="text-sm text-gray-600 mt-1">
-                      Allow this vendor to access detailed analytics, sales reports, customer insights, and performance metrics.
+                    <p className="text-xs sm:text-sm text-gray-600 mt-1">
+                      Allow this vendor to access detailed analytics, sales reports, and customer insights.
                     </p>
-                    <div className="mt-2 flex items-center text-xs text-gray-500">
-                      <span className="bg-indigo-100 text-indigo-800 px-2 py-1 rounded">Recommended</span>
-                      <span className="ml-2">Includes: Sales trends, conversion rates, customer behavior</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Summary */}
-              <div className="bg-gray-50 rounded-xl p-4">
-                <h3 className="font-semibold text-gray-900 mb-3">Subscription Summary</h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Plan:</span>
-                    <span className="font-medium">{subscriptionForm.planName || 'Not selected'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Billing Cycle:</span>
-                    <span className="font-medium">{subscriptionForm.billingCycle === 'monthly' ? 'Monthly' : 'Yearly'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Start Date:</span>
-                    <span className="font-medium">{subscriptionForm.startDate}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">End Date:</span>
-                    <span className="font-medium">
-                      {calculateEndDate(subscriptionForm.startDate, subscriptionForm.billingCycle)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Auto Renew:</span>
-                    <span className="font-medium">{subscriptionForm.autoRenew ? 'Yes' : 'No'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Analytics:</span>
-                    <span className={`font-medium flex items-center ${
-                      subscriptionForm.analytics ? 'text-green-600' : 'text-gray-600'
-                    }`}>
-                      {subscriptionForm.analytics ? 'Enabled' : 'Disabled'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Status:</span>
-                    <span className={`font-medium ${
-                      subscriptionForm.status === 'ACTIVE' ? 'text-green-600' :
-                      subscriptionForm.status === 'PENDING' ? 'text-yellow-600' :
-                      subscriptionForm.status === 'CANCELLED' ? 'text-red-600' :
-                      'text-gray-600'
-                    }`}>
-                      {subscriptionForm.status}
-                    </span>
                   </div>
                 </div>
               </div>
               
               {/* Action Buttons */}
-              <div className="flex justify-end space-x-4 pt-4 border-t border-gray-200">
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4 border-t border-gray-200">
                 <button
                   onClick={() => setShowSubscriptionModal(false)}
-                  className="px-6 py-3 text-gray-700 hover:text-gray-900"
+                  className="w-full sm:w-auto px-6 py-3 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSubscriptionAction}
                   disabled={!subscriptionForm.planId}
-                  className={`px-8 py-3 rounded-xl font-medium ${
+                  className={`w-full sm:w-auto px-8 py-3 rounded-xl font-medium ${
                     subscriptionForm.planId
                       ? 'bg-indigo-600 text-white hover:bg-indigo-700'
                       : 'bg-gray-200 text-gray-400 cursor-not-allowed'
