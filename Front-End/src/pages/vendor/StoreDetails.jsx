@@ -7,7 +7,8 @@ import {
   Download, Loader2, AlertCircle, Check,
   ChevronRight, Menu, X, Copy, QrCode,
   Brush, Building2, Clock, Calendar,
-  Tag, Sparkles, ImagePlus, Trash2
+  Tag, Sparkles, ImagePlus, Trash2,
+  Truck // 🚚 إضافة أيقونة الشحن
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { storeAPI } from '../../api/store.api';
@@ -38,12 +39,25 @@ const styles = `
     }
   }
 
+  @keyframes pulse {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.05);
+    }
+  }
+
   .animate-slide-left {
     animation: slideLeft 0.3s ease-out;
   }
 
   .animate-slide-down {
     animation: slideDown 0.3s ease-out;
+  }
+
+  .animate-pulse-slow {
+    animation: pulse 2s ease-in-out infinite;
   }
 
   .ml-13 {
@@ -71,7 +85,7 @@ const StoreDetails = () => {
   const { handleError } = useErrorHandler();
   const {authInialized,isAuthenticated} = useAuthStore();
 
-  // Store info state
+  // Store info state - إضافة shippingCost
   const [storeInfo, setStoreInfo] = useState({
     storeName: '',
     storeDescription: '',
@@ -79,7 +93,8 @@ const StoreDetails = () => {
     storeAddress: '',
     categoryId: '',
     createdAt: '',
-    storeStatus: store?.storeStatus || 'Inactive'
+    storeStatus: store?.storeStatus || 'Inactive',
+    shippingCost: 0 // 🚚 إضافة تكلفة الشحن
   });
 
   // Branding state
@@ -120,7 +135,8 @@ const StoreDetails = () => {
           storeAddress: storeData.storeAddress || '',
           categoryId: storeData.categoryId || '',
           createdAt: storeData.createdAt || new Date().toISOString(),
-          storeStatus: storeData.storeStatus || 'Inactive'
+          storeStatus: storeData.storeStatus || 'Inactive',
+          shippingCost: storeData.shippingCost || 0 // 🚚 جلب تكلفة الشحن
         });
 
         setBranding({
@@ -189,7 +205,8 @@ const StoreDetails = () => {
         ...storeInfo,
         ...branding,
         ...socialMedia,
-        id: store.id
+        id: store.id,
+        shippingCost: parseFloat(storeInfo.shippingCost) || 0 // 🚚 التأكد من أن القيمة رقم
       };
 
       Object.keys(updateData).forEach(key => {
@@ -317,6 +334,15 @@ const StoreDetails = () => {
       month: 'long',
       day: 'numeric'
     });
+  };
+
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat('en-EG', {
+      style: 'currency',
+      currency: 'EGP',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(price || 0);
   };
 
   const tabs = [
@@ -711,7 +737,7 @@ const StoreDetails = () => {
 
           {/* Main Content */}
           <div className="lg:col-span-9 space-y-6">
-            {/* Basic Info Tab */}
+            {/* Basic Info Tab - مع إضافة shippingCost */}
             {activeTab === 'basic' && (
               <div className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-200/80 shadow-sm">
                 <div className="flex items-center justify-between mb-6">
@@ -776,6 +802,51 @@ const StoreDetails = () => {
                     </div>
                   </div>
 
+                  {/* 🚚 Shipping Cost - حقل جديد */}
+                  <div className="group">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      <div className="flex items-center gap-2">
+                        <Truck className="h-4 w-4 text-indigo-600" />
+                        Shipping Cost <span className="text-xs font-normal text-gray-500">(EGP)</span>
+                      </div>
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">EGP</span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        value={storeInfo.shippingCost}
+                        onChange={(e) => handleStoreInfoChange('shippingCost', e.target.value)}
+                        className="w-full pl-16 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all focus:bg-white"
+                        placeholder="0"
+                      />
+                    </div>
+                    <p className="mt-2 text-sm text-gray-500 flex items-center">
+                      <Truck className="h-4 w-4 mr-1 text-gray-400" />
+                      Set to 0 for free shipping. This cost will be added to customer's orders.
+                    </p>
+                    
+                    {/* Shipping Preview */}
+                    {storeInfo.shippingCost > 0 && (
+                      <div className="mt-3 p-3 bg-blue-50 border border-blue-100 rounded-xl">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-blue-700">Shipping cost will be:</span>
+                          <span className="font-bold text-blue-800">{formatPrice(storeInfo.shippingCost)}</span>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {storeInfo.shippingCost == 0 && (
+                      <div className="mt-3 p-3 bg-green-50 border border-green-100 rounded-xl">
+                        <div className="flex items-center gap-2">
+                          <Truck className="h-4 w-4 text-green-600 animate-pulse-slow" />
+                          <span className="text-sm text-green-700 font-medium">Free Shipping for your customers! 🎉</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   {/* Store Category */}
                   <div className="group">
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -823,6 +894,7 @@ const StoreDetails = () => {
               </div>
             )}
 
+            {/* باقي التبويبات كما هي */}
             {/* Branding Tab */}
             {activeTab === 'branding' && (
               <div className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-200/80 shadow-sm">

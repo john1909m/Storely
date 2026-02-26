@@ -1,4 +1,4 @@
-// Vendor Orders Page - Real data from APIs
+// Vendor Orders Page - Real data from APIs with shipping cost support
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -10,11 +10,13 @@ import {
   Truck as Shipping, Box, Hash, FileText,Store, Receipt,
   Menu, X, FilterX, RefreshCw, ChevronRight,
   TrendingUp, Users, ShoppingCart, BarChart,
-  Copy, Check, MoreVertical, Edit, Trash2
+  Copy, Check, MoreVertical, Edit, Trash2,
+  Wallet // إضافة أيقونة المحفظة
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { orderAPI } from '../../api/order.api';
 import { customerAPI } from '../../api/customer.api';
+import { storeAPI } from '../../api/store.api';
 import { Link } from 'react-router-dom';
 import StoreFooter from '../../components/StoreFooter';
 import { useErrorHandler } from '../../hooks/useErrorHandler';
@@ -36,21 +38,32 @@ const VendorOrders = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [printOrder, setPrintOrder] = useState(null);
+  const [storeData, setStoreData] = useState(null);
   const printFrameRef = useRef(null);
   const { store, vendor } = useAuth();
   const navigate = useNavigate();
-    const { handleError } = useErrorHandler();
-      const {authInialized,isAuthenticated} = useAuthStore();
+  const { handleError } = useErrorHandler();
+  const {authInialized,isAuthenticated} = useAuthStore();
 
-
+  // جلب بيانات المتجر الكاملة (بما فيها shippingCost)
   useEffect(() => {
     if (store?.id && authInialized) {
+      fetchStoreData();
       fetchOrders();
     } else {
       setError('Store not found. Please create a store first.');
       setIsLoading(false);
     }
   }, [store, authInialized]);
+
+  const fetchStoreData = async () => {
+    try {
+      const storeData = await storeAPI.getById(store.id);
+      setStoreData(storeData);
+    } catch (err) {
+      handleError(err);
+    }
+  };
 
   const fetchOrders = async () => {
     try {
@@ -110,11 +123,15 @@ const VendorOrders = () => {
     const customer = customers[order.customerId] || order.customer;
     const items = order.items || order.orderItems || [];
     const orderDate = order.orderDate || order.createdAt || order.date;
-    const orderTotal = order.totalPrice || order.total || order.amount || 0;
+    
+    // حساب الإجمالي مع تضمين تكلفة الشحن
+    const subtotal = order.totalPrice || order.total || order.amount || 0;
+    const shippingCost = storeData?.shippingCost || 0;
+    const orderTotal = subtotal + shippingCost;
     
     const printWindow = window.open('', '_blank', 'width=800,height=600');
     
-    const receiptHTML = generateReceiptHTML(order, customer, items, orderDate, orderTotal, store);
+    const receiptHTML = generateReceiptHTML(order, customer, items, orderDate, subtotal, shippingCost, orderTotal, storeData);
     
     printWindow.document.write(receiptHTML);
     printWindow.document.close();
@@ -125,11 +142,11 @@ const VendorOrders = () => {
     };
   };
 
-  const generateReceiptHTML = (order, customer, items, orderDate, orderTotal, store) => {
-    const storeName = store?.storeName || 'Your Store';
-    const storeEmail = store?.email || '';
-    const storePhone = store?.phone || '';
-    const storeAddress = store?.address || '';
+  const generateReceiptHTML = (order, customer, items, orderDate, subtotal, shippingCost, orderTotal, storeData) => {
+    const storeName = storeData?.storeName || store?.storeName || 'Your Store';
+    const storeEmail = storeData?.email || '';
+    const storePhone = storeData?.phone || '';
+    const storeAddress = storeData?.address || '';
     
     const orderNumber = order.orderNumber || order.id;
     const paymentMethod = order.paymentMethod || 'Cash on Delivery';
@@ -153,8 +170,8 @@ const VendorOrders = () => {
           ${item.variant ? `<div style="font-size: 12px; color: #666;">Variant: ${item.variant}</div>` : ''}
         </td>
         <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity || 1}</td>
-        <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: right;">$${(item.price || 0).toFixed(2)}</td>
-        <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: right;">$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</td>
+        <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: right;">${formatCurrency(item.price || 0)}</td>
+        <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: right;">${formatCurrency((item.price || 0) * (item.quantity || 1))}</td>
       </tr>
     `).join('');
 
@@ -326,7 +343,6 @@ const VendorOrders = () => {
           <div class="header">
             <h1 class="store-name">${storeName}</h1>
             <p class="receipt-title">Order Receipt</p>
-            
           </div>
           
           <div class="order-info">
@@ -358,7 +374,7 @@ const VendorOrders = () => {
               <div>
                 <div class="info-label">Contact</div>
                 <div class="info-value">${customer?.whatsappNumber || 'N/A'}</div>
-                <div style="color: #666;">${customer?.phoneNumber}</div>
+                <div style="color: #666;">${customer?.phoneNumber || ''}</div>
               </div>
             </div>
             ${customer?.address || order.shippingAddress ? `
@@ -387,27 +403,30 @@ const VendorOrders = () => {
           <div class="summary">
             <div class="summary-row">
               <span>Subtotal:</span>
-              <span style="font-weight: 600;">$${orderTotal.toFixed(2)}</span>
+              <span style="font-weight: 600;">${formatCurrency(subtotal)}</span>
             </div>
-            ${order.shippingCost ? `
+            ${shippingCost > 0 ? `
             <div class="summary-row">
               <span>Shipping:</span>
-              <span>$${order.shippingCost.toFixed(2)}</span>
+              <span>${formatCurrency(shippingCost)}</span>
+            </div>
+            ` : shippingCost === 0 ? `
+            <div class="summary-row" style="color: #16a34a;">
+              <span>Shipping:</span>
+              <span>FREE 🎉</span>
             </div>
             ` : ''}
             ${order.discount ? `
             <div class="summary-row" style="color: #16a34a;">
               <span>Discount:</span>
-              <span>-$${order.discount.toFixed(2)}</span>
+              <span>-${formatCurrency(order.discount)}</span>
             </div>
             ` : ''}
             <div class="summary-row total-row">
               <span>Total Amount:</span>
-              <span>$${orderTotal.toFixed(2)}</span>
+              <span>${formatCurrency(orderTotal)}</span>
             </div>
           </div>
-          
-          
           
           <div class="no-print">
             <button onclick="window.print();" class="print-button">
@@ -506,7 +525,28 @@ const VendorOrders = () => {
       const status = o.orderStatus || o.status;
       return status?.toUpperCase() === 'CANCELLED';
     }).length,
-    revenue: orders.reduce((sum, order) => sum + (order.totalPrice || order.total || order.amount || 0), 0)
+    revenue: orders.reduce((sum, order) => {
+      const subtotal = order.totalPrice || order.total || order.amount || 0;
+      const shippingCost = storeData?.shippingCost || 0;
+      return sum + subtotal + shippingCost;
+    }, 0)
+  };
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'EGP',
+      minimumFractionDigits: 2
+    }).format(amount || 0);
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
   };
 
   const statusConfig = {
@@ -546,23 +586,6 @@ const VendorOrders = () => {
 
     return matchesStatus && matchesSearch && matchesDate;
   });
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'EGP',
-      minimumFractionDigits: 2
-    }).format(amount || 0);
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
 
   if (isLoading) {
     return (
@@ -730,6 +753,12 @@ const VendorOrders = () => {
                   <div className="flex-1">
                     <div className="text-sm font-medium text-gray-900">{store?.storeName}</div>
                     <div className="text-xs text-gray-500">Order Management</div>
+                    {storeData?.shippingCost !== undefined && (
+                      <div className="text-xs text-indigo-600 mt-1 flex items-center">
+                        <Truck className="h-3 w-3 mr-1" />
+                        Shipping: {storeData.shippingCost === 0 ? 'FREE' : formatCurrency(storeData.shippingCost)}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -805,13 +834,21 @@ const VendorOrders = () => {
           <div className="bg-white rounded-2xl p-5 sm:p-6 border border-gray-200/80 shadow-sm hover:shadow-md transition-all group">
             <div className="flex items-center justify-between mb-3">
               <div className="h-10 w-10 sm:h-12 sm:w-12 bg-purple-50 rounded-xl flex items-center justify-center group-hover:bg-purple-100 transition-colors">
-                <DollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
+                <Wallet className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
               </div>
+              {storeData?.shippingCost !== undefined && (
+                <span className={`text-xs px-2 py-1 rounded-full ${storeData.shippingCost === 0 ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
+                  {storeData.shippingCost === 0 ? 'FREE' : formatCurrency(storeData.shippingCost)}
+                </span>
+              )}
             </div>
             <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
               {formatCurrency(stats.revenue)}
             </div>
-            <div className="text-xs sm:text-sm text-gray-600">Revenue</div>
+            <div className="text-xs sm:text-sm text-gray-600 flex items-center">
+              <Truck className="h-3 w-3 mr-1" />
+              Revenue + Shipping
+            </div>
           </div>
         </div>
 
@@ -1048,6 +1085,8 @@ const VendorOrders = () => {
                       <th className="text-left p-6 font-semibold text-gray-900">Order</th>
                       <th className="text-left p-6 font-semibold text-gray-900">Customer</th>
                       <th className="text-left p-6 font-semibold text-gray-900">Date</th>
+                      <th className="text-left p-6 font-semibold text-gray-900">Subtotal</th>
+                      <th className="text-left p-6 font-semibold text-gray-900">Shipping</th>
                       <th className="text-left p-6 font-semibold text-gray-900">Total</th>
                       <th className="text-left p-6 font-semibold text-gray-900">Status</th>
                       <th className="text-left p-6 font-semibold text-gray-900">Actions</th>
@@ -1058,7 +1097,9 @@ const VendorOrders = () => {
                       const customer = customers[order.customerId] || order.customer;
                       const isExpanded = expandedRows.includes(order.id);
                       const status = order.orderStatus || order.status || 'PENDING';
-                      const orderTotal = order.totalPrice || order.total || order.amount || 0;
+                      const subtotal = order.totalPrice || order.total || order.amount || 0;
+                      const shippingCost = storeData?.shippingCost || 0;
+                      const orderTotal = subtotal + shippingCost;
                       const orderDate = order.orderDate || order.createdAt || order.date;
                       const items = order.items || order.orderItems || [];
                       
@@ -1104,6 +1145,16 @@ const VendorOrders = () => {
                               {formatDate(orderDate)}
                             </td>
                             <td className="p-6">
+                              <div className="font-medium text-gray-900">
+                                {formatCurrency(subtotal)}
+                              </div>
+                            </td>
+                            <td className="p-6">
+                              <div className={`font-medium ${shippingCost === 0 ? 'text-green-600' : 'text-gray-900'}`}>
+                                {shippingCost === 0 ? 'FREE' : formatCurrency(shippingCost)}
+                              </div>
+                            </td>
+                            <td className="p-6">
                               <div className="font-bold text-gray-900">
                                 {formatCurrency(orderTotal)}
                               </div>
@@ -1139,7 +1190,7 @@ const VendorOrders = () => {
                           {/* Expanded Details */}
                           {isExpanded && (
                             <tr className="bg-gray-50">
-                              <td colSpan="8" className="p-6">
+                              <td colSpan="10" className="p-6">
                                 <div className="grid md:grid-cols-2 gap-6">
                                   <div className="bg-white rounded-xl p-6 border border-gray-200">
                                     <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
@@ -1162,6 +1213,20 @@ const VendorOrders = () => {
                                         <span className="font-medium text-gray-900">
                                           {order.paymentMethod || 'Cash on Delivery'}
                                         </span>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-600">Subtotal:</span>
+                                        <span className="font-medium text-gray-900">{formatCurrency(subtotal)}</span>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-600">Shipping:</span>
+                                        <span className={`font-medium ${shippingCost === 0 ? 'text-green-600' : 'text-gray-900'}`}>
+                                          {shippingCost === 0 ? 'FREE' : formatCurrency(shippingCost)}
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between pt-2 border-t border-gray-200">
+                                        <span className="font-semibold text-gray-900">Total:</span>
+                                        <span className="font-bold text-indigo-600">{formatCurrency(orderTotal)}</span>
                                       </div>
                                     </div>
                                   </div>
@@ -1187,7 +1252,7 @@ const VendorOrders = () => {
                                       <div className="flex justify-between">
                                         <span className="text-gray-600">Phone:</span>
                                         <span className="font-medium text-gray-900">
-                                          {customer?.phoneNumber || customer?.phone || 'N/A'} /  {customer?.whatsappNumber || 'N/A'}
+                                          {customer?.phoneNumber || customer?.phone || 'N/A'} / {customer?.whatsappNumber || 'N/A'}
                                         </span>
                                       </div>
                                     </div>
@@ -1251,7 +1316,9 @@ const VendorOrders = () => {
               {filteredOrders.map((order) => {
                 const customer = customers[order.customerId] || order.customer;
                 const status = order.orderStatus || order.status || 'PENDING';
-                const orderTotal = order.totalPrice || order.total || order.amount || 0;
+                const subtotal = order.totalPrice || order.total || order.amount || 0;
+                const shippingCost = storeData?.shippingCost || 0;
+                const orderTotal = subtotal + shippingCost;
                 const orderDate = order.orderDate || order.createdAt || order.date;
                 const items = order.items || order.orderItems || [];
                 const isExpanded = expandedRows.includes(order.id);
@@ -1300,7 +1367,19 @@ const VendorOrders = () => {
                         <div className="flex items-center text-sm">
                           <DollarSign className="h-4 w-4 text-gray-400 mr-2" />
                           <span className="font-semibold text-gray-900">
-                            {formatCurrency(orderTotal)}
+                            {formatCurrency(subtotal)}
+                          </span>
+                        </div>
+                        <div className="flex items-center text-sm">
+                          <Truck className="h-4 w-4 text-gray-400 mr-2" />
+                          <span className={shippingCost === 0 ? 'text-green-600 font-medium' : 'text-gray-900'}>
+                            {shippingCost === 0 ? 'FREE Shipping' : formatCurrency(shippingCost)}
+                          </span>
+                        </div>
+                        <div className="flex items-center text-sm pt-1 border-t border-gray-100">
+                          <Wallet className="h-4 w-4 text-indigo-600 mr-2" />
+                          <span className="font-bold text-indigo-600">
+                            Total: {formatCurrency(orderTotal)}
                           </span>
                         </div>
                       </div>
@@ -1313,13 +1392,6 @@ const VendorOrders = () => {
                             title="Print Receipt"
                           >
                             <Printer className="h-5 w-5" />
-                          </button>
-                          <button 
-                            onClick={() => navigate(`/vendor/orders/${order.id}`)}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                            title="View Details"
-                          >
-                            <Eye className="h-5 w-5" />
                           </button>
                         </div>
                         <button

@@ -250,7 +250,8 @@ const CartSidebar = ({
     const checkoutData = {
       storeId: store?.id,
       storeName: store?.storeName,
-      storeLogo: store?.logoUrl,
+      storeLogo: store?.storeLogoUrl,
+      shippingCost: store?.shippingCost || 0,
       items: cart.map(item => ({
         id: item.id,
         productId: item.id,
@@ -519,7 +520,7 @@ const CartSidebar = ({
                 <div className="flex justify-between items-center text-lg font-bold pt-4">
                   <span>Total</span>
                   <span className="text-2xl gradient-text" style={{ color: colors.primary }}>
-                    {formatPriceFunc(getTotal())}
+                    {formatPriceFunc(getTotal()+(store?.shippingCost || 0))}
                   </span>
                 </div>
               </div>

@@ -545,12 +545,19 @@ const Checkout = () => {
                     {formatPrice(cartData.items.reduce((sum, item) => sum + (item.price * item.quantity), 0))}
                   </span>
                 </div>
+
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Shipping Cost</span>
+                  <span className="font-medium">
+                    {formatPrice(cartData.shippingCost || 0)}
+                  </span>
+                </div>
                 
                 
                 <div className="border-t border-gray-200 pt-4">
                   <div className="flex justify-between text-xl font-bold">
                     <span>Total</span>
-                    <span className="text-indigo-600">{formatPrice(calculateTotal())}</span>
+                    <span className="text-indigo-600">{formatPrice(calculateTotal()+cartData.shippingCost)}</span>
                   </div>
                   <p className="text-sm text-gray-500 mt-2">All prices in Egyptian Pound (EGP)</p>
                 </div>
