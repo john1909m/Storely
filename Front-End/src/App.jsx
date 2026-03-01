@@ -46,7 +46,7 @@ import AdminDashboard from './pages/dashboards/AdminDashboard';
 import ProtectedRoute, { VendorRoute, AdminRoute, CustomerRoute } from './routes/ProtectedRoutes';
 import { ToastProvider } from './contexts/ToastContext';
 import useAuthStore from './store/authStore';
-import { Analytics } from "@vercel/analytics/next"
+import { Analytics } from "@vercel/analytics/react"
 
 // Create a wrapper component that uses useLocation
 const AppContent = () => {
