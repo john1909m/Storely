@@ -57,7 +57,7 @@ const AppContent = () => {
     
     <ToastProvider>
     <Routes>
-      <Analytics/>
+      
       {/* Public Routes */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<Login />} />
@@ -224,7 +224,9 @@ function App() {
   return (
     <Router>
       <AppContent />
+      <Analytics/>
     </Router>
+    
   );
 }
 
