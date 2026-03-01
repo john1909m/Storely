@@ -46,6 +46,7 @@ import AdminDashboard from './pages/dashboards/AdminDashboard';
 import ProtectedRoute, { VendorRoute, AdminRoute, CustomerRoute } from './routes/ProtectedRoutes';
 import { ToastProvider } from './contexts/ToastContext';
 import useAuthStore from './store/authStore';
+import { Analytics } from "@vercel/analytics/next"
 
 // Create a wrapper component that uses useLocation
 const AppContent = () => {
@@ -53,8 +54,10 @@ const AppContent = () => {
   // We'll handle redirect logic differently
   
   return (
+    
     <ToastProvider>
     <Routes>
+      <Analytics/>
       {/* Public Routes */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<Login />} />
