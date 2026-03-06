@@ -77,8 +77,8 @@ const Checkout = () => {
       const customerData = {
         firstName: customerInfo.firstName,
         lastName: customerInfo.lastName,
-        phoneNumber: customerInfo.phoneNumber,
-        whatsappNumber: customerInfo.whatsappNumber,
+        phoneNumber: "+" + customerInfo.phoneNumber,
+        whatsappNumber: "+" + customerInfo.whatsappNumber,
         address: customerInfo.address,
         city: customerInfo.city,
         storeIds: [cartData.storeId] // Associate customer with store
@@ -318,7 +318,7 @@ const Checkout = () => {
                     <div className="grid md:grid-cols-2 gap-6 mt-6">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Phone Number *
+                          Phone Number * 
                         </label>
                         <div className="relative">
                           <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -329,7 +329,7 @@ const Checkout = () => {
                             value={customerInfo.phoneNumber}
                             onChange={handleInputChange}
                             className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
-                            placeholder="+20 123 456 7890"
+                            placeholder="012 3456 7890"
                           />
                         </div>
                       </div>
@@ -347,7 +347,7 @@ const Checkout = () => {
                             value={customerInfo.whatsappNumber}
                             onChange={handleInputChange}
                             className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
-                            placeholder="+20 123 456 7890"
+                            placeholder="012 3456 7890"
                           />
                         </div>
                       </div>

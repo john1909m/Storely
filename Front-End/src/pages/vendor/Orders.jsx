@@ -903,7 +903,7 @@ const VendorOrders = () => {
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Order ID, customer, email..."
+                    placeholder="Order ID, customer"
                     className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
                   />
                 </div>
@@ -1137,9 +1137,7 @@ const VendorOrders = () => {
                               <div className="font-medium text-gray-900">
                                 {customer?.firstName || 'Guest'} {customer?.lastName || ''}
                               </div>
-                              <div className="text-xs text-gray-500 mt-1">
-                                {customer?.email || 'No email'}
-                              </div>
+                              
                             </td>
                             <td className="p-6 text-gray-700 text-sm">
                               {formatDate(orderDate)}
@@ -1431,7 +1429,7 @@ const VendorOrders = () => {
                             <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">Customer</h4>
                             <div className="space-y-1 text-sm">
                               <p className="text-gray-600">
-                                {customer?.email || 'No email'}
+                                {customer?.address || 'No address'}
                               </p>
                               <p className="text-gray-600">
                                 {customer?.phoneNumber || customer?.phone || 'No phone'}

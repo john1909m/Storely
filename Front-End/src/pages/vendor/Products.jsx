@@ -2715,21 +2715,7 @@ const VendorProducts = () => {
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Description (Optional)
-                  </label>
-                  <div className="relative">
-                    <BookOpen className="absolute left-4 top-4 h-5 w-5 text-gray-400" />
-                    <textarea
-                      value={newCategory.description}
-                      onChange={(e) => setNewCategory({...newCategory, description: e.target.value})}
-                      rows={3}
-                      className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all focus:bg-white resize-none"
-                      placeholder="Describe this category..."
-                    />
-                  </div>
-                </div>
+                
 
                 {/* Existing Categories */}
                 {categories.length > 0 && (

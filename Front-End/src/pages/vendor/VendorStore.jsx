@@ -524,6 +524,17 @@ const VendorStore = () => {
             </Link>
 
             <Link
+              to="/vendor/categories"
+              className="flex-shrink-0 w-64 sm:w-auto bg-white rounded-xl p-5 sm:p-6 border border-gray-200/80 hover:border-blue-300 hover:shadow-lg transition-all group"
+            >
+              <div className="h-12 w-12 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <Edit className="h-6 w-6 text-blue-600" />
+              </div>
+              <div className="font-semibold text-gray-900 mb-1">Manage Categories</div>
+              <div className="text-sm text-gray-500">Edit or update categories</div>
+            </Link>
+
+            <Link
               to="/vendor/orders"
               className="flex-shrink-0 w-64 sm:w-auto bg-white rounded-xl p-5 sm:p-6 border border-gray-200/80 hover:border-green-300 hover:shadow-lg transition-all group"
             >

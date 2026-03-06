@@ -47,6 +47,7 @@ import ProtectedRoute, { VendorRoute, AdminRoute, CustomerRoute } from './routes
 import { ToastProvider } from './contexts/ToastContext';
 import useAuthStore from './store/authStore';
 import { Analytics } from "@vercel/analytics/react"
+import ManageCategories from './pages/vendor/Categories';
 
 // Create a wrapper component that uses useLocation
 const AppContent = () => {
@@ -108,6 +109,11 @@ const AppContent = () => {
       <Route path="/vendor/products" element={
         <VendorRoute>
           <VendorProducts />
+        </VendorRoute>
+      } />
+      <Route path="/vendor/categories" element={
+        <VendorRoute>
+          <ManageCategories />
         </VendorRoute>
       } />
       <Route path="/vendor/product/:productId" element={
