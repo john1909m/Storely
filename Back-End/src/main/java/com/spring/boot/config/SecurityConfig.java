@@ -63,7 +63,9 @@ public class SecurityConfig {
                                 "/category/get/name/{categoryName}/store/{storeId}",
                                 "/customer/add",
                                 "/order/checkout",
-                                "/subscription-plan/get/all").permitAll()
+                                "/subscription-plan/get/all",
+                                "/shipping-cost/governorates",
+                                "/shipping-cost/store/{storeId}").permitAll()
                         .anyRequest().authenticated()
                 );
 

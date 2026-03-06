@@ -8,6 +8,7 @@ import com.spring.boot.repo.GovernorateRepo;
 import com.spring.boot.service.ShippingCostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,6 +29,7 @@ public class ShippingCostController {
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyRole('VENDOR','ADMIN')")
     public ResponseEntity<ShippingCostDto> updateShippingCost(
             @RequestBody ShippingCostDto dto) {
 
@@ -42,6 +44,7 @@ public class ShippingCostController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyRole('VENDOR','ADMIN')")
     public ResponseEntity<Void> addShippingCost(@RequestBody ShippingCostRequestDto dto) {
         shippingCostService.saveShippingCosts(dto);
         return ResponseEntity.ok().build();

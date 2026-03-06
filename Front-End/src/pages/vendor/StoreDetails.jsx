@@ -3,16 +3,16 @@ import React, { useState, useEffect } from 'react';
 import {
   Save, Upload, Palette, Globe, Store,
   MapPin, Phone, Mail, Facebook, Instagram,
-  Twitter, Youtube, Eye, Image, Link,
-  Download, Loader2, AlertCircle, Check,
+  Eye, Image, Download, Loader2, AlertCircle, Check,
   ChevronRight, Menu, X, Copy, QrCode,
   Brush, Building2, Clock, Calendar,
   Tag, Sparkles, ImagePlus, Trash2,
-  Truck // 🚚 إضافة أيقونة الشحن
+  Truck, Plus, Minus, Edit3
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { storeAPI } from '../../api/store.api';
 import { categoryAPI } from '../../api/category.api';
+import { shippingAPI } from '../../api/shipping.api';
 import StoreFooter from '../../components/StoreFooter';
 import { useErrorHandler } from '../../hooks/useErrorHandler';
 import useAuthStore from '../../store/authStore';
@@ -20,32 +20,18 @@ import useAuthStore from '../../store/authStore';
 // Add styles for animations
 const styles = `
   @keyframes slideLeft {
-    from {
-      transform: translateX(100%);
-    }
-    to {
-      transform: translateX(0);
-    }
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
   }
 
   @keyframes slideDown {
-    from {
-      transform: translateY(-20px);
-      opacity: 0;
-    }
-    to {
-      transform: translateY(0);
-      opacity: 1;
-    }
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
   }
 
   @keyframes pulse {
-    0%, 100% {
-      transform: scale(1);
-    }
-    50% {
-      transform: scale(1.05);
-    }
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
   }
 
   .animate-slide-left {
@@ -72,10 +58,14 @@ const styles = `
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
+  .shipping-card-enter {
+    animation: slideDown 0.3s ease-out;
+  }
 `;
 
 const StoreDetails = () => {
-  const { store, vendor, logout, isVendor, isLoading: authLoading } = useAuth();
+  const { store, vendor, isLoading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -83,9 +73,9 @@ const StoreDetails = () => {
   const [activeTab, setActiveTab] = useState('basic');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { handleError } = useErrorHandler();
-  const {authInialized,isAuthenticated} = useAuthStore();
+  const { authInialized } = useAuthStore();
 
-  // Store info state - إضافة shippingCost
+  // Store info state
   const [storeInfo, setStoreInfo] = useState({
     storeName: '',
     storeDescription: '',
@@ -93,8 +83,7 @@ const StoreDetails = () => {
     storeAddress: '',
     categoryId: '',
     createdAt: '',
-    storeStatus: store?.storeStatus || 'Inactive',
-    shippingCost: 0 // 🚚 إضافة تكلفة الشحن
+    storeStatus: store?.storeStatus || 'Inactive'
   });
 
   // Branding state
@@ -110,21 +99,43 @@ const StoreDetails = () => {
     instagram: '',
   });
 
+  // Shipping state
+  const [governorates, setGovernorates] = useState([]);
+  const [shippingCosts, setShippingCosts] = useState([]);
+  const [loadingGovernorates, setLoadingGovernorates] = useState(false);
+  const [editingShippingId, setEditingShippingId] = useState(null);
+  const [tempShippingPrice, setTempShippingPrice] = useState('');
+
   // Available categories
   const [categories, setCategories] = useState([]);
   const [uploadingLogo, setUploadingLogo] = useState(false);
 
   useEffect(() => {
     if (!authLoading && store && authInialized) {
-      fetchStoreData();
+      fetchAllData();
     }
   }, [authLoading, store, authInialized]);
 
-  const fetchStoreData = async () => {
+  const fetchAllData = async () => {
     try {
       setLoading(true);
       setError(null);
       
+      await Promise.all([
+        fetchStoreData(),
+        fetchGovernorates(),
+        fetchShippingCosts()
+      ]);
+
+    } catch (err) {
+      handleError(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchStoreData = async () => {
+    try {
       if (store?.id) {
         const storeData = await storeAPI.getById(store.id);
         
@@ -135,8 +146,7 @@ const StoreDetails = () => {
           storeAddress: storeData.storeAddress || '',
           categoryId: storeData.categoryId || '',
           createdAt: storeData.createdAt || new Date().toISOString(),
-          storeStatus: storeData.storeStatus || 'Inactive',
-          shippingCost: storeData.shippingCost || 0 // 🚚 جلب تكلفة الشحن
+          storeStatus: storeData.storeStatus || 'Inactive'
         });
 
         setBranding({
@@ -156,33 +166,96 @@ const StoreDetails = () => {
 
     } catch (err) {
       handleError(err);
-    } finally {
-      setLoading(false);
     }
   };
 
-  // ✅ دالة تحديث معلومات المتجر
+  const fetchGovernorates = async () => {
+    try {
+      setLoadingGovernorates(true);
+      const data = await shippingAPI.getGovernorates();
+      setGovernorates(data || []);
+    } catch (err) {
+      handleError(err);
+    } finally {
+      setLoadingGovernorates(false);
+    }
+  };
+
+  const fetchShippingCosts = async () => {
+    try {
+      if (store?.id) {
+        const data = await shippingAPI.getStoreShippingCosts(store.id);
+        setShippingCosts(data || []);
+      }
+    } catch (err) {
+      handleError(err);
+    }
+  };
+
+  // Handlers
   const handleStoreInfoChange = (field, value) => {
-    setStoreInfo(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setStoreInfo(prev => ({ ...prev, [field]: value }));
   };
 
-  // ✅ دالة تحديث العلامة التجارية
   const handleBrandingChange = (field, value) => {
-    setBranding(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setBranding(prev => ({ ...prev, [field]: value }));
   };
 
-  // ✅ دالة تحديث وسائل التواصل الاجتماعي
   const handleSocialMediaChange = (field, value) => {
-    setSocialMedia(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setSocialMedia(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleShippingToggle = (governorateId) => {
+    setShippingCosts(prev => {
+      const exists = prev.find(c => c.governorateId === governorateId);
+      
+      if (exists) {
+        // Remove if exists
+        return prev.filter(c => c.governorateId !== governorateId);
+      } else {
+        // Add new with default price
+        return [...prev, { governorateId, price: 0 }];
+      }
+    });
+  };
+
+  const handleShippingPriceChange = (governorateId, price) => {
+    setShippingCosts(prev => 
+      prev.map(c => 
+        c.governorateId === governorateId 
+          ? { ...c, price: parseFloat(price) || 0 }
+          : c
+      )
+    );
+  };
+
+  const startEditingShipping = (cost) => {
+    setEditingShippingId(cost.governorateId);
+    setTempShippingPrice(cost.price.toString());
+  };
+
+  const saveEditingShipping = (governorateId) => {
+    setEditingShippingId(null);
+    setTempShippingPrice('');
+  };
+
+  const cancelEditingShipping = () => {
+    setEditingShippingId(null);
+    setTempShippingPrice('');
+  };
+
+  const getGovernorateName = (id) => {
+    const gov = governorates.find(g => g.id === id);
+    return gov ? gov.name : `Governorate ${id}`;
+  };
+
+  const getShippingCost = (governorateId) => {
+    const cost = shippingCosts.find(c => c.governorateId === governorateId);
+    return cost ? cost.price : null;
+  };
+
+  const isShippingSelected = (governorateId) => {
+    return shippingCosts.some(c => c.governorateId === governorateId);
   };
 
   const getStoreUrl = () => {
@@ -201,21 +274,32 @@ const StoreDetails = () => {
         return;
       }
 
+      // Prepare update data
       const updateData = {
-        ...storeInfo,
+        id: store.id,
+        storeName: storeInfo.storeName,
+        storeDescription: storeInfo.storeDescription,
+        storePhone: storeInfo.storePhone,
+        storeAddress: storeInfo.storeAddress,
+        categoryId: storeInfo.categoryId || null,
         ...branding,
         ...socialMedia,
-        id: store.id,
-        shippingCost: parseFloat(storeInfo.shippingCost) || 0 // 🚚 التأكد من أن القيمة رقم
+        storeStatus: storeInfo.storeStatus,
+        shippingCosts: shippingCosts.map(cost => ({
+          governorateId: cost.governorateId,
+          price: parseFloat(cost.price) || 0
+        }))
       };
 
+      // Clean undefined values
       Object.keys(updateData).forEach(key => {
         if (updateData[key] === undefined || updateData[key] === null) {
           delete updateData[key];
         }
       });
 
-      await storeAPI.update(updateData);
+      // Save store with shipping costs
+      await storeAPI.updateWithShipping(updateData);
       
       setSuccess('Store details updated successfully!');
       setTimeout(() => setSuccess(null), 3000);
@@ -253,7 +337,6 @@ const StoreDetails = () => {
           storeLogoUrl: data.secure_url,
         }));
         
-        // Save the logo URL to the store
         await storeAPI.update({
           id: store.id,
           storeLogoUrl: data.secure_url
@@ -347,6 +430,7 @@ const StoreDetails = () => {
 
   const tabs = [
     { id: 'basic', label: 'Basic Info', icon: Store, description: 'Store name & description' },
+    { id: 'shipping', label: 'Shipping', icon: Truck, description: 'Shipping costs by governorate' },
     { id: 'branding', label: 'Branding', icon: Brush, description: 'Logo & colors' },
     { id: 'contact', label: 'Contact', icon: MapPin, description: 'Phone & Location' },
     { id: 'social', label: 'Social', icon: Facebook, description: 'Social media profiles' },
@@ -392,7 +476,6 @@ const StoreDetails = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
-      {/* Add styles */}
       <style>{styles}</style>
       
       {/* Sticky Header */}
@@ -418,7 +501,6 @@ const StoreDetails = () => {
             </div>
             
             <div className="flex items-center space-x-3">
-              {/* Desktop Actions */}
               <div className="hidden md:flex items-center space-x-3">
                 <a
                   href={getStoreUrl()}
@@ -448,16 +530,11 @@ const StoreDetails = () => {
                 </button>
               </div>
 
-              {/* Mobile Menu Button */}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className="md:hidden p-2.5 text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
               >
-                {isMobileMenuOpen ? (
-                  <X className="h-5 w-5" />
-                ) : (
-                  <Menu className="h-5 w-5" />
-                )}
+                {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </button>
             </div>
           </div>
@@ -470,7 +547,7 @@ const StoreDetails = () => {
           <div 
             className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden"
             onClick={() => setIsMobileMenuOpen(false)}
-          ></div>
+          />
           <div className="fixed right-0 top-0 h-full w-80 bg-white shadow-2xl z-50 md:hidden animate-slide-left">
             <div className="flex flex-col h-full">
               <div className="p-6 border-b border-gray-100">
@@ -492,7 +569,6 @@ const StoreDetails = () => {
                   </button>
                 </div>
                 
-                {/* Mobile Actions */}
                 <div className="space-y-2 mt-4">
                   <a
                     href={getStoreUrl()}
@@ -585,15 +661,12 @@ const StoreDetails = () => {
           <div className="mb-6 animate-slide-down">
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 sm:px-6 py-4 rounded-2xl flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <div className="h-8 w-8 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <div className="h-8 w-8 bg-red-100 rounded-full flex items-center justify-center">
                   <AlertCircle className="h-4 w-4 text-red-600" />
                 </div>
                 <span className="text-sm font-medium">{error}</span>
               </div>
-              <button 
-                onClick={() => setError(null)} 
-                className="p-1.5 hover:bg-red-200 rounded-lg transition-colors"
-              >
+              <button onClick={() => setError(null)} className="p-1.5 hover:bg-red-200 rounded-lg">
                 <X className="h-4 w-4 text-red-800" />
               </button>
             </div>
@@ -604,15 +677,12 @@ const StoreDetails = () => {
           <div className="mb-6 animate-slide-down">
             <div className="bg-green-50 border border-green-200 text-green-700 px-4 sm:px-6 py-4 rounded-2xl flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
                   <Check className="h-4 w-4 text-green-600" />
                 </div>
                 <span className="text-sm font-medium">{success}</span>
               </div>
-              <button 
-                onClick={() => setSuccess(null)} 
-                className="p-1.5 hover:bg-green-200 rounded-lg transition-colors"
-              >
+              <button onClick={() => setSuccess(null)} className="p-1.5 hover:bg-green-200 rounded-lg">
                 <X className="h-4 w-4 text-green-800" />
               </button>
             </div>
@@ -620,7 +690,6 @@ const StoreDetails = () => {
         )}
 
         <div className="lg:hidden mb-6">
-          {/* Mobile Tab Selector */}
           <div className="bg-white rounded-2xl p-2 border border-gray-200/80 shadow-sm">
             <label className="block text-xs font-medium text-gray-500 mb-2 px-2">
               Active Section
@@ -640,10 +709,9 @@ const StoreDetails = () => {
         </div>
 
         <div className="grid lg:grid-cols-12 gap-6 lg:gap-8">
-          {/* Desktop Sidebar - Hidden on mobile */}
+          {/* Desktop Sidebar */}
           <div className="hidden lg:block lg:col-span-3">
             <div className="bg-white rounded-2xl p-6 border border-gray-200/80 shadow-sm sticky top-24">
-              {/* Store Status Badge */}
               <div className="flex items-center justify-between mb-6">
                 <h3 className="font-semibold text-gray-900">Store Status</h3>
                 <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium ${
@@ -653,7 +721,7 @@ const StoreDetails = () => {
                 }`}>
                   <span className={`h-1.5 w-1.5 rounded-full mr-1.5 ${
                     storeInfo.storeStatus === 'Active' ? 'bg-green-600' : 'bg-yellow-600'
-                  }`}></span>
+                  }`} />
                   {storeInfo.storeStatus}
                 </span>
               </div>
@@ -737,7 +805,7 @@ const StoreDetails = () => {
 
           {/* Main Content */}
           <div className="lg:col-span-9 space-y-6">
-            {/* Basic Info Tab - مع إضافة shippingCost */}
+            {/* Basic Info Tab */}
             {activeTab === 'basic' && (
               <div className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-200/80 shadow-sm">
                 <div className="flex items-center justify-between mb-6">
@@ -802,51 +870,6 @@ const StoreDetails = () => {
                     </div>
                   </div>
 
-                  {/* 🚚 Shipping Cost - حقل جديد */}
-                  <div className="group">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      <div className="flex items-center gap-2">
-                        <Truck className="h-4 w-4 text-indigo-600" />
-                        Shipping Cost <span className="text-xs font-normal text-gray-500">(EGP)</span>
-                      </div>
-                    </label>
-                    <div className="relative">
-                      <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">EGP</span>
-                      <input
-                        type="number"
-                        min="0"
-                        step="1"
-                        value={storeInfo.shippingCost}
-                        onChange={(e) => handleStoreInfoChange('shippingCost', e.target.value)}
-                        className="w-full pl-16 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all focus:bg-white"
-                        placeholder="0"
-                      />
-                    </div>
-                    <p className="mt-2 text-sm text-gray-500 flex items-center">
-                      <Truck className="h-4 w-4 mr-1 text-gray-400" />
-                      Set to 0 for free shipping. This cost will be added to customer's orders.
-                    </p>
-                    
-                    {/* Shipping Preview */}
-                    {storeInfo.shippingCost > 0 && (
-                      <div className="mt-3 p-3 bg-blue-50 border border-blue-100 rounded-xl">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-blue-700">Shipping cost will be:</span>
-                          <span className="font-bold text-blue-800">{formatPrice(storeInfo.shippingCost)}</span>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {storeInfo.shippingCost == 0 && (
-                      <div className="mt-3 p-3 bg-green-50 border border-green-100 rounded-xl">
-                        <div className="flex items-center gap-2">
-                          <Truck className="h-4 w-4 text-green-600 animate-pulse-slow" />
-                          <span className="text-sm text-green-700 font-medium">Free Shipping for your customers! 🎉</span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
                   {/* Store Category */}
                   <div className="group">
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -867,7 +890,7 @@ const StoreDetails = () => {
                     </div>
                   </div>
 
-                  {/* Year Established */}
+                  {/* Store Created */}
                   <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
@@ -894,7 +917,156 @@ const StoreDetails = () => {
               </div>
             )}
 
-            {/* باقي التبويبات كما هي */}
+            {/* Shipping Tab - NEW */}
+            {activeTab === 'shipping' && (
+              <div className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-200/80 shadow-sm">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center">
+                    <div className="h-10 w-10 bg-blue-100 rounded-xl flex items-center justify-center mr-3">
+                      <Truck className="h-5 w-5 text-blue-600" />
+                    </div>
+                    Shipping Costs by Governorate
+                  </h2>
+                </div>
+
+                {loadingGovernorates ? (
+                  <div className="flex justify-center items-center py-12">
+                    <Loader2 className="h-8 w-8 text-indigo-600 animate-spin" />
+                  </div>
+                ) : (
+                  <>
+                    {/* Summary */}
+                    <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+                      <div className="flex items-start gap-3">
+                        <div className="h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                          <Truck className="h-5 w-5 text-blue-600" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-blue-900 mb-1">Shipping Settings</h3>
+                          <p className="text-sm text-blue-700">
+                            Select governorates and set shipping prices. {shippingCosts.length} of {governorates.length} governorates configured.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Governorates List */}
+                    <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+                      {governorates.map((gov) => {
+                        const isSelected = isShippingSelected(gov.id);
+                        const cost = getShippingCost(gov.id);
+                        const isEditing = editingShippingId === gov.id;
+
+                        return (
+                          <div
+                            key={gov.id}
+                            className={`bg-gray-50 rounded-xl p-4 border transition-all ${
+                              isSelected 
+                                ? 'border-indigo-300 bg-indigo-50/30' 
+                                : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-4">
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={() => handleShippingToggle(gov.id)}
+                                  className="h-5 w-5 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+                                />
+                                <div>
+                                  <h4 className="font-medium text-gray-900">{gov.name}</h4>
+                                  <p className="text-xs text-gray-500">ID: {gov.id}</p>
+                                </div>
+                              </div>
+
+                              {isSelected && (
+                                <div className="flex items-center space-x-2">
+                                  {isEditing ? (
+                                    <>
+                                      <div className="relative">
+                                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-xs text-gray-500">EGP</span>
+                                        <input
+                                          type="number"
+                                          value={tempShippingPrice}
+                                          onChange={(e) => setTempShippingPrice(e.target.value)}
+                                          min="0"
+                                          step="1"
+                                          className="w-28 pl-12 pr-3 py-2 bg-white border border-indigo-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm"
+                                          autoFocus
+                                          onKeyPress={(e) => {
+                                            if (e.key === 'Enter') {
+                                              handleShippingPriceChange(gov.id, tempShippingPrice);
+                                              saveEditingShipping(gov.id);
+                                            }
+                                          }}
+                                        />
+                                      </div>
+                                      <button
+                                        onClick={() => {
+                                          handleShippingPriceChange(gov.id, tempShippingPrice);
+                                          saveEditingShipping(gov.id);
+                                        }}
+                                        className="p-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-colors"
+                                      >
+                                        <Check className="h-4 w-4" />
+                                      </button>
+                                      <button
+                                        onClick={cancelEditingShipping}
+                                        className="p-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors"
+                                      >
+                                        <X className="h-4 w-4" />
+                                      </button>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <div className="bg-white border border-gray-200 rounded-lg px-4 py-2">
+                                        <span className="text-sm font-semibold text-gray-900">
+                                          {formatPrice(cost)}
+                                        </span>
+                                      </div>
+                                      <button
+                                        onClick={() => startEditingShipping({ governorateId: gov.id, price: cost })}
+                                        className="p-2 bg-indigo-100 text-indigo-600 rounded-lg hover:bg-indigo-200 transition-colors"
+                                      >
+                                        <Edit3 className="h-4 w-4" />
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Summary Stats */}
+                    <div className="mt-6 grid grid-cols-2 gap-4">
+                      <div className="bg-green-50 rounded-xl p-4 border border-green-100">
+                        <div className="text-2xl font-bold text-green-700">{shippingCosts.length}</div>
+                        <div className="text-sm text-green-600">Configured Governorates</div>
+                      </div>
+                      <div className="bg-indigo-50 rounded-xl p-4 border border-indigo-100">
+                        <div className="text-2xl font-bold text-indigo-700">
+                          {shippingCosts.reduce((sum, c) => sum + (c.price || 0), 0)} EGP
+                        </div>
+                        <div className="text-sm text-indigo-600">Total Shipping Value</div>
+                      </div>
+                    </div>
+
+                    {shippingCosts.length === 0 && (
+                      <div className="text-center py-8">
+                        <Truck className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                        <p className="text-gray-500">No shipping costs configured yet</p>
+                        <p className="text-sm text-gray-400 mt-1">Check the boxes above to add shipping costs for governorates</p>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+
             {/* Branding Tab */}
             {activeTab === 'branding' && (
               <div className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-200/80 shadow-sm">
@@ -1001,7 +1173,7 @@ const StoreDetails = () => {
                             <div
                               className="h-12 w-12 rounded-xl shadow-md border-2 border-white"
                               style={{ backgroundColor: branding.primaryColor }}
-                            ></div>
+                            />
                             <input
                               type="color"
                               value={branding.primaryColor}
@@ -1028,7 +1200,7 @@ const StoreDetails = () => {
                             <div
                               className="h-12 w-12 rounded-xl shadow-md border-2 border-white"
                               style={{ backgroundColor: branding.secondaryColor }}
-                            ></div>
+                            />
                             <input
                               type="color"
                               value={branding.secondaryColor}
@@ -1211,7 +1383,7 @@ const StoreDetails = () => {
 
                 <div className="mt-8 p-5 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100 rounded-xl">
                   <div className="flex items-start space-x-3">
-                    <div className="h-8 w-8 bg-indigo-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <div className="h-8 w-8 bg-indigo-100 rounded-full flex items-center justify-center">
                       <Sparkles className="h-4 w-4 text-indigo-600" />
                     </div>
                     <p className="text-sm text-indigo-800">
@@ -1330,7 +1502,7 @@ const StoreDetails = () => {
         <StoreFooter />
       </div>
 
-      {/* Mobile Save Button - Sticky at bottom */}
+      {/* Mobile Save Button */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg z-30">
         <button
           onClick={handleSave}

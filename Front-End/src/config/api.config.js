@@ -102,5 +102,15 @@ export const API_ENDPOINTS = {
     ADD: '/vendor-subscription/add',
     UPDATE: '/vendor-subscription/update',
     DELETE: (id) => `/vendor-subscription/delete/${id}`,
+  },
+  SHIPPING:{
+    GET_ALL:(storeId) => `/shipping-cost/store/${storeId}`,
+    ADD:'/shipping-cost/add',
+    UPDATE:'/shipping-cost/update',
+    
   }
+  ,
+  GOVERNORATE: {
+    GET_ALL: '/shipping-cost/governorates',
+  },
 };
