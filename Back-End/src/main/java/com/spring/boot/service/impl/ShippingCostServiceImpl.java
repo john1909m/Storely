@@ -58,21 +58,19 @@ public class ShippingCostServiceImpl implements ShippingCostService {
     @Override
     @Transactional
     public void saveShippingCosts(ShippingCostRequestDto request) {
-
         Store store = storeRepo.findById(request.getStoreId())
                 .orElseThrow(() -> new RuntimeException("Store not found"));
 
-        // delete old shipping costs
+        // ✅ امسح القديم وعمل flush فوراً
         shippingCostRepo.deleteByStoreId(store.getId());
+        shippingCostRepo.flush(); // ✅ مهم جداً - يضمن إن الـ delete اتنفذ قبل الـ insert
 
         for (ShippingCostItemDto item : request.getShippingCosts()) {
-
             Governorate governorate = governorateRepo
                     .findById(item.getGovernorateId())
                     .orElseThrow(() -> new RuntimeException("Governorate not found"));
 
             ShippingCost shippingCost = new ShippingCost();
-
             shippingCost.setStore(store);
             shippingCost.setGovernorate(governorate);
             shippingCost.setPrice(item.getPrice());

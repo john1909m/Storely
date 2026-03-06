@@ -235,6 +235,7 @@ const StoreDetails = () => {
   };
 
   const saveEditingShipping = (governorateId) => {
+    handleShippingPriceChange(governorateId, tempShippingPrice);
     setEditingShippingId(null);
     setTempShippingPrice('');
   };
@@ -1008,7 +1009,6 @@ const StoreDetails = () => {
                                           autoFocus
                                           onKeyPress={(e) => {
                                             if (e.key === 'Enter') {
-                                              handleShippingPriceChange(gov.id, tempShippingPrice);
                                               saveEditingShipping(gov.id);
                                             }
                                           }}
@@ -1016,7 +1016,6 @@ const StoreDetails = () => {
                                       </div>
                                       <button
                                         onClick={() => {
-                                          handleShippingPriceChange(gov.id, tempShippingPrice);
                                           saveEditingShipping(gov.id);
                                         }}
                                         className="p-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-colors"

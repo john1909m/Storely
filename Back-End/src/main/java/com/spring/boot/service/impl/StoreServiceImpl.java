@@ -121,6 +121,7 @@ public class StoreServiceImpl implements StoreService {
         // ✅ بعدين تعامل مع الـ ShippingCosts
         if (storeDto.getShippingCosts() != null) {
             shippingCostRepo.deleteByStoreId(savedStore.getId());
+            shippingCostRepo.flush();
 
             List<ShippingCost> newCosts = storeDto.getShippingCosts().stream()
                     .map(dto -> {
