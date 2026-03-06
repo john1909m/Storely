@@ -111,6 +111,6 @@ export const API_ENDPOINTS = {
   }
   ,
   GOVERNORATE: {
-    GET_ALL: '/shipping-cost/governorates',
+    GET_ALL:() => '/shipping-cost/governorates',
   },
 };

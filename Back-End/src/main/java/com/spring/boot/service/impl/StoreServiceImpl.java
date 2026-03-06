@@ -2,23 +2,22 @@ package com.spring.boot.service.impl;
 
 import com.spring.boot.dto.ProductDto;
 import com.spring.boot.dto.StoreDto;
+import com.spring.boot.enums.StoreStatus;
 import com.spring.boot.mapper.ProductMapper;
 import com.spring.boot.mapper.StoreMapper;
-import com.spring.boot.model.Product;
-import com.spring.boot.model.Store;
-import com.spring.boot.model.Vendor;
-import com.spring.boot.repo.ProductRepo;
-import com.spring.boot.repo.StoreRepo;
-import com.spring.boot.repo.VendorRepo;
+import com.spring.boot.model.*;
+import com.spring.boot.repo.*;
 import com.spring.boot.service.StoreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class StoreServiceImpl implements StoreService {
@@ -28,15 +27,22 @@ public class StoreServiceImpl implements StoreService {
     private R2StorageService r2StorageService;
     private ProductRepo productRepo;
     private ProductMapper productMapper;
+    private ShippingCostRepo shippingCostRepo;
+    private GovernorateRepo governorateRepo;
 
     @Autowired
-    public StoreServiceImpl(StoreMapper storeMapper,ProductMapper productMapper, StoreRepo storeRepo, VendorRepo vendorRepo, R2StorageService r2StorageService, ProductRepo productRepo) {
+    public StoreServiceImpl(StoreMapper storeMapper,ProductMapper productMapper, StoreRepo storeRepo, VendorRepo vendorRepo, R2StorageService r2StorageService, ProductRepo productRepo,
+                            ShippingCostRepo shippingCostRepo,
+                            GovernorateRepo governorateRepo) {
         this.storeMapper = storeMapper;
         this.storeRepo = storeRepo;
         this.vendorRepo = vendorRepo;
         this.r2StorageService = r2StorageService;
         this.productRepo = productRepo;
         this.productMapper = productMapper;
+        this.shippingCostRepo = shippingCostRepo;
+        this.governorateRepo = governorateRepo;
+
     }
 
     @Override
@@ -89,19 +95,48 @@ public class StoreServiceImpl implements StoreService {
     }
 
     @Override
+    @Transactional
     public StoreDto updateStore(StoreDto storeDto) {
         Store existingStore = storeRepo.findById(storeDto.getId())
                 .orElseThrow(() -> new RuntimeException("store.not.found"));
 
-        Store updatedStore = storeMapper.toStoreEntity(storeDto);
-        updatedStore.setId(existingStore.getId());
-        updatedStore.setVendor(existingStore.getVendor());
-        updatedStore.setCategories(existingStore.getCategories());
-        updatedStore.setProducts(existingStore.getProducts());
-        updatedStore.setOrders(existingStore.getOrders());
-        updatedStore.setCustomers(existingStore.getCustomers());
+        // update الـ fields العادية بس - من غير shipping
+        existingStore.setStoreName(storeDto.getStoreName());
+        existingStore.setStoreDescription(storeDto.getStoreDescription());
+        existingStore.setStorePhone(storeDto.getStorePhone());
+        existingStore.setStoreAddress(storeDto.getStoreAddress());
+        existingStore.setPrimaryColor(storeDto.getPrimaryColor());
+        existingStore.setSecondaryColor(storeDto.getSecondaryColor());
+        existingStore.setStoreLogoUrl(storeDto.getStoreLogoUrl());
+        existingStore.setFontFamily(storeDto.getFontFamily());
+        existingStore.setFacebook(storeDto.getFacebook());
+        existingStore.setInstagram(storeDto.getInstagram());
+        if (storeDto.getStoreStatus() != null) {
+            existingStore.setStoreStatus(StoreStatus.valueOf(storeDto.getStoreStatus()));
+        }
 
-        Store savedStore = storeRepo.save(updatedStore);
+        // ✅ احفظ الـ Store الأول
+        Store savedStore = storeRepo.save(existingStore);
+
+        // ✅ بعدين تعامل مع الـ ShippingCosts
+        if (storeDto.getShippingCosts() != null) {
+            shippingCostRepo.deleteByStoreId(savedStore.getId());
+
+            List<ShippingCost> newCosts = storeDto.getShippingCosts().stream()
+                    .map(dto -> {
+                        Governorate gov = governorateRepo.findById(dto.getGovernorateId())
+                                .orElseThrow(() -> new RuntimeException("Governorate not found"));
+                        ShippingCost cost = new ShippingCost();
+                        cost.setStore(savedStore); // ✅ store محفوظ هنا
+                        cost.setGovernorate(gov);
+                        cost.setPrice(dto.getPrice());
+                        return cost;
+                    })
+                    .collect(Collectors.toList());
+
+            shippingCostRepo.saveAll(newCosts);
+        }
+
         return storeMapper.toStoreDto(savedStore);
     }
 

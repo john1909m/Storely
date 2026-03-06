@@ -1,6 +1,6 @@
-import { fetchJSON,fetchWithAuth } from './fetchWithAuth';
+// src/api/shipping.api.js
+import { fetchJSON, fetchWithAuth } from './fetchWithAuth';
 import { API_ENDPOINTS } from '../config/api.config';
-import { add } from 'date-fns';
 
 export const shippingAPI = {
     add: async (shippingData) => {
@@ -33,7 +33,7 @@ export const shippingAPI = {
     get: async (storeId) => {
         return fetchJSON(API_ENDPOINTS.SHIPPING.GET_ALL(storeId));
     },
-    get_government: async (storeId) => {
-        return fetchJSON(API_ENDPOINTS.GOVERNORATE.GET_ALL(storeId));
+    get_governments: async () => {
+        return fetchJSON(API_ENDPOINTS.GOVERNORATE.GET_ALL());
     }
 }

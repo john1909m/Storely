@@ -172,7 +172,7 @@ const StoreDetails = () => {
   const fetchGovernorates = async () => {
     try {
       setLoadingGovernorates(true);
-      const data = await shippingAPI.getGovernorates();
+      const data = await shippingAPI.get_governments();
       setGovernorates(data || []);
     } catch (err) {
       handleError(err);
@@ -184,7 +184,7 @@ const StoreDetails = () => {
   const fetchShippingCosts = async () => {
     try {
       if (store?.id) {
-        const data = await shippingAPI.getStoreShippingCosts(store.id);
+        const data = await shippingAPI.get(store.id);
         setShippingCosts(data || []);
       }
     } catch (err) {
@@ -264,51 +264,63 @@ const StoreDetails = () => {
   };
 
   const handleSave = async () => {
-    try {
-      setSaving(true);
-      setError(null);
-      setSuccess(null);
+  try {
+    setSaving(true);
+    setError(null);
+    setSuccess(null);
 
-      if (!store?.id) {
-        setError('Store not found. Please create a store first.');
-        return;
-      }
-
-      // Prepare update data
-      const updateData = {
-        id: store.id,
-        storeName: storeInfo.storeName,
-        storeDescription: storeInfo.storeDescription,
-        storePhone: storeInfo.storePhone,
-        storeAddress: storeInfo.storeAddress,
-        categoryId: storeInfo.categoryId || null,
-        ...branding,
-        ...socialMedia,
-        storeStatus: storeInfo.storeStatus,
-        shippingCosts: shippingCosts.map(cost => ({
-          governorateId: cost.governorateId,
-          price: parseFloat(cost.price) || 0
-        }))
-      };
-
-      // Clean undefined values
-      Object.keys(updateData).forEach(key => {
-        if (updateData[key] === undefined || updateData[key] === null) {
-          delete updateData[key];
-        }
-      });
-
-      // Save store with shipping costs
-      await storeAPI.updateWithShipping(updateData);
-      
-      setSuccess('Store details updated successfully!');
-      setTimeout(() => setSuccess(null), 3000);
-    } catch (err) {
-      handleError(err);
-    } finally {
-      setSaving(false);
+    if (!store?.id) {
+      setError('Store not found. Please create a store first.');
+      return;
     }
-  };
+
+    // Prepare update data - كل المطلوب موجود
+    const updateData = {
+      id: store.id,
+      vendorId: vendor?.id,                          // ✅ إضافة vendorId
+      vendorName: vendor?.name,                      // ✅ إضافة vendorName
+      storeName: storeInfo.storeName,
+      storeDescription: storeInfo.storeDescription,
+      storePhone: storeInfo.storePhone,
+      storeAddress: storeInfo.storeAddress,
+      createdAt: storeInfo.createdAt || new Date().toISOString(), // ✅ إضافة createdAt
+      primaryColor: branding.primaryColor,
+      secondaryColor: branding.secondaryColor,
+      storeLogoUrl: branding.storeLogoUrl,
+      fontFamily: storeInfo.fontFamily || 'Poppins', // ✅ إضافة fontFamily (قيمة افتراضية)
+      facebook: socialMedia.facebook,
+      instagram: socialMedia.instagram,
+      storeStatus: storeInfo.storeStatus,
+      products: store?.products || [],                // ✅ إضافة products (ممكن array فاضي)
+      categories: categories || [],                   // ✅ إضافة categories
+      orders: store?.orders || [],                    // ✅ إضافة orders
+      customerIds: [],                                // ✅ إضافة customerIds (array فاضي)
+      shippingCosts: shippingCosts.map(cost => ({
+        governorateId: cost.governorateId,
+        price: parseFloat(cost.price) || 0
+      }))
+    };
+
+    // Remove undefined or null values
+    Object.keys(updateData).forEach(key => {
+      if (updateData[key] === undefined || updateData[key] === null) {
+        delete updateData[key];
+      }
+    });
+
+    console.log('📤 Sending complete update data:', JSON.stringify(updateData, null, 2));
+
+    await storeAPI.update(updateData);
+    
+    setSuccess('Store details updated successfully!');
+    setTimeout(() => setSuccess(null), 3000);
+  } catch (err) {
+    console.error('❌ Save error:', err);
+    handleError(err);
+  } finally {
+    setSaving(false);
+  }
+};
 
   const CLOUD_NAME = "dnycajxc0";
   const UPLOAD_PRESET = "storely_unsigned";
@@ -917,7 +929,7 @@ const StoreDetails = () => {
               </div>
             )}
 
-            {/* Shipping Tab - NEW */}
+            {/* Shipping Tab */}
             {activeTab === 'shipping' && (
               <div className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-200/80 shadow-sm">
                 <div className="flex items-center justify-between mb-6">
@@ -1067,6 +1079,7 @@ const StoreDetails = () => {
               </div>
             )}
 
+            {/* باقي التبويبات كما هي */}
             {/* Branding Tab */}
             {activeTab === 'branding' && (
               <div className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-200/80 shadow-sm">
