@@ -43,7 +43,8 @@ public class Store {
 
     private String instagram;
 
-    private Double shippingCost;
+    @OneToMany(mappedBy = "store",cascade = CascadeType.ALL)
+    private List<ShippingCost> shippingCosts;
 
     @Enumerated(EnumType.STRING)
     private StoreStatus storeStatus;

@@ -42,8 +42,6 @@ public class StoreDto {
 
     private String fontFamily;
 
-    private Double shippingCost;
-
     private String facebook;
 
     private String instagram;
@@ -57,6 +55,8 @@ public class StoreDto {
     private List<OrderDto> orders;
 
     private List<Long> customerIds;
+
+    private List<ShippingCostDto> shippingCosts;
 
 
 
