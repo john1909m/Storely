@@ -510,13 +510,7 @@ const CartSidebar = ({
                   <span className="text-gray-600">Subtotal</span>
                   <span className="font-semibold text-gray-900">{formatPriceFunc(getTotal())}</span>
                 </div>
-                <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                  <span className="text-gray-600">Shipping</span>
-                  <span className="font-semibold text-emerald-600 flex items-center gap-1">
-                    <Truck className="h-4 w-4" />
-                    {store?.shippingCost ? formatPriceFunc(store.shippingCost) : 'Free'}
-                  </span>
-                </div>
+                
                 <div className="flex justify-between items-center text-lg font-bold pt-4">
                   <span>Total</span>
                   <span className="text-2xl gradient-text" style={{ color: colors.primary }}>

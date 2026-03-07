@@ -1,5 +1,5 @@
 // src/pages/vendor/StoreDetails.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Save, Upload, Palette, Globe, Store,
   MapPin, Phone, Mail, Facebook, Instagram,
@@ -109,6 +109,7 @@ const StoreDetails = () => {
   // Available categories
   const [categories, setCategories] = useState([]);
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const savingRef = useRef(false);
 
   useEffect(() => {
     if (!authLoading && store && authInialized) {
@@ -185,7 +186,14 @@ const StoreDetails = () => {
     try {
       if (store?.id) {
         const data = await shippingAPI.get(store.id);
-        setShippingCosts(data || []);
+
+        const unique = (data || []).reduce((acc, cost) => {
+        const exists = acc.find(c => c.governorateId === cost.governorateId);
+        if (!exists) acc.push(cost);
+        return acc;
+      }, []);
+
+        setShippingCosts(unique);
       }
     } catch (err) {
       handleError(err);
@@ -265,10 +273,20 @@ const StoreDetails = () => {
   };
 
   const handleSave = async () => {
+    if (savingRef.current) return;
   try {
     setSaving(true);
     setError(null);
     setSuccess(null);
+
+    const uniqueShippingCosts = shippingCosts.reduce((acc, cost) => {
+      const exists = acc.find(c => c.governorateId === cost.governorateId);
+      if (!exists) {
+        acc.push(cost);
+      }
+      return acc;
+    }, []);
+
 
     if (!store?.id) {
       setError('Store not found. Please create a store first.');
@@ -296,7 +314,7 @@ const StoreDetails = () => {
       categories: categories || [],                   // ✅ إضافة categories
       orders: store?.orders || [],                    // ✅ إضافة orders
       customerIds: [],                                // ✅ إضافة customerIds (array فاضي)
-      shippingCosts: shippingCosts.map(cost => ({
+      shippingCosts: uniqueShippingCosts.map(cost => ({
         governorateId: cost.governorateId,
         price: parseFloat(cost.price) || 0
       }))
@@ -319,6 +337,7 @@ const StoreDetails = () => {
     console.error('❌ Save error:', err);
     handleError(err);
   } finally {
+    savingRef.current = false;
     setSaving(false);
   }
 };
@@ -801,16 +820,7 @@ const StoreDetails = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="mt-4 pt-4 border-t border-gray-200">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-gray-600">Products</span>
-                      <span className="font-semibold text-gray-900">{store.products?.length || 0}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs mt-2">
-                      <span className="text-gray-600">Orders</span>
-                      <span className="font-semibold text-gray-900">{store.orders?.length || 0}</span>
-                    </div>
-                  </div>
+                  
                 </div>
               </div>
             </div>
@@ -1058,12 +1068,7 @@ const StoreDetails = () => {
                         <div className="text-2xl font-bold text-green-700">{shippingCosts.length}</div>
                         <div className="text-sm text-green-600">Configured Governorates</div>
                       </div>
-                      <div className="bg-indigo-50 rounded-xl p-4 border border-indigo-100">
-                        <div className="text-2xl font-bold text-indigo-700">
-                          {shippingCosts.reduce((sum, c) => sum + (c.price || 0), 0)} EGP
-                        </div>
-                        <div className="text-sm text-indigo-600">Total Shipping Value</div>
-                      </div>
+                      
                     </div>
 
                     {shippingCosts.length === 0 && (

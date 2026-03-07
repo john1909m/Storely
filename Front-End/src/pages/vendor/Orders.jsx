@@ -1,4 +1,4 @@
-// Vendor Orders Page - Real data from APIs with shipping cost support
+// src/pages/vendor/VendorOrders.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -7,16 +7,17 @@ import {
   Download, Printer, MessageSquare, ArrowLeft,
   ChevronDown, ChevronUp, User, Mail, Phone, MapPin,
   ShoppingBag, Tag, DollarSign, CreditCard, Calendar,
-  Truck as Shipping, Box, Hash, FileText,Store, Receipt,
+  Truck as Shipping, Box, Hash, FileText, Store, Receipt,
   Menu, X, FilterX, RefreshCw, ChevronRight,
   TrendingUp, Users, ShoppingCart, BarChart,
   Copy, Check, MoreVertical, Edit, Trash2,
-  Wallet // إضافة أيقونة المحفظة
+  Wallet, MapPinned
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { orderAPI } from '../../api/order.api';
 import { customerAPI } from '../../api/customer.api';
 import { storeAPI } from '../../api/store.api';
+import { shippingAPI } from '../../api/shipping.api';
 import { Link } from 'react-router-dom';
 import StoreFooter from '../../components/StoreFooter';
 import { useErrorHandler } from '../../hooks/useErrorHandler';
@@ -25,6 +26,7 @@ import useAuthStore from '../../store/authStore';
 const VendorOrders = () => {
   const [orders, setOrders] = useState([]);
   const [customers, setCustomers] = useState({});
+  const [governorates, setGovernorates] = useState([]);
   const [expandedRows, setExpandedRows] = useState([]);
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [selectedOrders, setSelectedOrders] = useState([]);
@@ -43,13 +45,13 @@ const VendorOrders = () => {
   const { store, vendor } = useAuth();
   const navigate = useNavigate();
   const { handleError } = useErrorHandler();
-  const {authInialized,isAuthenticated} = useAuthStore();
+  const { authInialized, isAuthenticated } = useAuthStore();
 
-  // جلب بيانات المتجر الكاملة (بما فيها shippingCost)
   useEffect(() => {
     if (store?.id && authInialized) {
       fetchStoreData();
       fetchOrders();
+      fetchGovernorates();
     } else {
       setError('Store not found. Please create a store first.');
       setIsLoading(false);
@@ -59,9 +61,20 @@ const VendorOrders = () => {
   const fetchStoreData = async () => {
     try {
       const storeData = await storeAPI.getById(store.id);
+      console.log('Store data with shipping costs:', storeData);
       setStoreData(storeData);
     } catch (err) {
       handleError(err);
+    }
+  };
+
+  const fetchGovernorates = async () => {
+    try {
+      const data = await shippingAPI.get_governments();
+      console.log('Governorates loaded:', data);
+      setGovernorates(data || []);
+    } catch (err) {
+      console.error('Error fetching governorates:', err);
     }
   };
 
@@ -72,11 +85,21 @@ const VendorOrders = () => {
       
       const storeOrders = await orderAPI.getByStore(store.id);
       const ordersList = Array.isArray(storeOrders) ? storeOrders : [];
-      setOrders(ordersList);
+      
+      const processedOrders = ordersList.map(order => ({
+        ...order,
+        subtotal: order.subtotal || order.totalPrice || order.total || order.amount || 0,
+        shippingCost: order.shippingCost || 0,
+        totalPrice: order.totalPrice || order.total || order.amount || 0,
+        governorateId: order.governorateId || null,
+        governorateName: order.governorateName || null
+      }));
+      
+      setOrders(processedOrders);
 
       const customerMap = {};
       
-      for (const order of ordersList) {
+      for (const order of processedOrders) {
         if (order.customerId) {
           try {
             const customer = await customerAPI.getById(order.customerId);
@@ -99,6 +122,38 @@ const VendorOrders = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // دالة جديدة لحساب تكلفة الشحن بناءً على مدينة العميل
+  const getShippingCostForCustomer = (customer) => {
+    if (!customer || !customer.city || !governorates || governorates.length === 0 || !storeData) {
+      return 0;
+    }
+
+    // 1. دور على المحافظة اللي اسمها مطابق لمدينة العميل
+    const governorate = governorates.find(
+      g => g.name.toLowerCase().trim() === customer.city.toLowerCase().trim()
+    );
+
+    if (!governorate) {
+      console.log('Governorate not found for city:', customer.city);
+      return 0;
+    }
+
+    // 2. دور على تكلفة الشحن للمحافظة دي في المتجر
+    const storeShippingCost = storeData?.shippingCosts?.find(
+      sc => sc.governorateId === governorate.id
+    );
+
+    console.log('City:', customer.city, 'Governorate:', governorate?.name, 'Shipping Cost:', storeShippingCost?.price);
+    
+    return storeShippingCost?.price || 0;
+  };
+
+  const getGovernorateName = (governorateId) => {
+    if (!governorateId) return 'N/A';
+    const gov = governorates.find(g => g.id === governorateId);
+    return gov ? gov.name : `ID: ${governorateId}`;
   };
 
   const handleStatusUpdate = async (orderId, newStatus) => {
@@ -124,14 +179,14 @@ const VendorOrders = () => {
     const items = order.items || order.orderItems || [];
     const orderDate = order.orderDate || order.createdAt || order.date;
     
-    // حساب الإجمالي مع تضمين تكلفة الشحن
-    const subtotal = order.totalPrice || order.total || order.amount || 0;
-    const shippingCost = storeData?.shippingCost || 0;
+    const subtotal = order.subtotal || order.totalPrice || order.total || order.amount || 0;
+    const shippingCost = getShippingCostForCustomer(customer);
     const orderTotal = subtotal + shippingCost;
+    const governorateName = customer?.city || order.governorateName || getGovernorateName(order.governorateId);
     
     const printWindow = window.open('', '_blank', 'width=800,height=600');
     
-    const receiptHTML = generateReceiptHTML(order, customer, items, orderDate, subtotal, shippingCost, orderTotal, storeData);
+    const receiptHTML = generateReceiptHTML(order, customer, items, orderDate, subtotal, shippingCost, orderTotal, governorateName, storeData);
     
     printWindow.document.write(receiptHTML);
     printWindow.document.close();
@@ -142,12 +197,8 @@ const VendorOrders = () => {
     };
   };
 
-  const generateReceiptHTML = (order, customer, items, orderDate, subtotal, shippingCost, orderTotal, storeData) => {
+  const generateReceiptHTML = (order, customer, items, orderDate, subtotal, shippingCost, orderTotal, governorateName, storeData) => {
     const storeName = storeData?.storeName || store?.storeName || 'Your Store';
-    const storeEmail = storeData?.email || '';
-    const storePhone = storeData?.phone || '';
-    const storeAddress = storeData?.address || '';
-    
     const orderNumber = order.orderNumber || order.id;
     const paymentMethod = order.paymentMethod || 'Cash on Delivery';
     const orderStatus = order.orderStatus || order.status || 'PENDING';
@@ -377,12 +428,13 @@ const VendorOrders = () => {
                 <div style="color: #666;">${customer?.phoneNumber || ''}</div>
               </div>
             </div>
-            ${customer?.address || order.shippingAddress ? `
             <div style="margin-top: 15px;">
               <div class="info-label">Shipping Address</div>
               <div class="info-value">${customer?.address || order.shippingAddress || ''}</div>
+              <div class="info-value" style="margin-top: 5px; color: #4f46e5;">
+                <span style="font-weight: 600;">Governorate:</span> ${governorateName}
+              </div>
             </div>
-            ` : ''}
           </div>
           
           <h2 class="section-title">Order Items</h2>
@@ -405,17 +457,10 @@ const VendorOrders = () => {
               <span>Subtotal:</span>
               <span style="font-weight: 600;">${formatCurrency(subtotal)}</span>
             </div>
-            ${shippingCost > 0 ? `
             <div class="summary-row">
-              <span>Shipping:</span>
+              <span>Shipping (${governorateName}):</span>
               <span>${formatCurrency(shippingCost)}</span>
             </div>
-            ` : shippingCost === 0 ? `
-            <div class="summary-row" style="color: #16a34a;">
-              <span>Shipping:</span>
-              <span>FREE 🎉</span>
-            </div>
-            ` : ''}
             ${order.discount ? `
             <div class="summary-row" style="color: #16a34a;">
               <span>Discount:</span>
@@ -498,36 +543,18 @@ const VendorOrders = () => {
     setDateRange({ start: '', end: '' });
   };
 
-  // Calculate stats from real data
   const stats = {
     total: orders.length,
-    pending: orders.filter(o => {
-      const status = o.orderStatus || o.status;
-      return status?.toUpperCase() === 'PENDING';
-    }).length,
-    confirmed: orders.filter(o => {
-      const status = o.orderStatus || o.status;
-      return status?.toUpperCase() === 'CONFIRMED';
-    }).length,
-    processing: orders.filter(o => {
-      const status = o.orderStatus || o.status;
-      return status?.toUpperCase() === 'PROCESSING';
-    }).length,
-    shipped: orders.filter(o => {
-      const status = o.orderStatus || o.status;
-      return status?.toUpperCase() === 'SHIPPED';
-    }).length,
-    delivered: orders.filter(o => {
-      const status = o.orderStatus || o.status;
-      return status?.toUpperCase() === 'DELIVERED';
-    }).length,
-    cancelled: orders.filter(o => {
-      const status = o.orderStatus || o.status;
-      return status?.toUpperCase() === 'CANCELLED';
-    }).length,
+    pending: orders.filter(o => (o.orderStatus || o.status)?.toUpperCase() === 'PENDING').length,
+    confirmed: orders.filter(o => (o.orderStatus || o.status)?.toUpperCase() === 'CONFIRMED').length,
+    processing: orders.filter(o => (o.orderStatus || o.status)?.toUpperCase() === 'PROCESSING').length,
+    shipped: orders.filter(o => (o.orderStatus || o.status)?.toUpperCase() === 'SHIPPED').length,
+    delivered: orders.filter(o => (o.orderStatus || o.status)?.toUpperCase() === 'DELIVERED').length,
+    cancelled: orders.filter(o => (o.orderStatus || o.status)?.toUpperCase() === 'CANCELLED').length,
     revenue: orders.reduce((sum, order) => {
-      const subtotal = order.totalPrice || order.total || order.amount || 0;
-      const shippingCost = storeData?.shippingCost || 0;
+      const subtotal = order.subtotal || order.totalPrice || order.total || order.amount || 0;
+      const customer = customers[order.customerId] || order.customer;
+      const shippingCost = getShippingCostForCustomer(customer);
       return sum + subtotal + shippingCost;
     }, 0)
   };
@@ -559,22 +586,23 @@ const VendorOrders = () => {
     cancelled: { label: 'Cancelled', color: 'red', count: stats.cancelled, icon: XCircle }
   };
 
-  // Filter orders by status, search, and date range
   const filteredOrders = orders.filter(order => {
     const status = order.orderStatus || order.status;
     const matchesStatus = selectedStatus === 'all' || 
       status?.toUpperCase() === selectedStatus.toUpperCase();
     
-    const customer = customers[order.customerId];
+    const customer = customers[order.customerId] || order.customer;
+    const governorateName = customer?.city || order.governorateName || getGovernorateName(order.governorateId);
+    
     const matchesSearch = !searchQuery || 
       order.id?.toString().toLowerCase().includes(searchQuery.toLowerCase()) ||
       order.orderNumber?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       customer?.firstName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       customer?.lastName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       customer?.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      customer?.phone?.toLowerCase().includes(searchQuery.toLowerCase());
+      customer?.phone?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      governorateName?.toLowerCase().includes(searchQuery.toLowerCase());
 
-    // Date range filtering
     let matchesDate = true;
     if (dateRange.start && dateRange.end) {
       const orderDate = new Date(order.orderDate || order.createdAt || order.date);
@@ -604,6 +632,30 @@ const VendorOrders = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
+      <style>{`
+        @keyframes slideLeft {
+          from { transform: translateX(100%); }
+          to { transform: translateX(0); }
+        }
+        @keyframes slideDown {
+          from { transform: translateY(-20px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+        .animate-slide-left {
+          animation: slideLeft 0.3s ease-out;
+        }
+        .animate-slide-down {
+          animation: slideDown 0.3s ease-out;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
+      
       {/* Sticky Header */}
       <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-gray-200/80 shadow-sm">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -627,7 +679,6 @@ const VendorOrders = () => {
             </div>
             
             <div className="flex items-center space-x-2">
-              {/* Desktop Actions */}
               <div className="hidden md:flex items-center space-x-2">
                 <button
                   onClick={() => setShowFilters(!showFilters)}
@@ -656,29 +707,23 @@ const VendorOrders = () => {
                 </button>
               </div>
 
-              {/* Mobile Menu Button */}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className="md:hidden p-2.5 text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
               >
-                {isMobileMenuOpen ? (
-                  <X className="h-5 w-5" />
-                ) : (
-                  <Menu className="h-5 w-5" />
-                )}
+                {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Mobile Menu */}
       {isMobileMenuOpen && (
         <>
           <div 
             className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden"
             onClick={() => setIsMobileMenuOpen(false)}
-          ></div>
+          />
           <div className="fixed right-0 top-0 h-full w-80 bg-white shadow-2xl z-50 md:hidden animate-slide-left">
             <div className="flex flex-col h-full">
               <div className="p-6 border-b border-gray-100">
@@ -753,12 +798,6 @@ const VendorOrders = () => {
                   <div className="flex-1">
                     <div className="text-sm font-medium text-gray-900">{store?.storeName}</div>
                     <div className="text-xs text-gray-500">Order Management</div>
-                    {storeData?.shippingCost !== undefined && (
-                      <div className="text-xs text-indigo-600 mt-1 flex items-center">
-                        <Truck className="h-3 w-3 mr-1" />
-                        Shipping: {storeData.shippingCost === 0 ? 'FREE' : formatCurrency(storeData.shippingCost)}
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
@@ -768,7 +807,6 @@ const VendorOrders = () => {
       )}
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        {/* Error State */}
         {error && (
           <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 sm:px-6 py-4 rounded-2xl flex items-center justify-between animate-slide-down">
             <div className="flex items-center space-x-3">
@@ -786,16 +824,13 @@ const VendorOrders = () => {
           </div>
         )}
 
-        {/* Stats Cards - 2 columns on mobile, 4 on desktop */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <div className="bg-white rounded-2xl p-5 sm:p-6 border border-gray-200/80 shadow-sm hover:shadow-md transition-all group">
             <div className="flex items-center justify-between mb-3">
               <div className="h-10 w-10 sm:h-12 sm:w-12 bg-blue-50 rounded-xl flex items-center justify-center group-hover:bg-blue-100 transition-colors">
                 <Package className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
               </div>
-              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                Total
-              </span>
+              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">Total</span>
             </div>
             <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">{stats.total}</div>
             <div className="text-xs sm:text-sm text-gray-600">Total Orders</div>
@@ -836,23 +871,17 @@ const VendorOrders = () => {
               <div className="h-10 w-10 sm:h-12 sm:w-12 bg-purple-50 rounded-xl flex items-center justify-center group-hover:bg-purple-100 transition-colors">
                 <Wallet className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
               </div>
-              {storeData?.shippingCost !== undefined && (
-                <span className={`text-xs px-2 py-1 rounded-full ${storeData.shippingCost === 0 ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
-                  {storeData.shippingCost === 0 ? 'FREE' : formatCurrency(storeData.shippingCost)}
-                </span>
-              )}
             </div>
             <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
               {formatCurrency(stats.revenue)}
             </div>
             <div className="text-xs sm:text-sm text-gray-600 flex items-center">
               <Truck className="h-3 w-3 mr-1" />
-              Revenue + Shipping
+              Total Revenue
             </div>
           </div>
         </div>
 
-        {/* Filters Panel */}
         {showFilters && (
           <div className="bg-white rounded-2xl p-6 border border-gray-200/80 shadow-sm mb-6 animate-slide-down">
             <div className="flex items-center justify-between mb-4">
@@ -871,16 +900,13 @@ const VendorOrders = () => {
             
             <div className="grid md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-2">
-                  Date Range
-                </label>
+                <label className="block text-xs font-medium text-gray-500 mb-2">Date Range</label>
                 <div className="flex items-center space-x-2">
                   <input
                     type="date"
                     value={dateRange.start}
                     onChange={(e) => setDateRange({...dateRange, start: e.target.value})}
                     className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
-                    placeholder="Start"
                   />
                   <span className="text-gray-400">-</span>
                   <input
@@ -888,31 +914,26 @@ const VendorOrders = () => {
                     value={dateRange.end}
                     onChange={(e) => setDateRange({...dateRange, end: e.target.value})}
                     className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
-                    placeholder="End"
                   />
                 </div>
               </div>
               
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-2">
-                  Search
-                </label>
+                <label className="block text-xs font-medium text-gray-500 mb-2">Search</label>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Order ID, customer"
+                    placeholder="Order ID, customer, city..."
                     className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
                   />
                 </div>
               </div>
               
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-2">
-                  Quick Filters
-                </label>
+                <label className="block text-xs font-medium text-gray-500 mb-2">Quick Filters</label>
                 <select
                   value={selectedStatus}
                   onChange={(e) => setSelectedStatus(e.target.value)}
@@ -931,7 +952,6 @@ const VendorOrders = () => {
           </div>
         )}
 
-        {/* Status Filters - Horizontal Scroll on Mobile */}
         <div className="mb-6 overflow-x-auto pb-2 scrollbar-hide">
           <div className="flex space-x-2 min-w-max">
             {Object.entries(statusConfig).map(([key, config]) => {
@@ -961,7 +981,6 @@ const VendorOrders = () => {
           </div>
         </div>
 
-        {/* Active Filters */}
         {(searchQuery || selectedStatus !== 'all' || dateRange.start) && (
           <div className="mb-4 flex flex-wrap items-center gap-2">
             <span className="text-xs text-gray-500">Active filters:</span>
@@ -1000,7 +1019,6 @@ const VendorOrders = () => {
           </div>
         )}
 
-        {/* Orders Table/Cards */}
         {filteredOrders.length === 0 ? (
           <div className="bg-white rounded-3xl p-12 border border-gray-200/80 shadow-sm text-center">
             <div className="max-w-md mx-auto">
@@ -1023,7 +1041,6 @@ const VendorOrders = () => {
           </div>
         ) : (
           <>
-            {/* Bulk Actions Bar */}
             {selectedOrders.length > 0 && (
               <div className="mb-6 animate-slide-down">
                 <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-4 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -1067,7 +1084,6 @@ const VendorOrders = () => {
               </div>
             )}
 
-            {/* Desktop Table View */}
             <div className="hidden lg:block bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
@@ -1084,6 +1100,7 @@ const VendorOrders = () => {
                       <th className="p-6 w-12"></th>
                       <th className="text-left p-6 font-semibold text-gray-900">Order</th>
                       <th className="text-left p-6 font-semibold text-gray-900">Customer</th>
+                      <th className="text-left p-6 font-semibold text-gray-900">City</th>
                       <th className="text-left p-6 font-semibold text-gray-900">Date</th>
                       <th className="text-left p-6 font-semibold text-gray-900">Subtotal</th>
                       <th className="text-left p-6 font-semibold text-gray-900">Shipping</th>
@@ -1097,11 +1114,12 @@ const VendorOrders = () => {
                       const customer = customers[order.customerId] || order.customer;
                       const isExpanded = expandedRows.includes(order.id);
                       const status = order.orderStatus || order.status || 'PENDING';
-                      const subtotal = order.totalPrice || order.total || order.amount || 0;
-                      const shippingCost = storeData?.shippingCost || 0;
+                      const subtotal = order.subtotal || order.totalPrice || order.total || order.amount || 0;
+                      const shippingCost = getShippingCostForCustomer(customer);
                       const orderTotal = subtotal + shippingCost;
                       const orderDate = order.orderDate || order.createdAt || order.date;
                       const items = order.items || order.orderItems || [];
+                      const governorateName = customer?.city || order.governorateName || getGovernorateName(order.governorateId);
                       
                       return (
                         <React.Fragment key={order.id}>
@@ -1137,7 +1155,18 @@ const VendorOrders = () => {
                               <div className="font-medium text-gray-900">
                                 {customer?.firstName || 'Guest'} {customer?.lastName || ''}
                               </div>
-                              
+                              <div className="text-xs text-gray-500 mt-1">
+                                {customer?.phoneNumber || ''}
+                              </div>
+                            </td>
+                            <td className="p-6">
+                              <div className="flex items-center text-sm">
+                                <MapPinned className="h-4 w-4 text-indigo-600 mr-1" />
+                                <span className="font-medium text-gray-900">{governorateName}</span>
+                              </div>
+                              {order.governorateId && (
+                                <div className="text-xs text-gray-500 mt-1">ID: {order.governorateId}</div>
+                              )}
                             </td>
                             <td className="p-6 text-gray-700 text-sm">
                               {formatDate(orderDate)}
@@ -1148,8 +1177,8 @@ const VendorOrders = () => {
                               </div>
                             </td>
                             <td className="p-6">
-                              <div className={`font-medium ${shippingCost === 0 ? 'text-green-600' : 'text-gray-900'}`}>
-                                {shippingCost === 0 ? 'FREE' : formatCurrency(shippingCost)}
+                              <div className="font-medium text-indigo-600">
+                                {formatCurrency(shippingCost)}
                               </div>
                             </td>
                             <td className="p-6">
@@ -1180,15 +1209,13 @@ const VendorOrders = () => {
                                 >
                                   <Printer className="h-5 w-5" />
                                 </button>
-                               
                               </div>
                             </td>
                           </tr>
                           
-                          {/* Expanded Details */}
                           {isExpanded && (
                             <tr className="bg-gray-50">
-                              <td colSpan="10" className="p-6">
+                              <td colSpan="11" className="p-6">
                                 <div className="grid md:grid-cols-2 gap-6">
                                   <div className="bg-white rounded-xl p-6 border border-gray-200">
                                     <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
@@ -1218,9 +1245,11 @@ const VendorOrders = () => {
                                       </div>
                                       <div className="flex justify-between">
                                         <span className="text-gray-600">Shipping:</span>
-                                        <span className={`font-medium ${shippingCost === 0 ? 'text-green-600' : 'text-gray-900'}`}>
-                                          {shippingCost === 0 ? 'FREE' : formatCurrency(shippingCost)}
-                                        </span>
+                                        <span className="font-medium text-indigo-600">{formatCurrency(shippingCost)}</span>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-600">Shipping to:</span>
+                                        <span className="font-medium text-gray-900">{governorateName}</span>
                                       </div>
                                       <div className="flex justify-between pt-2 border-t border-gray-200">
                                         <span className="font-semibold text-gray-900">Total:</span>
@@ -1248,16 +1277,25 @@ const VendorOrders = () => {
                                         </span>
                                       </div>
                                       <div className="flex justify-between">
+                                        <span className="text-gray-600">City:</span>
+                                        <span className="font-medium text-gray-900">{governorateName}</span>
+                                      </div>
+                                      <div className="flex justify-between">
                                         <span className="text-gray-600">Phone:</span>
                                         <span className="font-medium text-gray-900">
-                                          {customer?.phoneNumber || customer?.phone || 'N/A'} / {customer?.whatsappNumber || 'N/A'}
+                                          {customer?.phoneNumber || customer?.phone || 'N/A'}
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-600">WhatsApp:</span>
+                                        <span className="font-medium text-gray-900">
+                                          {customer?.whatsappNumber || 'N/A'}
                                         </span>
                                       </div>
                                     </div>
                                   </div>
                                 </div>
                                 
-                                {/* Order Items */}
                                 <div className="mt-6 bg-white rounded-xl p-6 border border-gray-200">
                                   <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
                                     <ShoppingBag className="h-5 w-5 mr-2 text-indigo-600" />
@@ -1267,7 +1305,7 @@ const VendorOrders = () => {
                                     <table className="w-full text-sm">
                                       <thead className="bg-gray-50">
                                         <tr>
-                                          <th className="p-3 text-left text-gray-700">#Product ID</th>
+                                          <th className="p-3 text-left text-gray-700">Product ID</th>
                                           <th className="p-3 text-left text-gray-700">Product name</th>
                                           <th className="p-3 text-center text-gray-700">Qty</th>
                                           <th className="p-3 text-right text-gray-700">Price</th>
@@ -1286,6 +1324,11 @@ const VendorOrders = () => {
                                               <div className="font-medium text-gray-900">
                                                 {item.productName || item.name}
                                               </div>
+                                              {item.variant && (
+                                                <div className="text-xs text-indigo-600 mt-1">
+                                                  Variant: {item.variant}
+                                                </div>
+                                              )}
                                             </td>
                                             <td className="p-3 text-center">{item.quantity || 1}</td>
                                             <td className="p-3 text-right">{formatCurrency(item.price || 0)}</td>
@@ -1309,17 +1352,17 @@ const VendorOrders = () => {
               </div>
             </div>
 
-            {/* Mobile Card View */}
             <div className="lg:hidden space-y-4">
               {filteredOrders.map((order) => {
                 const customer = customers[order.customerId] || order.customer;
                 const status = order.orderStatus || order.status || 'PENDING';
-                const subtotal = order.totalPrice || order.total || order.amount || 0;
-                const shippingCost = storeData?.shippingCost || 0;
+                const subtotal = order.subtotal || order.totalPrice || order.total || order.amount || 0;
+                const shippingCost = getShippingCostForCustomer(customer);
                 const orderTotal = subtotal + shippingCost;
                 const orderDate = order.orderDate || order.createdAt || order.date;
                 const items = order.items || order.orderItems || [];
                 const isExpanded = expandedRows.includes(order.id);
+                const governorateName = customer?.city || order.governorateName || getGovernorateName(order.governorateId);
                 
                 return (
                   <div key={order.id} className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
@@ -1363,20 +1406,24 @@ const VendorOrders = () => {
                           </span>
                         </div>
                         <div className="flex items-center text-sm">
+                          <MapPinned className="h-4 w-4 text-indigo-600 mr-2" />
+                          <span className="font-medium text-gray-900">{governorateName}</span>
+                        </div>
+                        <div className="flex items-center text-sm">
                           <DollarSign className="h-4 w-4 text-gray-400 mr-2" />
                           <span className="font-semibold text-gray-900">
                             {formatCurrency(subtotal)}
                           </span>
                         </div>
                         <div className="flex items-center text-sm">
-                          <Truck className="h-4 w-4 text-gray-400 mr-2" />
-                          <span className={shippingCost === 0 ? 'text-green-600 font-medium' : 'text-gray-900'}>
-                            {shippingCost === 0 ? 'FREE Shipping' : formatCurrency(shippingCost)}
+                          <Truck className="h-4 w-4 text-indigo-600 mr-2" />
+                          <span className="text-indigo-600 font-medium">
+                            Shipping: {formatCurrency(shippingCost)}
                           </span>
                         </div>
                         <div className="flex items-center text-sm pt-1 border-t border-gray-100">
-                          <Wallet className="h-4 w-4 text-indigo-600 mr-2" />
-                          <span className="font-bold text-indigo-600">
+                          <Wallet className="h-4 w-4 text-green-600 mr-2" />
+                          <span className="font-bold text-green-600">
                             Total: {formatCurrency(orderTotal)}
                           </span>
                         </div>
@@ -1405,7 +1452,6 @@ const VendorOrders = () => {
                       </div>
                     </div>
                     
-                    {/* Mobile Expanded Details */}
                     {isExpanded && (
                       <div className="border-t border-gray-100 bg-gray-50 p-5">
                         <div className="space-y-4">
@@ -1429,10 +1475,16 @@ const VendorOrders = () => {
                             <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">Customer</h4>
                             <div className="space-y-1 text-sm">
                               <p className="text-gray-600">
-                                {customer?.address || 'No address'}
+                                <span className="font-medium">Address:</span> {customer?.address || 'No address'}
                               </p>
                               <p className="text-gray-600">
-                                {customer?.phoneNumber || customer?.phone || 'No phone'}
+                                <span className="font-medium">City:</span> {governorateName}
+                              </p>
+                              <p className="text-gray-600">
+                                <span className="font-medium">Phone:</span> {customer?.phoneNumber || customer?.phone || 'No phone'}
+                              </p>
+                              <p className="text-gray-600">
+                                <span className="font-medium">WhatsApp:</span> {customer?.whatsappNumber || 'No WhatsApp'}
                               </p>
                             </div>
                           </div>
@@ -1444,7 +1496,6 @@ const VendorOrders = () => {
               })}
             </div>
 
-            {/* Results Summary */}
             <div className="mt-6 flex items-center justify-between text-sm">
               <div className="text-gray-600">
                 Showing <span className="font-semibold text-gray-900">{filteredOrders.length}</span> of{' '}
@@ -1463,7 +1514,6 @@ const VendorOrders = () => {
         )}
       </div>
 
-      {/* Mobile FAB for Filters */}
       <button
         onClick={() => setShowFilters(!showFilters)}
         className="lg:hidden fixed bottom-6 right-6 h-14 w-14 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full shadow-xl hover:from-indigo-700 hover:to-purple-700 flex items-center justify-center z-30"
@@ -1473,45 +1523,5 @@ const VendorOrders = () => {
     </div>
   );
 };
-
-// Add to global CSS
-const styles = `
-  @keyframes slideLeft {
-    from {
-      transform: translateX(100%);
-    }
-    to {
-      transform: translateX(0);
-    }
-  }
-
-  @keyframes slideDown {
-    from {
-      transform: translateY(-20px);
-      opacity: 0;
-    }
-    to {
-      transform: translateY(0);
-      opacity: 1;
-    }
-  }
-
-  .animate-slide-left {
-    animation: slideLeft 0.3s ease-out;
-  }
-
-  .animate-slide-down {
-    animation: slideDown 0.3s ease-out;
-  }
-
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
-  
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-`;
 
 export default VendorOrders;
