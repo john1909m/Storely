@@ -58,7 +58,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<ProductDto> getAllProductsByCategoryId(UUID categoryId, UUID storeId) {
-        return productRepo.findByCategory_IdAndStore_Id(categoryId, storeId).stream()
+        return productRepo.findByCategory_IdAndStore_Id(categoryId, storeId)
+                .orElse(Collections.emptyList())
+                .stream()
                 .map(productMapper::toProductDto)
                 .toList();
     }

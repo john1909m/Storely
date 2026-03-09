@@ -292,7 +292,7 @@ const StoreHome = () => {
     try {
       setLoading(true);
       
-      let productsData;
+      let productsData= [];
       
       if (selectedCategory === 'all') {
         // جلب كل المنتجات
@@ -323,7 +323,7 @@ const StoreHome = () => {
       handleError(err);
       setError(err.message || 'Failed to load products');
     } finally {
-      setLoading(false);
+      setLoading(false); 
     }
   };
 
