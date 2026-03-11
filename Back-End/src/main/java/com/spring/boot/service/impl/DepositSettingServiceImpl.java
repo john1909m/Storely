@@ -11,6 +11,7 @@ import com.spring.boot.service.DepositSettingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -26,17 +27,34 @@ public class DepositSettingServiceImpl implements DepositSettingService {
         Store store = storeRepo.findById(dto.getStoreId())
                 .orElseThrow(()-> new RuntimeException("store.not.found"));
 
-        DepositSetting setting = depositSettingRepo.findByStoreId(dto.getStoreId())
-                .orElseThrow(() -> new RuntimeException("store.not.found"));
 
-        setting.setStore(store);
-        setting.setDepositType(DepositType.valueOf(dto.getDepositType()));
-        setting.setDepositValue(dto.getDepositValue());
-        setting.setInstapayNumber(dto.getInstapayNumber());
-        setting.setVodafoneCashNumber(dto.getVodafoneCashNumber());
-        setting.setDepositRequired(dto.getDepositRequired());
+        Optional<DepositSetting> setting = depositSettingRepo.findByStoreId(dto.getStoreId());
+        if (setting.isPresent()) {
+            DepositSetting existSetting = setting.get();
+            existSetting.setStore(store);
+            existSetting.setDepositType(DepositType.valueOf(dto.getDepositType()));
+            existSetting.setDepositValue(dto.getDepositValue());
+            existSetting.setInstapayNumber(dto.getInstapayNumber());
+            existSetting.setVodafoneCashNumber(dto.getVodafoneCashNumber());
+            existSetting.setDepositRequired(dto.getDepositRequired());
 
-        return depositSettingMapper.toDto(depositSettingRepo.save(setting));
+
+            return depositSettingMapper.toDto(depositSettingRepo.save(existSetting));
+        }
+        else  {
+            DepositSetting depositSetting = new DepositSetting();
+            depositSetting.setStore(store);
+            depositSetting.setDepositType(DepositType.valueOf(dto.getDepositType()));
+            depositSetting.setDepositValue(dto.getDepositValue());
+            depositSetting.setInstapayNumber(dto.getInstapayNumber());
+            depositSetting.setVodafoneCashNumber(dto.getVodafoneCashNumber());
+            depositSetting.setDepositRequired(dto.getDepositRequired());
+            return depositSettingMapper.toDto(depositSettingRepo.save(depositSetting));
+        }
+
+
+
+
 
 
     }
