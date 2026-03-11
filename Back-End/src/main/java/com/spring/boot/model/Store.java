@@ -65,5 +65,8 @@ public class Store {
     @ManyToMany(mappedBy = "stores")
     private List<Customer> customers;
 
+    @OneToOne(mappedBy = "store",cascade = CascadeType.ALL)
+    private DepositSetting depositSetting;
+
 
 }

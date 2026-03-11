@@ -65,7 +65,8 @@ public class SecurityConfig {
                                 "/order/checkout",
                                 "/subscription-plan/get/all",
                                 "/shipping-cost/governorates",
-                                "/shipping-cost/store/{storeId}").permitAll()
+                                "/shipping-cost/store/{storeId}",
+                                "/deposit-settings/get/{storeId}").permitAll()
                         .anyRequest().authenticated()
                 );
 

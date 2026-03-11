@@ -2,6 +2,8 @@ package com.spring.boot.service.impl;
 
 import com.spring.boot.dto.CheckoutDto;
 import com.spring.boot.dto.OrderDto;
+import com.spring.boot.enums.DepositStatus;
+import com.spring.boot.enums.DepositType;
 import com.spring.boot.enums.OrderStatus;
 import com.spring.boot.mapper.OrderMapper;
 import com.spring.boot.model.*;
@@ -10,6 +12,7 @@ import com.spring.boot.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,18 +26,31 @@ public class OrderServiceImpl implements OrderService {
     private StoreRepo storeRepo;
     private ProductRepo productRepo;
     private CustomerRepo customerRepo;
+    private ShippingCostRepo shippingCostRepo;
+    private GovernorateRepo governorateRepo;
+    private DepositSettingRepo depositSettingRepo;
+    private R2StorageService storageService;
 
     @Autowired
     public OrderServiceImpl(OrderMapper orderMapper,
                             OrderRepo orderRepo,
                             StoreRepo storeRepo,
                             ProductRepo productRepo,
-                            CustomerRepo customerRepo) {
+                            CustomerRepo customerRepo,
+                            ShippingCostRepo shippingCostRepo,
+                            GovernorateRepo governorateRepo,
+                            DepositSettingRepo depositSettingRepo,
+                            R2StorageService storageService) {
         this.orderMapper = orderMapper;
         this.orderRepo = orderRepo;
         this.storeRepo = storeRepo;
         this.productRepo = productRepo;
         this.customerRepo = customerRepo;
+        this.shippingCostRepo = shippingCostRepo;
+        this.governorateRepo = governorateRepo;
+        this.depositSettingRepo = depositSettingRepo;
+        this.storageService = storageService;
+
     }
 
     @Override
@@ -148,6 +164,11 @@ public class OrderServiceImpl implements OrderService {
             restoreStock(existingOrder);
         }
 
+        if(newStatus == OrderStatus.CONFIRMED) {
+            existingOrder.setDepositPaid(true);
+            existingOrder.setDepositStatus(DepositStatus.CONFIRMED);
+        }
+
         existingOrder.setStatus(newStatus);
 
         Order savedOrder = orderRepo.save(existingOrder);
@@ -196,24 +217,24 @@ public class OrderServiceImpl implements OrderService {
 
 
     @Transactional
+    @Override
     public OrderDto checkout(CheckoutDto dto) {
 
         Store store = storeRepo.findById(dto.getStoreId())
                 .orElseThrow(() -> new RuntimeException("store.not.found"));
 
+        Customer customer = customerRepo.findById(dto.getCustomerId())
+                .orElseThrow(() -> new RuntimeException("customer.not.found"));
+
         Order order = new Order();
         order.setStore(store);
-        order.setCustomer(
-                customerRepo.findById(dto.getCustomerId())
-                        .orElseThrow(() -> new RuntimeException("customer.not.found"))
-        );
+        order.setCustomer(customer);
         order.setStatus(OrderStatus.PENDING);
 
         List<OrderItem> orderItems = dto.getItems().stream().map(i -> {
 
             Product product = productRepo.findById(i.getProductId())
                     .orElseThrow(() -> new RuntimeException("product.not.found"));
-
 
             deductStock(
                     product,
@@ -222,33 +243,104 @@ public class OrderServiceImpl implements OrderService {
                     i.getQuantity()
             );
 
-
-            // ✅ VALIDATE VARIANT + STOCK HERE (later)
             OrderItem item = new OrderItem();
             item.setOrder(order);
             item.setProduct(product);
             item.setQuantity(i.getQuantity());
             item.setPrice(product.getPrice());
 
-            // ✅ SNAPSHOT
+            // snapshot
             item.setProductColor(i.getProductColor());
             item.setProductSize(i.getProductSize());
 
             return item;
+
         }).toList();
 
         order.setOrderItems(orderItems);
 
-        double totalPrice = orderItems.stream()
+        // subtotal
+        double itemsTotal = orderItems.stream()
                 .mapToDouble(i -> i.getPrice() * i.getQuantity())
                 .sum();
 
+        order.setItemsTotal(itemsTotal);
+
+    /*
+    =========================
+    SHIPPING COST
+    =========================
+    */
+
+        String governorateName = customer.getCity();
+        Long governorateId = governorateRepo.findByName(governorateName).get().getId();
+
+        ShippingCost shippingCost = shippingCostRepo
+                .findByStoreIdAndGovernorateId(store.getId(), governorateId)
+                .orElseThrow(() -> new RuntimeException("shipping.cost.not.found"));
+
+        double shippingPrice = shippingCost.getPrice();
+
+        order.setShippingCost(shippingPrice);
+
+    /*
+    =========================
+    TOTAL PRICE
+    =========================
+    */
+
+        double totalPrice = itemsTotal + shippingPrice;
+
         order.setTotalPrice(totalPrice);
+
+    /*
+    =========================
+    DEPOSIT CALCULATION
+    =========================
+    */
+
+        DepositSetting depositSetting = depositSettingRepo
+                .findByStoreId(store.getId())
+                .orElse(null);
+
+        if (depositSetting != null && Boolean.TRUE.equals(depositSetting.getDepositRequired())) {
+
+            double depositAmount = 0;
+
+            if (depositSetting.getDepositType() == DepositType.SHIPPING) {
+
+                depositAmount = shippingPrice;
+
+            } else if (depositSetting.getDepositType() == DepositType.PERCENTAGE) {
+
+                depositAmount = totalPrice * depositSetting.getDepositValue() / 100;
+
+            }
+
+            order.setDepositValue(depositAmount);
+            order.setDepositStatus(DepositStatus.PENDING);
+            order.setDepositPaid(false);
+
+        } else {
+
+            order.setDepositStatus(DepositStatus.NOT_REQUIRED);
+        }
 
         Order savedOrder = orderRepo.save(order);
 
         return orderMapper.toOrderDto(savedOrder);
     }
 
+    @Override
+    public OrderDto uploadDeposit(UUID orderId, MultipartFile screenshot) {
+        Order order = orderRepo.findById(orderId).orElseThrow(() -> new RuntimeException("order.not.found"));
+        String objectKey = "orders/" + orderId + "/";
+        String imageUrl=storageService.uploadFile(objectKey,screenshot);
+        order.setDepositScreenShotUrl(imageUrl);
+        order.setDepositStatus(DepositStatus.UNDER_REVIEW);
+        orderRepo.save(order);
+
+        return orderMapper.toOrderDto(order);
+    }
 
 }

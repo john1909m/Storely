@@ -1,5 +1,6 @@
 package com.spring.boot.model;
 
+import com.spring.boot.enums.DepositStatus;
 import com.spring.boot.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -22,6 +23,19 @@ public class Order {
 
     private Double totalPrice;
 
+    private Double itemsTotal;
+
+    private Double shippingCost;
+
+    private Double depositValue;
+
+    private Boolean depositPaid = false;
+
+    private String depositScreenShotUrl;
+
+    @Enumerated(EnumType.STRING)
+    private DepositStatus depositStatus;
+
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
 
@@ -30,6 +44,7 @@ public class Order {
     @ManyToOne
     @JoinColumn(name = "customer_id")
     private Customer customer;
+
 
     @ManyToOne
     @JoinColumn(name = "store_id")

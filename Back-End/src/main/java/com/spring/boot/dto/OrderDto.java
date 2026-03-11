@@ -27,4 +27,12 @@ public class OrderDto {
     private List<OrderItemDto> orderItems;
 
     private UUID storeId;
+
+    private Double depositValue;
+
+    private Boolean depositPaid;
+
+    private String depositScreenShotUrl;
+
+    private String depositStatus;
 }

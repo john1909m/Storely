@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -61,5 +62,12 @@ public class OrderController {
     public ResponseEntity<OrderDto> checkout(@RequestBody CheckoutDto checkoutDto) {
         OrderDto order = orderService.checkout(checkoutDto);
         return ResponseEntity.ok(order);
+    }
+
+    @PostMapping("/{orderId}/deposit")
+    public ResponseEntity<OrderDto> uploadDeposit(@PathVariable("orderId") UUID orderId,
+                                                  @RequestBody MultipartFile screenshot) {
+
+        return ResponseEntity.ok(orderService.uploadDeposit(orderId, screenshot));
     }
 }
