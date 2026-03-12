@@ -69,4 +69,5 @@ public class Store {
     private DepositSetting depositSetting;
 
 
+
 }

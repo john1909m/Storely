@@ -119,8 +119,8 @@ const CustomerContact = () => {
 
   // بيانات التواصل
   const contactInfo = {
-    phone: '+201200158852',
-    whatsapp: '201200158852',
+    phone: '+201069700293',
+    whatsapp: '201035999541',
     email: 'johnemil21@yahoo.com',
     supportHours: '9AM - 6PM (Egypt Time)',
     address: 'Cairo, Egypt',
