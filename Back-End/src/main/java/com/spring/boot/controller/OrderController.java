@@ -52,7 +52,7 @@ public class OrderController {
     }
 
     @DeleteMapping("/delete/{orderId}")
-    @PreAuthorize("hasAnyRole('VENDOR','ADMIN')")
+    @PreAuthorize("hasAnyRole('VENDOR','ADMIN','CUSTOMER')")
     public ResponseEntity<Void> deleteOrder(@PathVariable("orderId") UUID orderId) {
         orderService.deleteOrder(orderId);
         return ResponseEntity.noContent().build();
