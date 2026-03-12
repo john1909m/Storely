@@ -72,15 +72,24 @@ export const storeAPI = {
   /**
    * Upload store image
    */
-  uploadImage: async (storeId, imageFile,type) => {
-    const formData = new FormData();
-    formData.append('file', imageFile);
-    formData.append('type', type);
+  uploadImage: async (storeId, formData) => {
+    
     return fetchWithAuth(API_ENDPOINTS.STORE.UPLOAD_IMAGE(storeId), {
       method: 'POST',
       body: formData,
     });
   },
+
+  updateDepositSettings: async (depositSettings) => {
+    return fetchWithAuth(API_ENDPOINTS.STORE.UPDATE_DEPOSIT_SETTINGS, {
+      method: 'POST',
+      body: JSON.stringify(depositSettings),
+    });
+  },
+
+  getDepositSettings: async (storeId) => {
+    return fetchWithAuth(API_ENDPOINTS.STORE.GET_DEPOSIT_SETTINGS(storeId));
+  }
 
   
 

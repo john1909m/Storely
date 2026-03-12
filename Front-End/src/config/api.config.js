@@ -32,7 +32,8 @@ export const API_ENDPOINTS = {
     GET_ALL: '/store/get/all',
     DELETE: (storeId) => `/store/delete/${storeId}`,
     UPLOAD_IMAGE: (storeId) => `/store/${storeId}/upload-image`,
-    
+    UPDATE_DEPOSIT_SETTINGS:  `/deposit-settings/update`,
+    GET_DEPOSIT_SETTINGS: (storeId) => `/deposit-settings/get/${storeId}`,
   },
   // Product
   PRODUCT: {
@@ -60,6 +61,7 @@ export const API_ENDPOINTS = {
     GET_BY_ID: (orderId, storeId) => `/order/get/${orderId}/store/${storeId}`,
     GET_BY_STORE: (storeId) => `/order/get/store/${storeId}`,
     DELETE: (orderId) => `/order/delete/${orderId}`,
+    UPLOAD_DEPOSIT_PROOF: (orderId) => `/order/${orderId}/deposit`,
   },
   // Order Item
   ORDER_ITEM: {

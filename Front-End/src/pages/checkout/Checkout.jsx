@@ -5,13 +5,16 @@ import {
   ArrowLeft, CreditCard, Lock, Truck,
   MapPin, User, Mail, Phone,
   CheckCircle, Shield, Loader2,
-  ShoppingBag, AlertCircle, Package, Palette, Ruler, ChevronDown
+  ShoppingBag, AlertCircle, Package, Palette, Ruler, ChevronDown,
+  Wallet, Camera, Upload, X, Smartphone, Copy
 } from 'lucide-react';
 import { orderAPI } from '../../api/order.api';
 import { customerAPI } from '../../api/customer.api';
 import { shippingAPI } from '../../api/shipping.api';
+import { storeAPI } from '../../api/store.api';
 import StoreFooter from '../../components/StoreFooter';
 import { useErrorHandler } from '../../hooks/useErrorHandler';
+import { se } from 'date-fns/locale';
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -20,6 +23,16 @@ const Checkout = () => {
   const [cartData, setCartData] = useState(null);
   const [error, setError] = useState(null);
   const [selectedShipping, setSelectedShipping] = useState(null);
+  const [depositSettings, setDepositSettings] = useState(null);
+  const [showDepositModal, setShowDepositModal] = useState(false);
+  const [depositAmount, setDepositAmount] = useState(0);
+  const [depositProof, setDepositProof] = useState(null);
+  const [depositProofPreview, setDepositProofPreview] = useState(null);
+  const [uploadingDeposit, setUploadingDeposit] = useState(false);
+  const [depositSuccess, setDepositSuccess] = useState(false);
+  const [depositError, setDepositError] = useState(null);
+  const [copiedInstapay, setCopiedInstapay] = useState(false);
+  const [copiedVodafone, setCopiedVodafone] = useState(false);
   const [customerInfo, setCustomerInfo] = useState({
     firstName: '',
     lastName: '',
@@ -39,6 +52,7 @@ const Checkout = () => {
         if (parsedCart.items && parsedCart.items.length > 0) {
           setCartData(parsedCart);
           fetchStoreShippingCosts(parsedCart.storeId);
+          fetchDepositSettings(parsedCart.storeId);
         } else {
           navigate(`/store/${parsedCart.storeName}`);
         }
@@ -66,6 +80,18 @@ const Checkout = () => {
     }
   };
 
+  const fetchDepositSettings = async (storeId) => {
+    try {
+      const response = await storeAPI.getDepositSettings(storeId);
+      const settings = await response.json();
+      console.log('Deposit settings:', settings);
+      setDepositSettings(settings);
+    } catch (err) {
+      console.error('Error fetching deposit settings:', err);
+      // Don't show error, deposit might be optional
+    }
+  };
+
   const handleGovernorateChange = (e) => {
     const selectedId = parseInt(e.target.value);
     if (!selectedId) {
@@ -77,9 +103,21 @@ const Checkout = () => {
     const shippingOption = cartData?.shippingCosts?.find(s => s.governorateId === selectedId);
     if (shippingOption) {
       setSelectedShipping(shippingOption);
-      // بنحط اسم المحافظة في الـ city عشان نستخدمه في الـ customer
       setCustomerInfo(prev => ({ ...prev, city: shippingOption.governorateName }));
     }
+  };
+
+  const calculateDepositAmount = () => {
+    if (!depositSettings || !depositSettings.depositRequired) return 0;
+    
+    const subtotal = getSubtotal();
+    
+    if (depositSettings.depositType === 'SHIPPING') {
+      return selectedShipping?.price || 0;
+    } else if (depositSettings.depositType === 'PERCENTAGE') {
+      return (subtotal * (depositSettings.depositValue / 100));
+    }
+    return 0;
   };
 
   const handleSubmit = async (e) => {
@@ -95,74 +133,192 @@ const Checkout = () => {
     }
 
     if (step === 2) {
-      await placeOrder();
+      
+      // في حالة عدم وجود deposit مطلوب
+      if(!depositSettings.depositRequired) {
+        setIsLoading(true);
+        setError(null);
+
+        try {
+          const orderResponse = await createOrder();
+
+          if (!orderResponse || !orderResponse.id) {
+            throw new Error('Failed to create order');
+          }
+
+          // إظهار Modal التأكيد
+          setDepositSuccess(true);
+          
+          // تأخير قبل التوجيه
+          setTimeout(() => {
+            localStorage.removeItem('checkout_cart');
+            if (cartData.storeName) localStorage.removeItem(`cart_${cartData.storeName}`);
+            navigate(`/store/${cartData.storeName}?order=success`);
+          }, 500);
+
+        } catch (err) {
+          console.error('Order error:', err);
+          setError(err.message || 'Failed to place order');
+        } finally {
+          setIsLoading(false);
+        }
+      }else{
+        const amount = calculateDepositAmount();
+        setDepositAmount(amount);
+        setShowDepositModal(true);
+      }
+      
+    }
+
+    
+  };
+
+  const handleDepositProofUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // تحقق من حجم الصورة (5MB كحد أقصى)
+      if (file.size > 5 * 1024 * 1024) {
+        setDepositError('File too large. Maximum size is 5MB');
+        return;
+      }
+      
+      // تحقق من نوع الصورة
+      if (!file.type.startsWith('image/')) {
+        setDepositError('Please upload an image file');
+        return;
+      }
+      
+      setDepositProof(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setDepositProofPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  const placeOrder = async () => {
-    setIsLoading(true);
-    setError(null);
+  const handleCopy = (text, type) => {
+    navigator.clipboard.writeText(text);
+    if (type === 'instapay') {
+      setCopiedInstapay(true);
+      setTimeout(() => setCopiedInstapay(false), 2000);
+    } else {
+      setCopiedVodafone(true);
+      setTimeout(() => setCopiedVodafone(false), 2000);
+    }
+  };
+
+  const createOrder = async () => {
+    const subtotal = getSubtotal();
+    const shippingCost = selectedShipping?.price || 0;
+    const totalPrice = subtotal + shippingCost;
+
+    const customerData = {
+      firstName: customerInfo.firstName,
+      lastName: customerInfo.lastName,
+      phoneNumber: customerInfo.phoneNumber.startsWith('+') ? customerInfo.phoneNumber : `+${customerInfo.phoneNumber}`,
+      whatsappNumber: customerInfo.whatsappNumber.startsWith('+') ? customerInfo.whatsappNumber : `+${customerInfo.whatsappNumber}`,
+      address: customerInfo.address,
+      city: selectedShipping?.governorateName || customerInfo.city,
+      storeIds: [cartData.storeId]
+    };
+
+    const customerResponse = await customerAPI.add(customerData);
+    if (!customerResponse || !customerResponse.id) throw new Error('Failed to create customer');
+
+    const orderData = {
+      storeId: cartData.storeId,
+      customerId: customerResponse.id,
+      shippingCost: shippingCost,
+      governorateId: selectedShipping?.governorateId || null,
+      governorateName: selectedShipping?.governorateName || null,
+      subtotal: subtotal,
+      totalPrice: totalPrice,
+      depositAmount: depositAmount,
+      depositRequired: depositSettings?.depositRequired || false,
+      depositStatus: depositSettings?.depositRequired ? 'pending' : 'not_required',
+      items: cartData.items.map(item => ({
+        productId: item.productId || item.id,
+        price: item.price,
+        quantity: item.quantity,
+        color: item.color || null,
+        size: item.size || null,
+        variantId: item.variantId || null
+      })),
+    };
+
+    const orderResponse = await orderAPI.checkout(orderData);
+    return orderResponse;
+  };
+
+  const handleDepositConfirm = async () => {
+    if (!depositProof) {
+      setDepositError('Please upload proof of payment');
+      return;
+    }
+
+    setUploadingDeposit(true);
+    setDepositError(null);
+
+    let createdOrderId = null;
 
     try {
-      if (!cartData || !cartData.storeId || !cartData.items || cartData.items.length === 0) {
-        throw new Error('Cart data is invalid or empty');
+      // 1. إنشاء الطلب
+      console.log('📝 Creating order with deposit...');
+      const orderResponse = await createOrder();
+      
+      if (!orderResponse || !orderResponse.id) {
+        throw new Error('Failed to create order');
       }
 
-      // حساب المجاميع
-      const subtotal = getSubtotal();
-      const shippingCost = selectedShipping?.price || 0;
-      const totalPrice = subtotal + shippingCost;
+      createdOrderId = orderResponse.id;
+      console.log('✅ Order created:', createdOrderId);
 
-      // إنشاء العميل - بنبعت المحافظة كـ city
-      const customerData = {
-        firstName: customerInfo.firstName,
-        lastName: customerInfo.lastName,
-        phoneNumber: customerInfo.phoneNumber.startsWith('+') ? customerInfo.phoneNumber : `+${customerInfo.phoneNumber}`,
-        whatsappNumber: customerInfo.whatsappNumber.startsWith('+') ? customerInfo.whatsappNumber : `+${customerInfo.whatsappNumber}`,
-        address: customerInfo.address,
-        city: selectedShipping?.governorateName || customerInfo.city, // بنحط اسم المحافظة هنا
-        storeIds: [cartData.storeId]
-      };
+      // 2. محاولة رفع صورة الإيداع
+      try {
+        const formData = new FormData();
+        formData.append('screenshot', depositProof); // ✅ اسم الحقل "file" مهم
+        
+        // للتصحيح
+        console.log('📤 Uploading file:', depositProof.name);
+        console.log('📤 File size:', depositProof.size);
+        console.log('📤 File type:', depositProof.type);
+        
+        await orderAPI.uploadDepositProof(createdOrderId, formData);
+        console.log('✅ Deposit proof uploaded successfully');
 
-      const customerResponse = await customerAPI.add(customerData);
-      if (!customerResponse || !customerResponse.id) throw new Error('Failed to create customer');
+      } catch (uploadError) {
+        // لو فشل رفع الصورة، نحذف الطلب اللي اتعمل
+        console.error('❌ Upload failed, deleting order:', createdOrderId);
+        
+        try {
+          // حذف الطلب
+          await orderAPI.delete(createdOrderId);
+          console.log('✅ Order deleted successfully');
+        } catch (deleteError) {
+          console.error('❌ Failed to delete order:', deleteError);
+          // هنا ممكن تسجل error للـ admin
+        }
+        
+        // نرمي الخطأ عشان نعرضه للمستخدم
+        throw new Error('فشل رفع صورة الدفع. تم إلغاء الطلب.');
+      }
 
-      // إنشاء الطلب
-      const orderData = {
-        storeId: cartData.storeId,
-        customerId: customerResponse.id,
-        shippingCost: shippingCost,                    // سعر الشحن
-        governorateId: selectedShipping?.governorateId || null,  // ID المحافظة
-        governorateName: selectedShipping?.governorateName || null, // اسم المحافظة
-        subtotal: subtotal,                             // المجموع الفرعي
-        totalPrice: totalPrice,                          // المجموع الكلي (subtotal + shipping)
-        items: cartData.items.map(item => ({
-          productId: item.productId || item.id,
-          price: item.price,
-          quantity: item.quantity,
-          color: item.color || null,
-          size: item.size || null,
-          variantId: item.variantId || null
-        })),
-      };
+      // 3. كل حاجة تمام
+      setDepositSuccess(true);
+      
+      // 4. تنظيف الـ localStorage والتحويل بعد 3 ثواني
+      setTimeout(() => {
+        localStorage.removeItem('checkout_cart');
+        if (cartData.storeName) localStorage.removeItem(`cart_${cartData.storeName}`);
+        navigate(`/store/${cartData.storeName}?order=success`);
+      }, 3000);
 
-      console.log('📦 Sending order:', orderData); // للتصحيح
-
-      const orderResponse = await orderAPI.checkout(orderData);
-      if (!orderResponse || !orderResponse.id) throw new Error('Failed to create order');
-
-      // تنظيف الـ localStorage
-      localStorage.removeItem('checkout_cart');
-      if (cartData.storeName) localStorage.removeItem(`cart_${cartData.storeName}`);
-
-      // التوجيه لصفحة النجاح
-      navigate(`/store/${cartData.storeName}`);
-
-    } catch (error) {
-      console.error('Order error:', error);
-      handleError(error);
+    } catch (err) {
+      console.error('❌ Transaction error:', err);
+      setDepositError(err.message || 'فشلت العملية. الرجاء المحاولة مرة أخرى.');
     } finally {
-      setIsLoading(false);
+      setUploadingDeposit(false);
     }
   };
 
@@ -197,6 +353,15 @@ const Checkout = () => {
     return null;
   };
 
+  const handleDepositModalClose = () => {
+    if (!uploadingDeposit && !depositSuccess) {
+      setShowDepositModal(false);
+      setDepositProof(null);
+      setDepositProofPreview(null);
+      setDepositError(null);
+    }
+  };
+
   if (isLoading && !cartData) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -223,7 +388,193 @@ const Checkout = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      {/* Deposit Modal */}
+      {showDepositModal && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+          onClick={handleDepositModalClose}
+        >
+          <div 
+            className="bg-white rounded-3xl max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 bg-white border-b border-gray-100 p-6 flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="h-12 w-12 bg-amber-100 rounded-xl flex items-center justify-center">
+                  <Wallet className="h-6 w-6 text-amber-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">Deposit Required</h3>
+                  <p className="text-sm text-gray-500">Complete payment to confirm order</p>
+                </div>
+              </div>
+              {!uploadingDeposit && !depositSuccess && (
+                <button
+                  onClick={handleDepositModalClose}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="h-5 w-5 text-gray-500" />
+                </button>
+              )}
+            </div>
+
+            <div className="p-6 space-y-6">
+              {depositSuccess ? (
+                <div className="text-center py-8">
+                  <div className="h-20 w-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle className="h-10 w-10 text-green-600" />
+                  </div>
+                  <h4 className="text-xl font-bold text-gray-900 mb-2">Deposit Submitted!</h4>
+                  <p className="text-gray-600 mb-4">
+                    Your deposit proof has been uploaded. The vendor will confirm your payment shortly.
+                  </p>
+                  <p className="text-sm text-gray-500">Redirecting to store...</p>
+                </div>
+              ) : (
+                <>
+                  {/* Deposit Amount */}
+                  <div className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl p-5 text-white">
+                    <h4 className="font-medium mb-2">Amount to Pay</h4>
+                    <div className="text-3xl font-bold">{formatPrice(depositAmount)}</div>
+                    <p className="text-sm text-amber-100 mt-1">
+                      {depositSettings?.depositType === 'SHIPPING' 
+                        ? 'Deposit equals shipping cost'
+                        : `${depositSettings?.depositValue}% of order total`}
+                    </p>
+                  </div>
+
+                  {/* Payment Methods */}
+                  <div className="space-y-4">
+                    <h4 className="font-semibold text-gray-900">Payment Methods</h4>
+                    
+                    {depositSettings?.instapayNumber && (
+                      <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center space-x-2">
+                            <Smartphone className="h-5 w-5 text-amber-600" />
+                            <span className="font-medium">Instapay</span>
+                          </div>
+                          <button
+                            onClick={() => handleCopy(depositSettings.instapayNumber, 'instapay')}
+                            className="text-sm text-amber-600 hover:text-amber-700 flex items-center space-x-1"
+                          >
+                            <Copy className="h-4 w-4" />
+                            <span>{copiedInstapay ? 'Copied!' : 'Copy'}</span>
+                          </button>
+                        </div>
+                        <p className="text-lg font-mono text-gray-900">{depositSettings.instapayNumber}</p>
+                      </div>
+                    )}
+
+                    {depositSettings?.vodafoneCashNumber && (
+                      <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center space-x-2">
+                            <Phone className="h-5 w-5 text-amber-600" />
+                            <span className="font-medium">Vodafone Cash</span>
+                          </div>
+                          <button
+                            onClick={() => handleCopy(depositSettings.vodafoneCashNumber, 'vodafone')}
+                            className="text-sm text-amber-600 hover:text-amber-700 flex items-center space-x-1"
+                          >
+                            <Copy className="h-4 w-4" />
+                            <span>{copiedVodafone ? 'Copied!' : 'Copy'}</span>
+                          </button>
+                        </div>
+                        <p className="text-lg font-mono text-gray-900">{depositSettings.vodafoneCashNumber}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Upload Proof */}
+                  <div className="space-y-4">
+                    <h4 className="font-semibold text-gray-900">Upload Payment Proof</h4>
+                    
+                    {!depositProofPreview ? (
+                      <label className="block cursor-pointer">
+                        <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-amber-500 transition-colors">
+                          <Camera className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                          <p className="text-gray-600 mb-1">Click to upload screenshot</p>
+                          <p className="text-xs text-gray-500">PNG, JPG up to 5MB</p>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleDepositProofUpload}
+                            className="hidden"
+                          />
+                        </div>
+                      </label>
+                    ) : (
+                      <div className="relative">
+                        <img 
+                          src={depositProofPreview} 
+                          alt="Deposit proof" 
+                          className="w-full rounded-xl border border-gray-200"
+                        />
+                        <button
+                          onClick={() => {
+                            setDepositProof(null);
+                            setDepositProofPreview(null);
+                          }}
+                          className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    )}
+
+                    {depositError && (
+                      <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl flex items-center space-x-2">
+                        <AlertCircle className="h-5 w-5" />
+                        <span className="text-sm">{depositError}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex space-x-4 pt-4">
+                    <button
+                      onClick={handleDepositModalClose}
+                      disabled={uploadingDeposit}
+                      className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleDepositConfirm}
+                      disabled={uploadingDeposit || !depositProof}
+                      className="flex-1 py-3 bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-xl hover:from-amber-700 hover:to-orange-700 transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
+                    >
+                      {uploadingDeposit ? (
+                        <>
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                          <span>Uploading...</span>
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="h-5 w-5" />
+                          <span>Confirm Payment</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* رسالة تحذير للمستخدم */}
+                  {uploadingDeposit && (
+                    <div className="text-center py-2">
+                      <p className="text-xs text-gray-500">
+                        Please don't close this window while we process your order...
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* باقي الكود زي ما هو ... */}
       <div className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-between">
@@ -341,7 +692,7 @@ const Checkout = () => {
                       </div>
                     </div>
 
-                    {/* Governorate Select - بنجيب المحافظات من API */}
+                    {/* Governorate Select */}
                     <div className="mt-6">
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Governorate * <span className="text-gray-400 text-xs">(Shipping cost will be calculated)</span>
@@ -363,14 +714,13 @@ const Checkout = () => {
                             <option value="" disabled>Select your governorate</option>
                             {shippingOptions.map(option => (
                               <option key={option.governorateId} value={option.governorateId}>
-                                {option.governorateName}
+                                {option.governorateName} - {formatPrice(option.price)}
                               </option>
                             ))}
                           </select>
                         </div>
                       )}
 
-                      {/* Shipping cost preview */}
                       {selectedShipping && (
                         <div className="mt-3 p-3 bg-indigo-50 border border-indigo-100 rounded-xl flex items-center justify-between">
                           <div className="flex items-center space-x-2">
@@ -379,7 +729,7 @@ const Checkout = () => {
                               Shipping to {selectedShipping.governorateName}
                             </span>
                           </div>
-                          
+                          <span className="font-semibold text-indigo-700">{formatPrice(selectedShipping.price)}</span>
                         </div>
                       )}
                     </div>
@@ -478,6 +828,26 @@ const Checkout = () => {
                       </div>
                     </div>
 
+                    {/* Deposit Info - if required */}
+                    {depositSettings?.depositRequired && (
+                      <div className="mb-8 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                        <div className="flex items-start space-x-3">
+                          <Wallet className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                          <div>
+                            <h4 className="font-semibold text-amber-900 mb-1">Deposit Required</h4>
+                            <p className="text-sm text-amber-700 mb-2">
+                              {depositSettings.depositType === 'SHIPPING' 
+                                ? `Deposit equals shipping cost: ${formatPrice(selectedShipping?.price || 0)}`
+                                : `Deposit is ${depositSettings.depositValue}% of order total: ${formatPrice(calculateDepositAmount())}`}
+                            </p>
+                            <p className="text-xs text-amber-600">
+                              You'll need to complete the deposit payment before confirming your order.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Price Breakdown */}
                     <div className="mb-8 p-4 bg-gray-50 rounded-xl border border-gray-200">
                       <h4 className="font-semibold text-gray-900 mb-3">Price Breakdown</h4>
@@ -490,6 +860,12 @@ const Checkout = () => {
                           <span className="text-gray-600">Shipping ({selectedShipping?.governorateName}):</span>
                           <span className="font-medium text-indigo-600">{formatPrice(selectedShipping?.price || 0)}</span>
                         </div>
+                        {depositSettings?.depositRequired && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">Deposit:</span>
+                            <span className="font-medium text-amber-600">{formatPrice(calculateDepositAmount())}</span>
+                          </div>
+                        )}
                         <div className="border-t border-gray-200 pt-2 mt-2">
                           <div className="flex justify-between font-bold">
                             <span>Total:</span>
@@ -520,11 +896,8 @@ const Checkout = () => {
                         type="submit" disabled={isLoading}
                         className="flex-1 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all shadow-lg flex items-center justify-center space-x-2 disabled:opacity-50"
                       >
-                        {isLoading ? (
-                          <><Loader2 className="h-5 w-5 animate-spin" /><span>Processing...</span></>
-                        ) : (
-                          <><CheckCircle className="h-5 w-5" /><span>Place Order</span></>
-                        )}
+                        <CheckCircle className="h-5 w-5" />
+                        <span>Place Order</span>
                       </button>
                     </div>
                   </>
@@ -558,6 +931,14 @@ const Checkout = () => {
                     {selectedShipping ? formatPrice(selectedShipping.price) : '— Select governorate'}
                   </span>
                 </div>
+                {depositSettings?.depositRequired && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Deposit</span>
+                    <span className="font-medium text-amber-600">
+                      {selectedShipping ? formatPrice(calculateDepositAmount()) : '—'}
+                    </span>
+                  </div>
+                )}
                 <div className="border-t border-gray-200 pt-4">
                   <div className="flex justify-between text-xl font-bold">
                     <span>Total</span>
@@ -599,6 +980,23 @@ const Checkout = () => {
         </div>
       </div>
       <StoreFooter />
+
+      {/* Animation styles */}
+      <style jsx>{`
+        @keyframes scaleIn {
+          from {
+            opacity: 0;
+            transform: scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        .animate-scale-in {
+          animation: scaleIn 0.3s ease-out;
+        }
+      `}</style>
     </div>
   );
 };

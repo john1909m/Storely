@@ -10,6 +10,9 @@ import CTA from '../components/CTA';
 import Footer from '../components/Footer';
 import { useAuth } from '../hooks/useAuth';
 import SEO from '../components/SEO';
+import RamadanOffer from '../components/RamadanOffer';
+import RamadanOfferBanner from '../components/RamadanOfferBanner';
+// import RamadanOffer from './../components/RamadanOffer';
 
 // إضافة أنماط CSS للـ animations
 const scrollAnimationStyles = `
@@ -211,13 +214,18 @@ const LandingPage = () => {
       />
       
       {/* Navbar - بدون تأثير لأنها ثابتة */}
+      
+
+     
       <Navbar />
+      
+      
       
       {/* Hero Section - Fade Up */}
       <div 
         ref={heroRef}
         data-section="hero"
-        className={`scroll-fade-up ${visibleSections.hero ? 'visible' : ''}`}
+        className={`scroll-fade-up ${visibleSections.hero ? 'visible' : ''} `}
       >
         <Hero />
       </div>

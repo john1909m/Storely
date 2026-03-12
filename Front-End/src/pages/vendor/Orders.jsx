@@ -1,4 +1,4 @@
-// src/pages/vendor/VendorOrders.jsx
+// src/pages/vendor/VendorOrders.jsx - إضافة زر الحذف مع التحقق
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -11,7 +11,7 @@ import {
   Menu, X, FilterX, RefreshCw, ChevronRight,
   TrendingUp, Users, ShoppingCart, BarChart,
   Copy, Check, MoreVertical, Edit, Trash2,
-  Wallet, MapPinned
+  Wallet, MapPinned, Image, Download as DownloadIcon
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { orderAPI } from '../../api/order.api';
@@ -39,13 +39,16 @@ const VendorOrders = () => {
   });
   const [showFilters, setShowFilters] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [printOrder, setPrintOrder] = useState(null);
   const [storeData, setStoreData] = useState(null);
-  const printFrameRef = useRef(null);
-  const { store, vendor } = useAuth();
+  const [showDepositModal, setShowDepositModal] = useState(false);
+  const [selectedDeposit, setSelectedDeposit] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const navigate = useNavigate();
   const { handleError } = useErrorHandler();
   const { authInialized, isAuthenticated } = useAuthStore();
+  const { store, vendor } = useAuth();
 
   useEffect(() => {
     if (store?.id && authInialized) {
@@ -86,13 +89,16 @@ const VendorOrders = () => {
       const storeOrders = await orderAPI.getByStore(store.id);
       const ordersList = Array.isArray(storeOrders) ? storeOrders : [];
       
+      // No calculations, just use the data from API
       const processedOrders = ordersList.map(order => ({
         ...order,
-        subtotal: order.subtotal || order.totalPrice || order.total || order.amount || 0,
-        shippingCost: order.shippingCost || 0,
-        totalPrice: order.totalPrice || order.total || order.amount || 0,
-        governorateId: order.governorateId || null,
-        governorateName: order.governorateName || null
+        // Use totalPrice directly from API
+        totalPrice: order.totalPrice || 0,
+        // Deposit data from API
+        depositPaid: order.depositPaid || false,
+        depositStatus: order.depositStatus || 'NOT_REQUIRED',
+        depositValue: order.depositValue || 0,
+        depositScreenShotUrl: order.depositScreenShotUrl || null
       }));
       
       setOrders(processedOrders);
@@ -124,13 +130,93 @@ const VendorOrders = () => {
     }
   };
 
-  // دالة جديدة لحساب تكلفة الشحن بناءً على مدينة العميل
+  const handleDepositStatusUpdate = async (orderId, newStatus, depositPaid) => {
+    try {
+      const order = orders.find(o => o.id === orderId);
+      if (!order) return;
+      if(newStatus ==='REJECTED'){
+        // If deposit is rejected, we consider it as not paid
+        order.status = 'CANCELLED'; // Optionally, you can set the order status to CANCELLED
+      }
+
+      const updatedOrder = {
+        ...order,
+        depositStatus: newStatus,
+        depositPaid: depositPaid,
+        status: newStatus === 'CONFIRMED' ? 'CONFIRMED' : order.status
+      };
+
+      await orderAPI.update(updatedOrder);
+      
+      setOrders(orders.map(o => o.id === orderId ? updatedOrder : o));
+      setShowDepositModal(false);
+    } catch (err) {
+      handleError(err);
+    }
+  };
+
+  const handleCancelOrder = async (orderId) => {
+    if (!window.confirm('Are you sure you want to cancel this order?')) return;
+
+    try {
+      const order = orders.find(o => o.id === orderId);
+      const updatedOrder = {
+        ...order,
+        status: 'CANCELLED'
+      };
+      await orderAPI.update(updatedOrder);
+      setOrders(prev => prev.map(o => o.id === orderId ? updatedOrder : o));
+    } catch (err) {
+      handleError(err);
+    }
+  };
+
+  const handleDeleteOrder = async (orderId) => {
+    try {
+      setIsDeleting(true);
+      
+      // First, cancel the order
+      const order = orders.find(o => o.id === orderId);
+      const cancelledOrder = {
+        ...order,
+        status: 'CANCELLED'
+      };
+      
+      console.log('📝 Cancelling order before deletion:', orderId);
+      await orderAPI.update(cancelledOrder);
+      
+      // Then delete it
+      console.log('🗑️ Deleting order:', orderId);
+      await orderAPI.delete(orderId);
+      
+      // Remove from local state
+      setOrders(prev => prev.filter(o => o.id !== orderId));
+      setSelectedOrders(prev => prev.filter(id => id !== orderId));
+      
+      console.log('✅ Order deleted successfully');
+      
+      // Close the confirmation modal
+      setShowDeleteConfirm(false);
+      setOrderToDelete(null);
+      
+    } catch (err) {
+      console.error('❌ Error deleting order:', err);
+      handleError(err);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleDeleteClick = (order) => {
+    setOrderToDelete(order);
+    setShowDeleteConfirm(true);
+  };
+
   const getShippingCostForCustomer = (customer) => {
     if (!customer || !customer.city || !governorates || governorates.length === 0 || !storeData) {
       return 0;
     }
 
-    // 1. دور على المحافظة اللي اسمها مطابق لمدينة العميل
     const governorate = governorates.find(
       g => g.name.toLowerCase().trim() === customer.city.toLowerCase().trim()
     );
@@ -140,13 +226,10 @@ const VendorOrders = () => {
       return 0;
     }
 
-    // 2. دور على تكلفة الشحن للمحافظة دي في المتجر
     const storeShippingCost = storeData?.shippingCosts?.find(
       sc => sc.governorateId === governorate.id
     );
 
-    console.log('City:', customer.city, 'Governorate:', governorate?.name, 'Shipping Cost:', storeShippingCost?.price);
-    
     return storeShippingCost?.price || 0;
   };
 
@@ -176,17 +259,16 @@ const VendorOrders = () => {
 
   const handlePrintReceipt = (order) => {
     const customer = customers[order.customerId] || order.customer;
-    const items = order.items || order.orderItems || [];
-    const orderDate = order.orderDate || order.createdAt || order.date;
+    const items = order.orderItems || [];
+    const orderDate = order.createdAt;
     
-    const subtotal = order.subtotal || order.totalPrice || order.total || order.amount || 0;
+    const totalPrice = order.totalPrice || 0;
     const shippingCost = getShippingCostForCustomer(customer);
-    const orderTotal = subtotal + shippingCost;
-    const governorateName = customer?.city || order.governorateName || getGovernorateName(order.governorateId);
+    const remainingAmount = totalPrice - (order.depositValue || 0);
     
     const printWindow = window.open('', '_blank', 'width=800,height=600');
     
-    const receiptHTML = generateReceiptHTML(order, customer, items, orderDate, subtotal, shippingCost, orderTotal, governorateName, storeData);
+    const receiptHTML = generateReceiptHTML(order, customer, items, orderDate, totalPrice, shippingCost, remainingAmount, customer?.city, storeData);
     
     printWindow.document.write(receiptHTML);
     printWindow.document.close();
@@ -197,11 +279,13 @@ const VendorOrders = () => {
     };
   };
 
-  const generateReceiptHTML = (order, customer, items, orderDate, subtotal, shippingCost, orderTotal, governorateName, storeData) => {
+  const generateReceiptHTML = (order, customer, items, orderDate, totalPrice, shippingCost, remainingAmount, governorateName, storeData) => {
     const storeName = storeData?.storeName || store?.storeName || 'Your Store';
     const orderNumber = order.orderNumber || order.id;
     const paymentMethod = order.paymentMethod || 'Cash on Delivery';
-    const orderStatus = order.orderStatus || order.status || 'PENDING';
+    const orderStatus = order.status || 'PENDING';
+    const depositValue = order.depositValue || 0;
+    const depositStatus = order.depositStatus || 'NOT_REQUIRED';
     
     const formattedDate = orderDate 
       ? new Date(orderDate).toLocaleString('en-US', {
@@ -352,6 +436,13 @@ const VendorOrders = () => {
             padding-top: 16px;
           }
           
+          .deposit-row {
+            background: #fef3c7;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 10px;
+          }
+          
           .status-badge {
             display: inline-block;
             padding: 6px 12px;
@@ -361,6 +452,17 @@ const VendorOrders = () => {
             text-transform: uppercase;
             background: ${orderStatus === 'DELIVERED' ? '#dcfce7' : orderStatus === 'PENDING' ? '#fef9c3' : orderStatus === 'CANCELLED' ? '#fee2e2' : '#e0e7ff'};
             color: ${orderStatus === 'DELIVERED' ? '#166534' : orderStatus === 'PENDING' ? '#854d0e' : orderStatus === 'CANCELLED' ? '#991b1b' : '#3730a3'};
+          }
+          
+          .deposit-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            background: ${depositStatus === 'CONFIRMED' ? '#dcfce7' : depositStatus === 'UNDER_REVIEW' ? '#fef3c7' : depositStatus === 'REJECTED' ? '#fee2e2' : '#e5e7eb'};
+            color: ${depositStatus === 'CONFIRMED' ? '#166534' : depositStatus === 'UNDER_REVIEW' ? '#92400e' : depositStatus === 'REJECTED' ? '#991b1b' : '#374151'};
           }
           
           .footer {
@@ -454,22 +556,33 @@ const VendorOrders = () => {
           
           <div class="summary">
             <div class="summary-row">
-              <span>Subtotal:</span>
-              <span style="font-weight: 600;">${formatCurrency(subtotal)}</span>
+              <span>Total Price:</span>
+              <span style="font-weight: 600;">${formatCurrency(totalPrice)}</span>
             </div>
-            <div class="summary-row">
-              <span>Shipping (${governorateName}):</span>
-              <span>${formatCurrency(shippingCost)}</span>
-            </div>
-            ${order.discount ? `
-            <div class="summary-row" style="color: #16a34a;">
-              <span>Discount:</span>
-              <span>-${formatCurrency(order.discount)}</span>
+            
+            ${depositValue > 0 ? `
+            <div class="deposit-row">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="font-weight: 600;">Deposit Paid:</span>
+                <span style="font-weight: 600; color: ${order.depositPaid ? '#059669' : '#b45309'};">${order.depositPaid ? 'Yes' : 'No'}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="font-weight: 600;">Deposit Amount:</span>
+                <span style="font-weight: 600; color: #b45309;">${formatCurrency(depositValue)}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span>Remaining:</span>
+                <span style="font-weight: 600;">${formatCurrency(totalPrice - depositValue)}</span>
+              </div>
+              <div style="margin-top: 8px;">
+                <span class="deposit-badge">Deposit Status: ${depositStatus}</span>
+              </div>
             </div>
             ` : ''}
+            
             <div class="summary-row total-row">
-              <span>Total Amount:</span>
-              <span>${formatCurrency(orderTotal)}</span>
+              <span>Order Total:</span>
+              <span>${formatCurrency(totalPrice)}</span>
             </div>
           </div>
           
@@ -513,6 +626,16 @@ const VendorOrders = () => {
     }
   };
 
+  const getDepositStatusColor = (status) => {
+    switch (status?.toUpperCase()) {
+      case 'CONFIRMED': return 'bg-green-100 text-green-800 border border-green-200';
+      case 'UNDER_REVIEW': return 'bg-yellow-100 text-yellow-800 border border-yellow-200';
+      case 'REJECTED': return 'bg-red-100 text-red-800 border border-red-200';
+      case 'NOT_REQUIRED': return 'bg-gray-100 text-gray-800 border border-gray-200';
+      default: return 'bg-gray-100 text-gray-800 border border-gray-200';
+    }
+  };
+
   const handleSelectOrder = (orderId) => {
     setSelectedOrders(prev =>
       prev.includes(orderId)
@@ -545,18 +668,15 @@ const VendorOrders = () => {
 
   const stats = {
     total: orders.length,
-    pending: orders.filter(o => (o.orderStatus || o.status)?.toUpperCase() === 'PENDING').length,
-    confirmed: orders.filter(o => (o.orderStatus || o.status)?.toUpperCase() === 'CONFIRMED').length,
-    processing: orders.filter(o => (o.orderStatus || o.status)?.toUpperCase() === 'PROCESSING').length,
-    shipped: orders.filter(o => (o.orderStatus || o.status)?.toUpperCase() === 'SHIPPED').length,
-    delivered: orders.filter(o => (o.orderStatus || o.status)?.toUpperCase() === 'DELIVERED').length,
-    cancelled: orders.filter(o => (o.orderStatus || o.status)?.toUpperCase() === 'CANCELLED').length,
-    revenue: orders.reduce((sum, order) => {
-      const subtotal = order.subtotal || order.totalPrice || order.total || order.amount || 0;
-      const customer = customers[order.customerId] || order.customer;
-      const shippingCost = getShippingCostForCustomer(customer);
-      return sum + subtotal + shippingCost;
-    }, 0)
+    pending: orders.filter(o => o.status?.toUpperCase() === 'PENDING').length,
+    confirmed: orders.filter(o => o.status?.toUpperCase() === 'CONFIRMED').length,
+    processing: orders.filter(o => o.status?.toUpperCase() === 'PROCESSING').length,
+    shipped: orders.filter(o => o.status?.toUpperCase() === 'SHIPPED').length,
+    delivered: orders.filter(o => o.status?.toUpperCase() === 'DELIVERED').length,
+    cancelled: orders.filter(o => o.status?.toUpperCase() === 'CANCELLED').length,
+    revenue: orders.reduce((sum, order) => sum + (order.totalPrice || 0), 0),
+    pendingDeposits: orders.filter(o => o.depositStatus === 'UNDER_REVIEW').length,
+    totalDeposits: orders.reduce((sum, o) => sum + (o.depositValue || 0), 0)
   };
 
   const formatCurrency = (amount) => {
@@ -587,12 +707,12 @@ const VendorOrders = () => {
   };
 
   const filteredOrders = orders.filter(order => {
-    const status = order.orderStatus || order.status;
+    const status = order.status;
     const matchesStatus = selectedStatus === 'all' || 
       status?.toUpperCase() === selectedStatus.toUpperCase();
     
     const customer = customers[order.customerId] || order.customer;
-    const governorateName = customer?.city || order.governorateName || getGovernorateName(order.governorateId);
+    const governorateName = customer?.city || '';
     
     const matchesSearch = !searchQuery || 
       order.id?.toString().toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -605,7 +725,7 @@ const VendorOrders = () => {
 
     let matchesDate = true;
     if (dateRange.start && dateRange.end) {
-      const orderDate = new Date(order.orderDate || order.createdAt || order.date);
+      const orderDate = new Date(order.createdAt || order.date);
       const start = new Date(dateRange.start);
       const end = new Date(dateRange.end);
       end.setHours(23, 59, 59, 999);
@@ -656,6 +776,165 @@ const VendorOrders = () => {
         }
       `}</style>
       
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && orderToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl animate-scale-in">
+            <div className="p-6">
+              <div className="flex items-center justify-center mb-4">
+                <div className="h-16 w-16 bg-red-100 rounded-full flex items-center justify-center">
+                  <AlertCircle className="h-8 w-8 text-red-600" />
+                </div>
+              </div>
+              
+              <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
+                Delete Order
+              </h3>
+              
+              <p className="text-gray-600 text-center mb-6">
+                Are you sure you want to delete order #{orderToDelete.id?.substring(0, 8)}?<br />
+                This action will first cancel the order and then permanently delete it.<br />
+                <span className="text-red-500 font-medium mt-2 block">This cannot be undone!</span>
+              </p>
+
+              <div className="bg-gray-50 rounded-xl p-4 mb-6">
+                <div className="flex justify-between text-sm mb-2">
+                  <span className="text-gray-600">Order Total:</span>
+                  <span className="font-semibold text-gray-900">{formatCurrency(orderToDelete.totalPrice)}</span>
+                </div>
+                {orderToDelete.depositValue > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Deposit:</span>
+                    <span className="font-semibold text-amber-600">{formatCurrency(orderToDelete.depositValue)}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex space-x-4">
+                <button
+                  onClick={() => {
+                    setShowDeleteConfirm(false);
+                    setOrderToDelete(null);
+                  }}
+                  disabled={isDeleting}
+                  className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleDeleteOrder(orderToDelete.id)}
+                  disabled={isDeleting}
+                  className="flex-1 py-3 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-xl hover:from-red-700 hover:to-pink-700 transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
+                >
+                  {isDeleting ? (
+                    <>
+                      <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Deleting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="h-5 w-5" />
+                      <span>Delete Order</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Deposit Modal */}
+      {showDepositModal && selectedDeposit && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div className="sticky top-0 bg-white border-b border-gray-100 p-6 flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="h-12 w-12 bg-amber-100 rounded-xl flex items-center justify-center">
+                  <Wallet className="h-6 w-6 text-amber-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">Deposit Details</h3>
+                  <p className="text-sm text-gray-500">Order #{selectedDeposit.orderNumber}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowDepositModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="h-5 w-5 text-gray-500" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              <div className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl p-5 text-white">
+                <h4 className="font-medium mb-2">Deposit Amount</h4>
+                <div className="text-3xl font-bold">{formatCurrency(selectedDeposit.value)}</div>
+                <p className="text-sm text-amber-100 mt-1">
+                  Status: {selectedDeposit.status}
+                </p>
+                <p className="text-sm text-amber-100">
+                  Paid: {selectedDeposit.paid ? 'Yes' : 'No'}
+                </p>
+              </div>
+
+              {selectedDeposit.screenshotUrl && (
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-3">Payment Proof</h4>
+                  <div className="border border-gray-200 rounded-xl overflow-hidden">
+                    <img 
+                      src={selectedDeposit.screenshotUrl} 
+                      alt="Deposit proof" 
+                      className="w-full h-auto"
+                    />
+                  </div>
+                  <div className="mt-2 flex justify-center">
+                    <a 
+                      href={selectedDeposit.screenshotUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-sm text-indigo-600 hover:text-indigo-700 flex items-center space-x-1"
+                    >
+                      <DownloadIcon className="h-4 w-4" />
+                      <span>Download Image</span>
+                    </a>
+                  </div>
+                </div>
+              )}
+
+              <div className="bg-gray-50 rounded-xl p-4">
+                <h4 className="font-semibold text-gray-900 mb-3">Deposit Status</h4>
+                <div className="flex items-center justify-between">
+                  <span className={`px-3 py-1.5 rounded-full text-xs font-medium ${getDepositStatusColor(selectedDeposit.status)}`}>
+                    {selectedDeposit.status}
+                  </span>
+                  <span className="text-sm text-gray-500">
+                    Submitted: {formatDate(selectedDeposit.createdAt)}
+                  </span>
+                </div>
+              </div>
+
+              {selectedDeposit.status === 'UNDER_REVIEW' && (
+                <div className="flex space-x-4 pt-4">
+                  <button
+                    onClick={() => handleDepositStatusUpdate(selectedDeposit.orderId, 'CONFIRMED', true)}
+                    className="flex-1 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all"
+                  >
+                    Confirm Deposit
+                  </button>
+                  <button
+                    onClick={() => handleDepositStatusUpdate(selectedDeposit.orderId, 'REJECTED', false)}
+                    className="flex-1 py-3 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-xl hover:from-red-700 hover:to-pink-700 transition-all"
+                  >
+                    Reject Deposit
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Sticky Header */}
       <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-gray-200/80 shadow-sm">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -824,7 +1103,7 @@ const VendorOrders = () => {
           </div>
         )}
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <div className="bg-white rounded-2xl p-5 sm:p-6 border border-gray-200/80 shadow-sm hover:shadow-md transition-all group">
             <div className="flex items-center justify-between mb-3">
               <div className="h-10 w-10 sm:h-12 sm:w-12 bg-blue-50 rounded-xl flex items-center justify-center group-hover:bg-blue-100 transition-colors">
@@ -864,6 +1143,21 @@ const VendorOrders = () => {
             </div>
             <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">{stats.pending}</div>
             <div className="text-xs sm:text-sm text-gray-600">Pending</div>
+          </div>
+
+          <div className="bg-white rounded-2xl p-5 sm:p-6 border border-gray-200/80 shadow-sm hover:shadow-md transition-all group">
+            <div className="flex items-center justify-between mb-3">
+              <div className="h-10 w-10 sm:h-12 sm:w-12 bg-yellow-50 rounded-xl flex items-center justify-center group-hover:bg-yellow-100 transition-colors">
+                <Wallet className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-600" />
+              </div>
+              {stats.pendingDeposits > 0 && (
+                <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full">
+                  {stats.pendingDeposits} pending
+                </span>
+              )}
+            </div>
+            <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">{stats.pendingDeposits}</div>
+            <div className="text-xs sm:text-sm text-gray-600">Pending Deposits</div>
           </div>
           
           <div className="bg-white rounded-2xl p-5 sm:p-6 border border-gray-200/80 shadow-sm hover:shadow-md transition-all group">
@@ -1101,9 +1395,9 @@ const VendorOrders = () => {
                       <th className="text-left p-6 font-semibold text-gray-900">Order</th>
                       <th className="text-left p-6 font-semibold text-gray-900">Customer</th>
                       <th className="text-left p-6 font-semibold text-gray-900">City</th>
+                      <th className="text-left p-6 font-semibold text-gray-900">Deposit</th>
+                      <th className="text-left p-6 font-semibold text-gray-900">Paid</th>
                       <th className="text-left p-6 font-semibold text-gray-900">Date</th>
-                      <th className="text-left p-6 font-semibold text-gray-900">Subtotal</th>
-                      <th className="text-left p-6 font-semibold text-gray-900">Shipping</th>
                       <th className="text-left p-6 font-semibold text-gray-900">Total</th>
                       <th className="text-left p-6 font-semibold text-gray-900">Status</th>
                       <th className="text-left p-6 font-semibold text-gray-900">Actions</th>
@@ -1113,13 +1407,11 @@ const VendorOrders = () => {
                     {filteredOrders.map((order) => {
                       const customer = customers[order.customerId] || order.customer;
                       const isExpanded = expandedRows.includes(order.id);
-                      const status = order.orderStatus || order.status || 'PENDING';
-                      const subtotal = order.subtotal || order.totalPrice || order.total || order.amount || 0;
-                      const shippingCost = getShippingCostForCustomer(customer);
-                      const orderTotal = subtotal + shippingCost;
-                      const orderDate = order.orderDate || order.createdAt || order.date;
-                      const items = order.items || order.orderItems || [];
-                      const governorateName = customer?.city || order.governorateName || getGovernorateName(order.governorateId);
+                      const status = order.status || 'PENDING';
+                      const totalPrice = order.totalPrice || 0;
+                      const orderDate = order.createdAt;
+                      const items = order.orderItems || [];
+                      const governorateName = customer?.city || '';
                       
                       return (
                         <React.Fragment key={order.id}>
@@ -1145,7 +1437,7 @@ const VendorOrders = () => {
                             </td>
                             <td className="p-6">
                               <div className="font-semibold text-gray-900">
-                                #{order.orderNumber || order.id}
+                                #{order.id?.substring(0, 8)}
                               </div>
                               <div className="text-xs text-gray-500 mt-1">
                                 {items.length} items
@@ -1164,26 +1456,38 @@ const VendorOrders = () => {
                                 <MapPinned className="h-4 w-4 text-indigo-600 mr-1" />
                                 <span className="font-medium text-gray-900">{governorateName}</span>
                               </div>
-                              {order.governorateId && (
-                                <div className="text-xs text-gray-500 mt-1">ID: {order.governorateId}</div>
+                            </td>
+                            <td className="p-6">
+                              {order.depositValue > 0 ? (
+                                <div>
+                                  <div className="font-medium text-amber-600">
+                                    {formatCurrency(order.depositValue)}
+                                  </div>
+                                  <div className="mt-1">
+                                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getDepositStatusColor(order.depositStatus)}`}>
+                                      {order.depositStatus}
+                                    </span>
+                                  </div>
+                                </div>
+                              ) : (
+                                <span className="text-gray-400 text-sm">No deposit</span>
                               )}
+                            </td>
+                            <td className="p-6">
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                order.depositPaid 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : 'bg-gray-100 text-gray-800'
+                              }`}>
+                                {order.depositPaid ? 'Yes' : 'No'}
+                              </span>
                             </td>
                             <td className="p-6 text-gray-700 text-sm">
                               {formatDate(orderDate)}
                             </td>
                             <td className="p-6">
-                              <div className="font-medium text-gray-900">
-                                {formatCurrency(subtotal)}
-                              </div>
-                            </td>
-                            <td className="p-6">
-                              <div className="font-medium text-indigo-600">
-                                {formatCurrency(shippingCost)}
-                              </div>
-                            </td>
-                            <td className="p-6">
                               <div className="font-bold text-gray-900">
-                                {formatCurrency(orderTotal)}
+                                {formatCurrency(totalPrice)}
                               </div>
                             </td>
                             <td className="p-6">
@@ -1202,12 +1506,48 @@ const VendorOrders = () => {
                             </td>
                             <td className="p-6">
                               <div className="flex items-center space-x-2">
+                                {order.depositStatus === 'UNDER_REVIEW' && (
+                                  <button 
+                                    onClick={() => {
+                                      setSelectedDeposit({
+                                        orderId: order.id,
+                                        orderNumber: order.id?.substring(0, 8),
+                                        value: order.depositValue,
+                                        status: order.depositStatus,
+                                        paid: order.depositPaid,
+                                        screenshotUrl: order.depositScreenShotUrl,
+                                        createdAt: order.createdAt
+                                      });
+                                      setShowDepositModal(true);
+                                    }}
+                                    className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                                    title="Review Deposit"
+                                  >
+                                    <Wallet className="h-5 w-5" />
+                                  </button>
+                                )}
                                 <button 
                                   onClick={() => handlePrintReceipt(order)}
                                   className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
                                   title="Print Receipt"
                                 >
                                   <Printer className="h-5 w-5" />
+                                </button>
+                                {status !== 'CANCELLED' && status !== 'DELIVERED' && (
+                                  <button 
+                                    onClick={() => handleCancelOrder(order.id)}
+                                    className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                                    title="Cancel Order"
+                                  >
+                                    <XCircle className="h-5 w-5" />
+                                  </button>
+                                )}
+                                <button 
+                                  onClick={() => handleDeleteClick(order)}
+                                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                  title="Delete Order"
+                                >
+                                  <Trash2 className="h-5 w-5" />
                                 </button>
                               </div>
                             </td>
@@ -1240,21 +1580,42 @@ const VendorOrders = () => {
                                         </span>
                                       </div>
                                       <div className="flex justify-between">
-                                        <span className="text-gray-600">Subtotal:</span>
-                                        <span className="font-medium text-gray-900">{formatCurrency(subtotal)}</span>
+                                        <span className="text-gray-600">Total:</span>
+                                        <span className="font-medium text-indigo-600">{formatCurrency(totalPrice)}</span>
                                       </div>
-                                      <div className="flex justify-between">
-                                        <span className="text-gray-600">Shipping:</span>
-                                        <span className="font-medium text-indigo-600">{formatCurrency(shippingCost)}</span>
-                                      </div>
-                                      <div className="flex justify-between">
-                                        <span className="text-gray-600">Shipping to:</span>
-                                        <span className="font-medium text-gray-900">{governorateName}</span>
-                                      </div>
-                                      <div className="flex justify-between pt-2 border-t border-gray-200">
-                                        <span className="font-semibold text-gray-900">Total:</span>
-                                        <span className="font-bold text-indigo-600">{formatCurrency(orderTotal)}</span>
-                                      </div>
+                                      {order.depositValue > 0 && (
+                                        <>
+                                          <div className="flex justify-between pt-2 border-t border-gray-200">
+                                            <span className="font-semibold text-gray-900">Deposit:</span>
+                                            <span className="font-bold text-amber-600">{formatCurrency(order.depositValue)}</span>
+                                          </div>
+                                          <div className="flex justify-between">
+                                            <span className="text-gray-600">Deposit Paid:</span>
+                                            <span className={`font-medium ${order.depositPaid ? 'text-green-600' : 'text-gray-600'}`}>
+                                              {order.depositPaid ? 'Yes' : 'No'}
+                                            </span>
+                                          </div>
+                                          <div className="flex justify-between">
+                                            <span className="text-gray-600">Deposit Status:</span>
+                                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDepositStatusColor(order.depositStatus)}`}>
+                                              {order.depositStatus}
+                                            </span>
+                                          </div>
+                                          {order.depositScreenShotUrl && (
+                                            <div className="mt-2">
+                                              <a 
+                                                href={order.depositScreenShotUrl} 
+                                                target="_blank" 
+                                                rel="noopener noreferrer"
+                                                className="text-indigo-600 hover:text-indigo-700 flex items-center space-x-1 text-sm"
+                                              >
+                                                <Image className="h-4 w-4" />
+                                                <span>View Deposit Proof</span>
+                                              </a>
+                                            </div>
+                                          )}
+                                        </>
+                                      )}
                                     </div>
                                   </div>
                                   
@@ -1305,8 +1666,7 @@ const VendorOrders = () => {
                                     <table className="w-full text-sm">
                                       <thead className="bg-gray-50">
                                         <tr>
-                                          <th className="p-3 text-left text-gray-700">Product ID</th>
-                                          <th className="p-3 text-left text-gray-700">Product name</th>
+                                          <th className="p-3 text-left text-gray-700">Product</th>
                                           <th className="p-3 text-center text-gray-700">Qty</th>
                                           <th className="p-3 text-right text-gray-700">Price</th>
                                           <th className="p-3 text-right text-gray-700">Total</th>
@@ -1317,23 +1677,13 @@ const VendorOrders = () => {
                                           <tr key={index} className="border-t border-gray-100">
                                             <td className="p-3">
                                               <div className="font-medium text-gray-900">
-                                                {item.productId || item.id || 'N/A'}
+                                                {item.productName}
                                               </div>
                                             </td>
-                                            <td className="p-3">
-                                              <div className="font-medium text-gray-900">
-                                                {item.productName || item.name}
-                                              </div>
-                                              {item.variant && (
-                                                <div className="text-xs text-indigo-600 mt-1">
-                                                  Variant: {item.variant}
-                                                </div>
-                                              )}
-                                            </td>
-                                            <td className="p-3 text-center">{item.quantity || 1}</td>
-                                            <td className="p-3 text-right">{formatCurrency(item.price || 0)}</td>
+                                            <td className="p-3 text-center">{item.quantity}</td>
+                                            <td className="p-3 text-right">{formatCurrency(item.price)}</td>
                                             <td className="p-3 text-right font-medium">
-                                              {formatCurrency((item.price || 0) * (item.quantity || 1))}
+                                              {formatCurrency(item.price * item.quantity)}
                                             </td>
                                           </tr>
                                         ))}
@@ -1355,14 +1705,12 @@ const VendorOrders = () => {
             <div className="lg:hidden space-y-4">
               {filteredOrders.map((order) => {
                 const customer = customers[order.customerId] || order.customer;
-                const status = order.orderStatus || order.status || 'PENDING';
-                const subtotal = order.subtotal || order.totalPrice || order.total || order.amount || 0;
-                const shippingCost = getShippingCostForCustomer(customer);
-                const orderTotal = subtotal + shippingCost;
-                const orderDate = order.orderDate || order.createdAt || order.date;
-                const items = order.items || order.orderItems || [];
+                const status = order.status || 'PENDING';
+                const totalPrice = order.totalPrice || 0;
+                const orderDate = order.createdAt;
+                const items = order.orderItems || [];
                 const isExpanded = expandedRows.includes(order.id);
-                const governorateName = customer?.city || order.governorateName || getGovernorateName(order.governorateId);
+                const governorateName = customer?.city || '';
                 
                 return (
                   <div key={order.id} className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
@@ -1377,7 +1725,7 @@ const VendorOrders = () => {
                               className="h-5 w-5 text-indigo-600 rounded border-gray-300"
                             />
                             <span className="font-semibold text-gray-900">
-                              #{order.orderNumber || order.id}
+                              #{order.id?.substring(0, 8)}
                             </span>
                           </div>
                           <p className="text-xs text-gray-500 mt-1">
@@ -1409,34 +1757,79 @@ const VendorOrders = () => {
                           <MapPinned className="h-4 w-4 text-indigo-600 mr-2" />
                           <span className="font-medium text-gray-900">{governorateName}</span>
                         </div>
-                        <div className="flex items-center text-sm">
-                          <DollarSign className="h-4 w-4 text-gray-400 mr-2" />
-                          <span className="font-semibold text-gray-900">
-                            {formatCurrency(subtotal)}
-                          </span>
-                        </div>
-                        <div className="flex items-center text-sm">
-                          <Truck className="h-4 w-4 text-indigo-600 mr-2" />
-                          <span className="text-indigo-600 font-medium">
-                            Shipping: {formatCurrency(shippingCost)}
-                          </span>
-                        </div>
+                        {order.depositValue > 0 && (
+                          <>
+                            <div className="flex items-center text-sm">
+                              <Wallet className="h-4 w-4 text-amber-600 mr-2" />
+                              <span className="text-amber-600 font-medium">
+                                Deposit: {formatCurrency(order.depositValue)}
+                              </span>
+                            </div>
+                            <div className="flex items-center text-sm">
+                              <span className="text-gray-600">Paid:</span>
+                              <span className={`font-medium ml-2 ${order.depositPaid ? 'text-green-600' : 'text-gray-600'}`}>
+                                {order.depositPaid ? 'Yes' : 'No'}
+                              </span>
+                            </div>
+                            <div className="flex items-center text-sm">
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getDepositStatusColor(order.depositStatus)}`}>
+                                Status: {order.depositStatus}
+                              </span>
+                            </div>
+                          </>
+                        )}
                         <div className="flex items-center text-sm pt-1 border-t border-gray-100">
                           <Wallet className="h-4 w-4 text-green-600 mr-2" />
                           <span className="font-bold text-green-600">
-                            Total: {formatCurrency(orderTotal)}
+                            Total: {formatCurrency(totalPrice)}
                           </span>
                         </div>
                       </div>
                       
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
+                          {order.depositStatus === 'UNDER_REVIEW' && (
+                            <button 
+                              onClick={() => {
+                                setSelectedDeposit({
+                                  orderId: order.id,
+                                  orderNumber: order.id?.substring(0, 8),
+                                  value: order.depositValue,
+                                  status: order.depositStatus,
+                                  paid: order.depositPaid,
+                                  screenshotUrl: order.depositScreenShotUrl,
+                                  createdAt: order.createdAt
+                                });
+                                setShowDepositModal(true);
+                              }}
+                              className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                              title="Review Deposit"
+                            >
+                              <Wallet className="h-5 w-5" />
+                            </button>
+                          )}
                           <button 
                             onClick={() => handlePrintReceipt(order)}
                             className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
                             title="Print Receipt"
                           >
                             <Printer className="h-5 w-5" />
+                          </button>
+                          {status !== 'CANCELLED' && status !== 'DELIVERED' && (
+                            <button 
+                              onClick={() => handleCancelOrder(order.id)}
+                              className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                              title="Cancel Order"
+                            >
+                              <XCircle className="h-5 w-5" />
+                            </button>
+                          )}
+                          <button 
+                            onClick={() => handleDeleteClick(order)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Delete Order"
+                          >
+                            <Trash2 className="h-5 w-5" />
                           </button>
                         </div>
                         <button
@@ -1461,10 +1854,10 @@ const VendorOrders = () => {
                               {items.map((item, index) => (
                                 <div key={index} className="flex justify-between text-sm">
                                   <span className="text-gray-600">
-                                    {item.productName || item.name} x{item.quantity || 1}
+                                    {item.productName} x{item.quantity}
                                   </span>
                                   <span className="font-medium text-gray-900">
-                                    {formatCurrency((item.price || 0) * (item.quantity || 1))}
+                                    {formatCurrency(item.price * item.quantity)}
                                   </span>
                                 </div>
                               ))}
@@ -1488,6 +1881,36 @@ const VendorOrders = () => {
                               </p>
                             </div>
                           </div>
+
+                          {order.depositValue > 0 && (
+                            <div>
+                              <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">Deposit Details</h4>
+                              <div className="space-y-1 text-sm">
+                                <p className="text-gray-600">
+                                  <span className="font-medium">Amount:</span> {formatCurrency(order.depositValue)}
+                                </p>
+                                <p className="text-gray-600">
+                                  <span className="font-medium">Paid:</span> {order.depositPaid ? 'Yes' : 'No'}
+                                </p>
+                                <p className="text-gray-600">
+                                  <span className="font-medium">Status:</span> {order.depositStatus}
+                                </p>
+                                {order.depositScreenShotUrl && (
+                                  <p className="text-gray-600">
+                                    <a 
+                                      href={order.depositScreenShotUrl} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer"
+                                      className="text-indigo-600 hover:text-indigo-700 flex items-center space-x-1"
+                                    >
+                                      <Image className="h-4 w-4" />
+                                      <span>View Proof</span>
+                                    </a>
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}

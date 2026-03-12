@@ -7,7 +7,7 @@ import {
   ChevronRight, Menu, X, Copy, QrCode,
   Brush, Building2, Clock, Calendar,
   Tag, Sparkles, ImagePlus, Trash2,
-  Truck, Plus, Minus, Edit3
+  Truck, Plus, Minus, Edit3, Wallet, Info, CreditCard, Smartphone
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { storeAPI } from '../../api/store.api';
@@ -83,7 +83,8 @@ const StoreDetails = () => {
     storeAddress: '',
     categoryId: '',
     createdAt: '',
-    storeStatus: store?.storeStatus || 'Inactive'
+    storeStatus: store?.storeStatus || 'Inactive',
+    fontFamily: 'Poppins'
   });
 
   // Branding state
@@ -97,6 +98,15 @@ const StoreDetails = () => {
   const [socialMedia, setSocialMedia] = useState({
     facebook: '',
     instagram: '',
+  });
+
+  // Deposit state
+  const [depositSettings, setDepositSettings] = useState({
+    depositType: 'PERCENTAGE', // 'percentage' or 'shipping'
+    depositValue: 10,
+    instapayNumber: '',
+    vodafoneCashNumber: '',
+    depositRequired: true
   });
 
   // Shipping state
@@ -139,6 +149,11 @@ const StoreDetails = () => {
     try {
       if (store?.id) {
         const storeData = await storeAPI.getById(store.id);
+        const deposit=await storeAPI.getDepositSettings(store.id)
+        const depositSettings = await deposit.json();
+        console.log('📦 Fetched store data:', storeData);
+        console.log('📦 Fetched deposit settings:', depositSettings);
+
         
         setStoreInfo({
           storeName: storeData.storeName || '',
@@ -147,7 +162,8 @@ const StoreDetails = () => {
           storeAddress: storeData.storeAddress || '',
           categoryId: storeData.categoryId || '',
           createdAt: storeData.createdAt || new Date().toISOString(),
-          storeStatus: storeData.storeStatus || 'Inactive'
+          storeStatus: storeData.storeStatus || 'Inactive',
+          fontFamily: storeData.fontFamily || 'Poppins'
         });
 
         setBranding({
@@ -159,6 +175,15 @@ const StoreDetails = () => {
         setSocialMedia({
           facebook: storeData.facebook || '',
           instagram: storeData.instagram || '',
+        });
+
+        // Load deposit settings
+        setDepositSettings({
+          depositType: depositSettings.depositType || 'PERCENTAGE',
+          depositValue: depositSettings.depositValue || 10,
+          instapayNumber: depositSettings.instapayNumber || '',
+          vodafoneCashNumber: depositSettings.vodafoneCashNumber || '',
+          depositRequired: depositSettings.depositRequired !== false // default to true
         });
       }
 
@@ -211,6 +236,11 @@ const StoreDetails = () => {
 
   const handleSocialMediaChange = (field, value) => {
     setSocialMedia(prev => ({ ...prev, [field]: value }));
+  };
+
+  // Deposit handlers
+  const handleDepositChange = (field, value) => {
+    setDepositSettings(prev => ({ ...prev, [field]: value }));
   };
 
   const handleShippingToggle = (governorateId) => {
@@ -272,8 +302,57 @@ const StoreDetails = () => {
     return `${window.location.origin}/store/${store.storeName}`;
   };
 
+  const handleSaveDeposit = async () => {
+    if (savingRef.current) return;
+    savingRef.current = true;
+    
+    try {
+      setSaving(true);
+      setError(null);
+      setSuccess(null);
+
+      if (!store?.id) {
+        setError('Store not found. Please create a store first.');
+        return;
+      }
+
+      // Validate at least one payment method
+      if (depositSettings.depositRequired && 
+          !depositSettings.instapayNumber && 
+          !depositSettings.vodafoneCashNumber) {
+        setError('At least one payment method (Instapay or Vodafone Cash) is required when deposit is enabled.');
+        return;
+      }
+
+      // Prepare deposit settings data
+      const depositData = {
+        storeId: store.id,
+        depositType: depositSettings.depositType,
+        depositValue: depositSettings.depositValue,
+        instapayNumber: depositSettings.instapayNumber,
+        vodafoneCashNumber: depositSettings.vodafoneCashNumber,
+        depositRequired: depositSettings.depositRequired
+      };
+
+      console.log('📤 Sending deposit settings:', JSON.stringify(depositData, null, 2));
+
+      await storeAPI.updateDepositSettings(depositData);
+      
+      setSuccess('Deposit settings updated successfully!');
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (err) {
+      console.error('❌ Save error:', err);
+      handleError(err);
+    } finally {
+      savingRef.current = false;
+      setSaving(false);
+    }
+  };
+
   const handleSave = async () => {
     if (savingRef.current) return;
+    savingRef.current = true;
+    
   try {
     setSaving(true);
     setError(null);
@@ -293,31 +372,37 @@ const StoreDetails = () => {
       return;
     }
 
-    // Prepare update data - كل المطلوب موجود
+    // Prepare update data
     const updateData = {
       id: store.id,
-      vendorId: vendor?.id,                          // ✅ إضافة vendorId
-      vendorName: vendor?.name,                      // ✅ إضافة vendorName
+      vendorId: vendor?.id,
+      vendorName: vendor?.name,
       storeName: storeInfo.storeName,
       storeDescription: storeInfo.storeDescription,
       storePhone: storeInfo.storePhone,
       storeAddress: storeInfo.storeAddress,
-      createdAt: storeInfo.createdAt || new Date().toISOString(), // ✅ إضافة createdAt
+      createdAt: storeInfo.createdAt || new Date().toISOString(),
       primaryColor: branding.primaryColor,
       secondaryColor: branding.secondaryColor,
       storeLogoUrl: branding.storeLogoUrl,
-      fontFamily: storeInfo.fontFamily || 'Poppins', // ✅ إضافة fontFamily (قيمة افتراضية)
+      fontFamily: storeInfo.fontFamily || 'Poppins',
       facebook: socialMedia.facebook,
       instagram: socialMedia.instagram,
       storeStatus: storeInfo.storeStatus,
-      products: store?.products || [],                // ✅ إضافة products (ممكن array فاضي)
-      categories: categories || [],                   // ✅ إضافة categories
-      orders: store?.orders || [],                    // ✅ إضافة orders
-      customerIds: [],                                // ✅ إضافة customerIds (array فاضي)
+      products: store?.products || [],
+      categories: categories || [],
+      orders: store?.orders || [],
+      customerIds: [],
       shippingCosts: uniqueShippingCosts.map(cost => ({
         governorateId: cost.governorateId,
         price: parseFloat(cost.price) || 0
-      }))
+      })),
+      // Deposit settings
+      depositType: depositSettings.depositType,
+      depositValue: depositSettings.depositValue,
+      instapayNumber: depositSettings.instapayNumber,
+      vodafoneCashNumber: depositSettings.vodafoneCashNumber,
+      depositRequired: depositSettings.depositRequired
     };
 
     // Remove undefined or null values
@@ -342,42 +427,32 @@ const StoreDetails = () => {
   }
 };
 
-  const CLOUD_NAME = "dnycajxc0";
-  const UPLOAD_PRESET = "storely_unsigned";
-
+  // ✅ دالة رفع الصور المعدلة - تستخدم API الباكند
   const handleImageUpload = async (file, type) => {
     try {
       type === "logo" && setUploadingLogo(true);
       
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('upload_preset', UPLOAD_PRESET);
-      formData.append('cloud_name', CLOUD_NAME);
+      formData.append('type', type);
 
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
-        method: 'POST',
-        body: formData
-      });
-
-      if (!res.ok) throw new Error("Upload failed");
-
-      const data = await res.json();
+      // استخدام API الباكند
+      const response = await storeAPI.uploadImage(store.id, formData);
+      
+      // الباكند بيرجع { url: "..." }
+      const data = await response.json();
 
       if (type === "logo") {
         setBranding(prev => ({
           ...prev,
-          storeLogoUrl: data.secure_url,
+          storeLogoUrl: data.url,
         }));
-        
-        await storeAPI.update({
-          id: store.id,
-          storeLogoUrl: data.secure_url
-        });
       }
 
-      setSuccess(`${type === "logo" ? "Logo" : "Favicon"} uploaded successfully`);
+      setSuccess(`${type === "logo" ? "Logo" : "Image"} uploaded successfully`);
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
+      console.error('❌ Upload error:', err);
       handleError(err);
     } finally {
       type === "logo" && setUploadingLogo(false);
@@ -390,16 +465,18 @@ const StoreDetails = () => {
         return;
       }
 
-      const updateData = { id: store.id };
-
+      // TODO: إضافة API لحذف الصورة إذا كان موجود
       if (type === 'logo') {
-        updateData.storeLogoUrl = '';
         setBranding(prev => ({ ...prev, storeLogoUrl: '' }));
+        
+        // تحديث المتجر بدون اللوجو
+        await storeAPI.update({
+          id: store.id,
+          storeLogoUrl: ''
+        });
       }
 
-      await storeAPI.update(updateData);
-      
-      setSuccess(`${type === 'logo' ? 'Logo' : 'Favicon'} removed successfully!`);
+      setSuccess(`${type === 'logo' ? 'Logo' : 'Image'} removed successfully!`);
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
       handleError(err);
@@ -463,6 +540,7 @@ const StoreDetails = () => {
   const tabs = [
     { id: 'basic', label: 'Basic Info', icon: Store, description: 'Store name & description' },
     { id: 'shipping', label: 'Shipping', icon: Truck, description: 'Shipping costs by governorate' },
+    { id: 'deposit', label: 'Deposit', icon: Wallet, description: 'Payment deposit settings' },
     { id: 'branding', label: 'Branding', icon: Brush, description: 'Logo & colors' },
     { id: 'contact', label: 'Contact', icon: MapPin, description: 'Phone & Location' },
     { id: 'social', label: 'Social', icon: Facebook, description: 'Social media profiles' },
@@ -1083,6 +1161,238 @@ const StoreDetails = () => {
               </div>
             )}
 
+            {/* Deposit Tab */}
+            {activeTab === 'deposit' && (
+              <div className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-200/80 shadow-sm">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center">
+                    <div className="h-10 w-10 bg-amber-100 rounded-xl flex items-center justify-center mr-3">
+                      <Wallet className="h-5 w-5 text-amber-600" />
+                    </div>
+                    Payment Deposit Settings
+                  </h2>
+                </div>
+
+                <div className="space-y-6">
+                  {/* Deposit Required Toggle */}
+                  <div className="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-xl p-4 border border-amber-100">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="h-10 w-10 bg-amber-100 rounded-lg flex items-center justify-center">
+                          <CreditCard className="h-5 w-5 text-amber-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-gray-900">Require Deposit for Orders</h3>
+                          <p className="text-sm text-gray-600">Customers must pay deposit before order confirmation</p>
+                        </div>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={depositSettings.depositRequired}
+                          onChange={(e) => handleDepositChange('depositRequired', e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-amber-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-600"></div>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Deposit Type */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">
+                      Deposit Calculation Method
+                    </label>
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <button
+                        type="button"
+                        onClick={() => handleDepositChange('depositType', 'PERCENTAGE')}
+                        className={`p-4 border-2 rounded-xl transition-all flex flex-col items-center ${
+                          depositSettings.depositType === 'PERCENTAGE'
+                            ? 'border-amber-500 bg-amber-50'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <div className={`h-12 w-12 rounded-lg flex items-center justify-center mb-2 ${
+                          depositSettings.depositType === 'PERCENTAGE' ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-600'
+                        }`}>
+                          <span className="text-xl font-bold">%</span>
+                        </div>
+                        <span className="font-medium text-gray-900">Percentage (%)</span>
+                        <span className="text-xs text-gray-500 mt-1">Percentage of order total</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleDepositChange('depositType', 'SHIPPING')}
+                        className={`p-4 border-2 rounded-xl transition-all flex flex-col items-center ${
+                          depositSettings.depositType === 'SHIPPING'
+                            ? 'border-amber-500 bg-amber-50'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <div className={`h-12 w-12 rounded-lg flex items-center justify-center mb-2 ${
+                          depositSettings.depositType === 'SHIPPING' ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-600'
+                        }`}>
+                          <Truck className="h-6 w-6" />
+                        </div>
+                        <span className="font-medium text-gray-900">Shipping Cost</span>
+                        <span className="text-xs text-gray-500 mt-1">Use configured shipping cost</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Deposit Value - فقط للـ percentage */}
+                  {depositSettings.depositType === 'PERCENTAGE' && (
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Deposit Percentage (%)
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">
+                          %
+                        </span>
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="1"
+                          value={depositSettings.depositValue}
+                          onChange={(e) => handleDepositChange('depositValue', parseFloat(e.target.value) || 0)}
+                          className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all focus:bg-white"
+                          placeholder="10"
+                        />
+                      </div>
+                      <p className="mt-2 text-sm text-gray-500 flex items-center">
+                        <Info className="h-4 w-4 mr-1 text-amber-500" />
+                        Percentage of the total order value to be paid as deposit
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Info for shipping type */}
+                  {depositSettings.depositType === 'SHIPPING' && (
+                    <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                      <div className="flex items-start gap-3">
+                        <Truck className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-sm text-blue-800 font-medium">Deposit will be the shipping cost</p>
+                          <p className="text-xs text-blue-600 mt-1">
+                            The deposit amount will be calculated based on the customer's governorate shipping cost configured in the Shipping tab.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Payment Methods */}
+                  <div className="pt-4 border-t border-gray-200">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                      <Smartphone className="h-5 w-5 mr-2 text-amber-600" />
+                      Payment Methods
+                    </h3>
+
+                    {/* Instapay */}
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Instapay Number
+                      </label>
+                      <div className="relative">
+                        <Smartphone className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                        <input
+                          type="text"
+                          value={depositSettings.instapayNumber}
+                          onChange={(e) => handleDepositChange('instapayNumber', e.target.value)}
+                          className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all focus:bg-white"
+                          placeholder="01012345678"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Vodafone Cash */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Vodafone Cash Number
+                      </label>
+                      <div className="relative">
+                        <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                        <input
+                          type="text"
+                          value={depositSettings.vodafoneCashNumber}
+                          onChange={(e) => handleDepositChange('vodafoneCashNumber', e.target.value)}
+                          className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all focus:bg-white"
+                          placeholder="01012345678"
+                        />
+                      </div>
+                    </div>
+
+                    <p className="mt-4 text-sm text-gray-500 flex items-center">
+                      <Info className="h-4 w-4 mr-1 text-amber-500" />
+                      At least one payment method is required when deposit is enabled
+                    </p>
+                  </div>
+
+                  {/* Preview */}
+                  <div className="mt-6 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl p-5 text-white">
+                    <h3 className="font-semibold mb-3 flex items-center">
+                      <Eye className="h-5 w-5 mr-2" />
+                      Deposit Preview
+                    </h3>
+                    <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                      <div className="flex justify-between items-center mb-2">
+                        <span>Order Total (example)</span>
+                        <span className="font-bold">1,000 EGP</span>
+                      </div>
+                      <div className="flex justify-between items-center text-amber-100">
+                        <span>Deposit</span>
+                        <span className="font-bold text-white">
+                          {depositSettings.depositType === 'PERCENTAGE' 
+                            ? `${(1000 * (depositSettings.depositValue / 100)).toFixed(0)} EGP`
+                            : depositSettings.depositType === 'SHIPPING'
+                              ? 'Shipping cost (varies by governorate)'
+                              : `${depositSettings.depositValue} EGP`}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Save Button */}
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handleSaveDeposit}
+                      disabled={saving}
+                      className="px-8 py-3 bg-gradient-to-r from-amber-600 to-orange-600 text-white font-semibold rounded-xl hover:from-amber-700 hover:to-orange-700 transition-all shadow-md hover:shadow-lg disabled:opacity-50 flex items-center space-x-2"
+                    >
+                      {saving ? (
+                        <>
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                          <span>Saving...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Save className="h-5 w-5" />
+                          <span>Save Deposit Settings</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Info Box */}
+                  <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl">
+                    <div className="flex items-start gap-3">
+                      <div className="h-8 w-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <Info className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <p className="text-sm text-blue-800">
+                        When enabled, customers will be required to pay a deposit before their order is confirmed. 
+                        You'll receive a screenshot of the payment and can confirm it in your orders dashboard.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* باقي التبويبات كما هي */}
             {/* Branding Tab */}
             {activeTab === 'branding' && (
@@ -1097,7 +1407,7 @@ const StoreDetails = () => {
                 </div>
                 
                 <div className="space-y-8">
-                  {/* Logo Section */}
+                  {/* Logo Section - المعدل */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-4">
                       Store Logo
