@@ -66,7 +66,7 @@ public class OrderController {
 
     @PostMapping("/{orderId}/deposit")
     public ResponseEntity<OrderDto> uploadDeposit(@PathVariable("orderId") UUID orderId,
-                                                  @RequestBody MultipartFile screenshot) {
+                                                  @RequestParam("screenshot") MultipartFile screenshot) {
 
         return ResponseEntity.ok(orderService.uploadDeposit(orderId, screenshot));
     }
