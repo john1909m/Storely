@@ -313,7 +313,7 @@ public class OrderServiceImpl implements OrderService {
 
             } else if (depositSetting.getDepositType() == DepositType.PERCENTAGE) {
 
-                depositAmount = totalPrice * depositSetting.getDepositValue() / 100;
+                depositAmount = itemsTotal * depositSetting.getDepositValue() / 100;
 
             }
 
