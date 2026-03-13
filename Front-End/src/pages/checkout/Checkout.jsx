@@ -136,7 +136,7 @@ const Checkout = () => {
     if (step === 2) {
       
       // في حالة عدم وجود deposit مطلوب
-      if(!depositSettings.depositRequired ||depositSettings === null){ {
+      if(!depositSettings.depositRequired|| depositSettings=== null) {
         setIsLoading(true);
         setError(null);
 
