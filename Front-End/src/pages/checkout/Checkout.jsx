@@ -88,6 +88,7 @@ const Checkout = () => {
       setDepositSettings(settings);
     } catch (err) {
       console.error('Error fetching deposit settings:', err);
+      setDepositSettings(null);
       // Don't show error, deposit might be optional
     }
   };
@@ -135,7 +136,7 @@ const Checkout = () => {
     if (step === 2) {
       
       // في حالة عدم وجود deposit مطلوب
-      if(!depositSettings.depositRequired) {
+      if(!depositSettings.depositRequired ||depositSettings === null){ {
         setIsLoading(true);
         setError(null);
 
