@@ -53,12 +53,14 @@
 
 html {
   scroll-behavior: smooth;
+  background-color: black;
 }
 
 body {
   margin: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: black;
 }
 
 /* Custom scrollbar */
@@ -67,11 +69,11 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: rgb(32, 27, 46);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, var(--color-primary), #660019);
+  background: linear-gradient(to bottom, var(--color-primary), #310066);
   border-radius: 5px;
 }
 

@@ -1,101 +1,207 @@
-// components/CTA.jsx
-import React from 'react';
-import { ArrowRight, Star, CheckCircle, Sparkles } from 'lucide-react';
+// components/CTA.jsx (Vision Pro AR Style)
+import React, { useState } from 'react';
+import { ArrowRight, Star, Sparkles, Rocket, Zap, Shield, Globe, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const CTA = () => {
+  const [hoveredCard, setHoveredCard] = useState(null);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
   const benefits = [
-    
-    
-    'Cancel anytime',
-    'Instant setup'
+    { icon: Zap, text: 'No credit card required', color: 'blue' },
+    { icon: Globe, text: 'Instant setup', color: 'pink' },
   ];
 
   return (
     <section 
-      className="py-12 sm:py-16 md:py-24 bg-gradient-to-r from-indigo-600 to-purple-600 relative overflow-hidden"
+      className="py-24 relative overflow-hidden"
       aria-label="Call to action"
+      onMouseMove={(e) => {
+        setMousePosition({
+          x: (e.clientX / window.innerWidth - 0.5) * 20,
+          y: (e.clientY / window.innerHeight - 0.5) * 20,
+        });
+      }}
     >
-      {/* Animated background elements */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-0 left-0 w-64 h-64 bg-white rounded-full blur-3xl animate-float"></div>
-        <div className="absolute bottom-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl animate-float-delayed"></div>
+      {/* 3D Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-950 via-indigo-950/100 to-purple-950/50">
+        {/* Floating orbs */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-indigo-400/10 rounded-full blur-3xl animate-pulse-slow"></div>
+        <div className="absolute top-20 left-20 w-96 h-96 bg-blue-400/20 rounded-full blur-3xl animate-float-3d"></div>
+        <div className="absolute bottom-20 right-20 w-96 h-96 bg-purple-400/20 rounded-full blur-3xl animate-float-3d animation-delay-2000"></div>
+        
+        {/* 3D Grid */}
+        <div className="absolute inset-0 opacity-20" style={{
+          backgroundImage: `linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                           linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)`,
+          backgroundSize: '50px 50px',
+          transform: `perspective(500px) rotateX(60deg) scale(2)`,
+          transformOrigin: 'top',
+        }}></div>
+        
+        {/* Floating particles */}
+        {[...Array(50)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-1 h-1 bg-white/20 rounded-full animate-float-particle"
+            style={{
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 5}s`,
+              animationDuration: `${3 + Math.random() * 5}s`,
+            }}
+          ></div>
+        ))}
       </div>
-      
+
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="max-w-4xl mx-auto text-center">
-          {/* Stars */}
+          {/* 3D Stars */}
           <div 
-            className="flex justify-center space-x-1 mb-4 sm:mb-6"
-            aria-label="5-star rating"
+            className="flex justify-center space-x-2 mb-6 perspective-1000"
+            style={{
+              transform: `perspective(1000px) rotateX(${mousePosition.y}deg) rotateY(${mousePosition.x}deg)`,
+            }}
           >
             {[...Array(5)].map((_, i) => (
-              <Star 
-                key={i} 
-                className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-300 fill-current animate-pulse" 
+              <div
+                key={i}
+                className="transform-gpu hover:scale-150 hover:rotate-12 transition-all duration-300"
                 style={{ animationDelay: `${i * 100}ms` }}
-                aria-hidden="true"
-              />
-            ))}
-          </div>
-          
-          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 sm:mb-6">
-            Ready to Launch Your Online Store?
-          </h2>
-          
-          <p className="text-base sm:text-lg md:text-xl text-indigo-100 mb-6 sm:mb-8 md:mb-10 max-w-2xl mx-auto px-4">
-            Join successful vendors who trust Storely to power their online business. 
-            No coding, no complex setup — just results.
-          </p>
-          
-          {/* Benefits badges */}
-          <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-6 sm:mb-8">
-            {benefits.map((benefit, index) => (
-              <div 
-                key={index} 
-                className="bg-white/10 backdrop-blur-sm text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm flex items-center space-x-1"
+                onMouseEnter={() => setHoveredCard(`star-${i}`)}
+                onMouseLeave={() => setHoveredCard(null)}
               >
-                <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" aria-hidden="true" />
-                <span>{benefit}</span>
+                <Star className={`h-8 w-8 text-yellow-400 fill-current transition-all duration-300 ${
+                  hoveredCard === `star-${i}` ? 'drop-shadow-[0_0_20px_rgba(250,204,21,0.5)]' : ''
+                }`} />
               </div>
             ))}
           </div>
           
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-6 sm:mb-8 md:mb-12">
+          {/* 3D Badge */}
+          <div 
+            className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-2xl text-blue-300 px-4 py-2 rounded-full mb-8 border border-white/20 shadow-2xl transform-gpu hover:scale-105 transition-all duration-300"
+            onMouseEnter={() => setHoveredCard('badge')}
+            onMouseLeave={() => setHoveredCard(null)}
+            style={{
+              transform: hoveredCard === 'badge' ? 'perspective(1000px) rotateX(5deg) translateZ(20px)' : 'perspective(1000px) rotateX(0) translateZ(0)',
+            }}
+          >
+            <Sparkles className="h-4 w-4 animate-pulse" />
+            <span className="text-sm font-medium">Limited Time Offer</span>
+          </div>
+          
+          {/* 3D Main Text */}
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6">
+            <div 
+              className="transform-gpu hover:translate-z-10 transition-transform duration-300"
+              style={{
+                textShadow: '0 10px 30px rgba(0,0,0,0.5), 0 0 40px rgba(59,130,246,0.3)',
+              }}
+            >
+              <span className="bg-gradient-to-r from-white via-blue-200 to-purple-200 bg-clip-text text-transparent block">
+                Ready to Launch Your
+              </span>
+            </div>
+            <div 
+              className="transform-gpu hover:translate-z-20 transition-transform duration-300 mt-2"
+              style={{
+                textShadow: '0 15px 40px rgba(0,0,0,0.5), 0 0 60px rgba(168,85,247,0.3)',
+              }}
+            >
+              <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent block">
+                Online Store?
+              </span>
+            </div>
+          </h2>
+          
+          <p className="text-xl text-blue-100/70 mb-10 max-w-2xl mx-auto">
+            Join successful vendors in the next generation of e-commerce. Experience the future today.
+          </p>
+          
+          {/* 3D Benefits badges */}
+          <div className="flex flex-wrap justify-center gap-3 mb-10 perspective-1000">
+            {benefits.map((benefit, index) => (
+              <div
+                key={index}
+                className="transform-gpu hover:scale-110 hover:-translate-y-2 transition-all duration-300"
+                style={{ transitionDelay: `${index * 100}ms` }}
+                onMouseEnter={() => setHoveredCard(`benefit-${index}`)}
+                onMouseLeave={() => setHoveredCard(null)}
+              >
+                <div className={`relative bg-white/5 backdrop-blur-xl px-4 py-2 rounded-full border border-white/10 hover:border-${benefit.color}-400/30 transition-all duration-300`}>
+                  <div className={`absolute inset-0 bg-${benefit.color}-400/20 blur-xl rounded-full transition-opacity duration-500 ${
+                    hoveredCard === `benefit-${index}` ? 'opacity-100' : 'opacity-0'
+                  }`}></div>
+                  <div className="relative flex items-center space-x-2">
+                    <benefit.icon className={`h-4 w-4 text-${benefit.color}-400`} />
+                    <span className="text-sm text-gray-300">{benefit.text}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          {/* 3D Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-10 perspective-1000">
             <Link to="/signup" className="w-full sm:w-auto">
               <button 
-                className="w-full sm:w-auto px-6 sm:px-8 md:px-10 py-3 sm:py-4 md:py-5 bg-white text-indigo-600 font-bold text-sm sm:text-base md:text-lg rounded-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 flex items-center justify-center space-x-2 sm:space-x-3 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-indigo-600"
-                aria-label="Start selling today"
+                className="group relative w-full sm:w-auto px-10 py-5 rounded-2xl overflow-hidden transform-gpu hover:scale-110 hover:rotate-1 transition-all duration-300"
+                onMouseEnter={() => setHoveredCard('cta1')}
+                onMouseLeave={() => setHoveredCard(null)}
+                style={{
+                  transform: hoveredCard === 'cta1' ? 'perspective(1000px) rotateX(5deg) translateZ(30px)' : 'perspective(1000px) rotateX(0) translateZ(0)',
+                }}
               >
-                <span>Start Selling Today</span>
-                <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" aria-hidden="true" />
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 opacity-90"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:translate-x-full transition-transform duration-1000"></div>
+                
+                <div className={`absolute inset-0 transition-opacity duration-500 ${hoveredCard === 'cta1' ? 'opacity-100' : 'opacity-0'}`}>
+                  <div className="absolute top-0 left-0 w-32 h-32 bg-white/20 rounded-full blur-3xl animate-float"></div>
+                  <div className="absolute bottom-0 right-0 w-32 h-32 bg-white/20 rounded-full blur-3xl animate-float animation-delay-2000"></div>
+                </div>
+                
+                <span className="relative z-10 flex items-center justify-center space-x-3 text-white font-bold text-lg">
+                  <span>Start Selling Today</span>
+                  <Rocket className="h-5 w-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                </span>
               </button>
             </Link>
             
             <Link to="/pricing" className="w-full sm:w-auto">
               <button 
-                className="w-full sm:w-auto px-6 sm:px-8 md:px-10 py-3 sm:py-4 md:py-5 bg-transparent border-2 border-white text-white font-bold text-sm sm:text-base md:text-lg rounded-xl hover:bg-white/10 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white"
-                aria-label="View pricing plans"
+                className="group relative w-full sm:w-auto px-10 py-5 rounded-2xl overflow-hidden transform-gpu hover:scale-110 hover:-rotate-1 transition-all duration-300"
+                onMouseEnter={() => setHoveredCard('cta2')}
+                onMouseLeave={() => setHoveredCard(null)}
+                style={{
+                  transform: hoveredCard === 'cta2' ? 'perspective(1000px) rotateX(5deg) translateZ(20px)' : 'perspective(1000px) rotateX(0) translateZ(0)',
+                }}
               >
-                View Pricing
+                <div className="absolute inset-0 bg-white/10 backdrop-blur-2xl border border-white/20"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:translate-x-full transition-transform duration-1000"></div>
+                
+                <span className="relative z-10 text-white font-bold text-lg">View Pricing</span>
               </button>
             </Link>
           </div>
           
-          {/* Trust indicators */}
-          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs sm:text-sm text-indigo-100">
-            <div className="flex items-center space-x-1">
-              <Sparkles className="h-3 w-3 sm:h-4 sm:w-4" aria-hidden="true" />
-              <span>No hidden fees</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" aria-hidden="true" />
-              <span>Secure platform</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <Star className="h-3 w-3 sm:h-4 sm:w-4" aria-hidden="true" />
-              <span>5-star support</span>
-            </div>
+          {/* 3D Trust indicators */}
+          <div className="flex flex-wrap items-center justify-center gap-6 text-sm">
+            {[
+              { text: 'No hidden fees', color: 'blue' },
+              { text: 'Secure platform', color: 'purple' },
+              { text: '24/7 support', color: 'pink' },
+            ].map((item, index) => (
+              <div
+                key={index}
+                className="flex items-center space-x-2 transform-gpu hover:scale-110 transition-all duration-300"
+                onMouseEnter={() => setHoveredCard(`trust-${index}`)}
+                onMouseLeave={() => setHoveredCard(null)}
+              >
+                <div className={`h-2 w-2 bg-${item.color}-400 rounded-full animate-pulse`}></div>
+                <span className="text-gray-300">{item.text}</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
