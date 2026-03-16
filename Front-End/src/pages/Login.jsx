@@ -306,9 +306,7 @@ const Login = () => {
                     <label className="block text-sm font-medium text-blue-200">
                       Password
                     </label>
-                    <Link to="/forgot-password" className="text-xs text-blue-400 hover:text-blue-300 transition-colors">
-                      Forgot?
-                    </Link>
+                    
                   </div>
                   <div className="relative">
                     <Lock className={`absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 transition-all duration-300 ${
