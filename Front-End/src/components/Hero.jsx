@@ -95,7 +95,7 @@ const Hero = () => {
       className="relative min-h-screen pt-32 pb-20 overflow-hidden bg-black"
       aria-label="Hero section"
       style={{
-        transform: getTransform(),
+        
         transition: 'transform 0.1s ease-out',
       }}
     >
