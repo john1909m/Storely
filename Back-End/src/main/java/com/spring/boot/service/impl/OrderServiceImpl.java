@@ -159,25 +159,61 @@ public class OrderServiceImpl implements OrderService {
 
         // ❌ validate sequence
         if (!isValidStatusTransition(oldStatus, newStatus)) {
-            throw new RuntimeException(
-                    "invalid.status.transition"
-            );
+            throw new RuntimeException("invalid.status.transition");
         }
 
         // ✅ restore stock لو اتلغى
         if (oldStatus != OrderStatus.CANCELLED &&
                 newStatus == OrderStatus.CANCELLED) {
-
             restoreStock(existingOrder);
         }
 
-        if(newStatus == OrderStatus.CONFIRMED) {
-            existingOrder.setDepositPaid(true);
-            existingOrder.setDepositStatus(DepositStatus.CONFIRMED);
+        // ✅ تحديث حالة الطلب
+        existingOrder.setStatus(newStatus);
 
+        // ✅ تحديث حالة الدفع (للدفع الكامل)
+        if (orderDto.getPaymentStatus() != null) {
+            existingOrder.setPaymentStatus(PaymentStatus.valueOf(orderDto.getPaymentStatus()));
+
+            // لو الدفع اكتمل، نأكد الطلب
+            if (orderDto.getPaymentStatus().equals("PAID") &&
+                    newStatus == OrderStatus.PENDING) {
+                existingOrder.setStatus(OrderStatus.CONFIRMED);
+            }
+
+            // لو الدفع فشل، نلغي الطلب
+            if (orderDto.getPaymentStatus().equals("FAILED") &&
+                    newStatus != OrderStatus.CANCELLED) {
+                existingOrder.setStatus(OrderStatus.CANCELLED);
+            }
         }
 
-        existingOrder.setStatus(newStatus);
+        // ✅ تحديث حالة الإيداع
+        if (orderDto.getDepositStatus() != null) {
+            existingOrder.setDepositStatus(DepositStatus.valueOf(orderDto.getDepositStatus()));
+
+            // تحديث depositPaid بناء على الحالة
+            if (orderDto.getDepositStatus().equals("CONFIRMED")) {
+                existingOrder.setDepositPaid(true);
+
+                // لو الإيداع اتأكد والطلب لسه pending، نأكد الطلب
+                if (newStatus == OrderStatus.PENDING) {
+                    existingOrder.setStatus(OrderStatus.CONFIRMED);
+                }
+            } else if (orderDto.getDepositStatus().equals("REJECTED")) {
+                existingOrder.setDepositPaid(false);
+
+                // لو الإيداع اترفض، نلغي الطلب
+                if (newStatus != OrderStatus.CANCELLED) {
+                    existingOrder.setStatus(OrderStatus.CANCELLED);
+                }
+            }
+        }
+
+        // ✅ تحديث depositPaid لو موجود في الـ DTO
+        if (orderDto.getDepositPaid() != null) {
+            existingOrder.setDepositPaid(orderDto.getDepositPaid());
+        }
 
         Order savedOrder = orderRepo.save(existingOrder);
         return orderMapper.toOrderDto(savedOrder);
