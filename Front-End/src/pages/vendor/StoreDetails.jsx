@@ -7,12 +7,15 @@ import {
   ChevronRight, Menu, X, Copy, QrCode,
   Brush, Building2, Clock, Calendar,
   Tag, Sparkles, ImagePlus, Trash2,
-  Truck, Plus, Minus, Edit3, Wallet, Info, CreditCard, Smartphone
+  Truck, Plus, Minus, Edit3, Wallet, Info, CreditCard, Smartphone,
+  CreditCard as CardIcon, Phone as PhoneIcon, Smartphone as SmartphoneIcon,
+  DollarSign, ToggleLeft, ToggleRight, Settings, HelpCircle
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { storeAPI } from '../../api/store.api';
 import { categoryAPI } from '../../api/category.api';
 import { shippingAPI } from '../../api/shipping.api';
+import { paymentAPI } from '../../api/payment.api';
 import StoreFooter from '../../components/StoreFooter';
 import { useErrorHandler } from '../../hooks/useErrorHandler';
 import useAuthStore from '../../store/authStore';
@@ -29,9 +32,19 @@ const styles = `
     to { transform: translateY(0); opacity: 1; }
   }
 
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
   @keyframes pulse {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.05); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 
   .animate-slide-left {
@@ -42,8 +55,16 @@ const styles = `
     animation: slideDown 0.3s ease-out;
   }
 
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+
   .animate-pulse-slow {
     animation: pulse 2s ease-in-out infinite;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
   }
 
   .ml-13 {
@@ -59,8 +80,59 @@ const styles = `
     scrollbar-width: none;
   }
 
-  .shipping-card-enter {
+  .payment-card-enter {
     animation: slideDown 0.3s ease-out;
+  }
+
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+  }
+
+  .toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+  }
+
+  .toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .3s;
+    border-radius: 34px;
+  }
+
+  .toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+  }
+
+  input:checked + .toggle-slider {
+    background-color: #4f46e5;
+  }
+
+  input:checked + .toggle-slider:before {
+    transform: translateX(26px);
   }
 `;
 
@@ -74,6 +146,7 @@ const StoreDetails = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { handleError } = useErrorHandler();
   const { authInialized } = useAuthStore();
+  const savingRef = useRef(false);
 
   // Store info state
   const [storeInfo, setStoreInfo] = useState({
@@ -102,7 +175,7 @@ const StoreDetails = () => {
 
   // Deposit state
   const [depositSettings, setDepositSettings] = useState({
-    depositType: 'PERCENTAGE', // 'percentage' or 'shipping'
+    depositType: 'PERCENTAGE',
     depositValue: 10,
     instapayNumber: '',
     vodafoneCashNumber: '',
@@ -119,7 +192,58 @@ const StoreDetails = () => {
   // Available categories
   const [categories, setCategories] = useState([]);
   const [uploadingLogo, setUploadingLogo] = useState(false);
-  const savingRef = useRef(false);
+
+  // Payment methods state
+  const [paymentMethods, setPaymentMethods] = useState([]);
+  const [availableMethods] = useState([
+    { 
+      id: 1, 
+      name: 'INSTAPAY', 
+      displayName: 'Instapay', 
+      icon: SmartphoneIcon,
+      color: 'emerald',
+      description: 'Fast and secure transfers via Instapay',
+      requiresAccount: true
+    },
+    { 
+      id: 2, 
+      name: 'VODAFONE_CASH', 
+      displayName: 'Vodafone Cash', 
+      icon: PhoneIcon,
+      color: 'red',
+      description: 'Pay using Vodafone Cash wallet',
+      requiresAccount: true
+    },
+    { 
+      id: 3, 
+      name: 'COD', 
+      displayName: 'Cash on Delivery', 
+      icon: DollarSign,
+      color: 'blue',
+      description: 'Customer pays cash upon delivery',
+      requiresAccount: false
+    }
+  ]);
+
+  // Payment stats
+  const [paymentStats, setPaymentStats] = useState({
+    totalActive: 0,
+    instapayConfigured: false,
+    vodafoneConfigured: false,
+    codEnabled: false
+  });
+
+  // Tabs definition
+  const tabs = [
+    { id: 'basic', label: 'Basic Info', icon: Store, description: 'Store name & description' },
+    { id: 'shipping', label: 'Shipping', icon: Truck, description: 'Shipping costs by governorate' },
+    { id: 'deposit', label: 'Deposit', icon: Wallet, description: 'Payment deposit settings' },
+    { id: 'payment', label: 'Payment Methods', icon: CardIcon, description: 'Configure payment options' },
+    { id: 'branding', label: 'Branding', icon: Brush, description: 'Logo & colors' },
+    { id: 'contact', label: 'Contact', icon: MapPin, description: 'Phone & Location' },
+    { id: 'social', label: 'Social', icon: Facebook, description: 'Social media profiles' },
+    { id: 'domain', label: 'Domain & QR', icon: Globe, description: 'Store URL & QR code' },
+  ];
 
   useEffect(() => {
     if (!authLoading && store && authInialized) {
@@ -135,7 +259,8 @@ const StoreDetails = () => {
       await Promise.all([
         fetchStoreData(),
         fetchGovernorates(),
-        fetchShippingCosts()
+        fetchShippingCosts(),
+        fetchPaymentMethods()
       ]);
 
     } catch (err) {
@@ -149,11 +274,8 @@ const StoreDetails = () => {
     try {
       if (store?.id) {
         const storeData = await storeAPI.getById(store.id);
-        const deposit=await storeAPI.getDepositSettings(store.id)
-        const depositSettings = await deposit.json();
-        console.log('📦 Fetched store data:', storeData);
-        console.log('📦 Fetched deposit settings:', depositSettings);
-
+        const deposit = await storeAPI.getDepositSettings(store.id);
+        const depositSettingsData = await deposit.json();
         
         setStoreInfo({
           storeName: storeData.storeName || '',
@@ -177,13 +299,12 @@ const StoreDetails = () => {
           instagram: storeData.instagram || '',
         });
 
-        // Load deposit settings
         setDepositSettings({
-          depositType: depositSettings.depositType || 'PERCENTAGE',
-          depositValue: depositSettings.depositValue || 10,
-          instapayNumber: depositSettings.instapayNumber || '',
-          vodafoneCashNumber: depositSettings.vodafoneCashNumber || '',
-          depositRequired: depositSettings.depositRequired !== false // default to true
+          depositType: depositSettingsData.depositType || 'PERCENTAGE',
+          depositValue: depositSettingsData.depositValue || 10,
+          instapayNumber: depositSettingsData.instapayNumber || '',
+          vodafoneCashNumber: depositSettingsData.vodafoneCashNumber || '',
+          depositRequired: depositSettingsData.depositRequired !== false
         });
       }
 
@@ -211,13 +332,11 @@ const StoreDetails = () => {
     try {
       if (store?.id) {
         const data = await shippingAPI.get(store.id);
-
         const unique = (data || []).reduce((acc, cost) => {
-        const exists = acc.find(c => c.governorateId === cost.governorateId);
-        if (!exists) acc.push(cost);
-        return acc;
-      }, []);
-
+          const exists = acc.find(c => c.governorateId === cost.governorateId);
+          if (!exists) acc.push(cost);
+          return acc;
+        }, []);
         setShippingCosts(unique);
       }
     } catch (err) {
@@ -225,7 +344,130 @@ const StoreDetails = () => {
     }
   };
 
-  // Handlers
+  const fetchPaymentMethods = async () => {
+    try {
+      if (!store?.id) return;
+
+      const data = await paymentAPI.getPaymentMethods(store.id);
+      
+      const methods = data.map(method => ({
+        id: method.id,
+        storeId: method.storeId,
+        paymentMethodId: method.paymentMethodId,
+        paymentMethodName: method.paymentMethodName,
+        accountNumber: method.accountNumber || '',
+        accountName: method.accountName || '',
+        isActive: method.isActive || false
+      }));
+
+      setPaymentMethods(methods);
+
+      const activeCount = methods.filter(m => m.isActive).length;
+      const instapay = methods.find(m => m.paymentMethodName === 'INSTAPAY');
+      const vodafone = methods.find(m => m.paymentMethodName === 'VODAFONE_CASH');
+      const cod = methods.find(m => m.paymentMethodName === 'COD');
+
+      setPaymentStats({
+        totalActive: activeCount,
+        instapayConfigured: instapay?.isActive || false,
+        vodafoneConfigured: vodafone?.isActive || false,
+        codEnabled: cod?.isActive || false
+      });
+
+    } catch (err) {
+      handleError(err);
+    }
+  };
+
+  // Payment methods handlers
+  const getMethodByName = (name) => {
+    return paymentMethods.find(m => m.paymentMethodName === name) || {
+      paymentMethodName: name,
+      isActive: false,
+      accountNumber: '',
+      accountName: ''
+    };
+  };
+
+  const updateMethod = (name, field, value) => {
+    setPaymentMethods(prev => {
+      const index = prev.findIndex(m => m.paymentMethodName === name);
+      
+      if (index >= 0) {
+        const updated = [...prev];
+        updated[index] = { ...updated[index], [field]: value };
+        return updated;
+      } else {
+        const methodId = availableMethods.find(m => m.name === name)?.id || 0;
+        return [...prev, {
+          id: null,
+          storeId: store?.id,
+          paymentMethodId: methodId,
+          paymentMethodName: name,
+          accountNumber: field === 'accountNumber' ? value : '',
+          accountName: field === 'accountName' ? value : '',
+          isActive: field === 'isActive' ? value : false
+        }];
+      }
+    });
+
+    setTimeout(() => {
+      const activeCount = paymentMethods.filter(m => m.isActive).length;
+      const instapay = paymentMethods.find(m => m.paymentMethodName === 'INSTAPAY');
+      const vodafone = paymentMethods.find(m => m.paymentMethodName === 'VODAFONE_CASH');
+      const cod = paymentMethods.find(m => m.paymentMethodName === 'COD');
+
+      setPaymentStats({
+        totalActive: activeCount,
+        instapayConfigured: instapay?.isActive || false,
+        vodafoneConfigured: vodafone?.isActive || false,
+        codEnabled: cod?.isActive || false
+      });
+    }, 0);
+  };
+
+  const isMethodActive = (name) => {
+    const method = paymentMethods.find(m => m.paymentMethodName === name);
+    return method?.isActive || false;
+  };
+
+  const getMethodAccount = (name, field) => {
+    const method = paymentMethods.find(m => m.paymentMethodName === name);
+    return method?.[field] || '';
+  };
+
+  const toggleMethod = (name) => {
+    const currentActive = isMethodActive(name);
+    updateMethod(name, 'isActive', !currentActive);
+  };
+
+  const validatePaymentMethods = () => {
+    const instapay = paymentMethods.find(m => m.paymentMethodName === 'INSTAPAY');
+    const vodafone = paymentMethods.find(m => m.paymentMethodName === 'VODAFONE_CASH');
+
+    if (instapay?.isActive) {
+      if (!instapay.accountNumber || !instapay.accountName) {
+        setError('Instapay requires account number and name');
+        return false;
+      }
+    }
+
+    if (vodafone?.isActive) {
+      if (!vodafone.accountNumber || !vodafone.accountName) {
+        setError('Vodafone Cash requires account number and name');
+        return false;
+      }
+    }
+
+    if (paymentMethods.filter(m => m.isActive).length === 0) {
+      setError('At least one payment method must be active');
+      return false;
+    }
+
+    return true;
+  };
+
+  // Store info handlers
   const handleStoreInfoChange = (field, value) => {
     setStoreInfo(prev => ({ ...prev, [field]: value }));
   };
@@ -238,20 +480,18 @@ const StoreDetails = () => {
     setSocialMedia(prev => ({ ...prev, [field]: value }));
   };
 
-  // Deposit handlers
   const handleDepositChange = (field, value) => {
     setDepositSettings(prev => ({ ...prev, [field]: value }));
   };
 
+  // Shipping handlers
   const handleShippingToggle = (governorateId) => {
     setShippingCosts(prev => {
       const exists = prev.find(c => c.governorateId === governorateId);
       
       if (exists) {
-        // Remove if exists
         return prev.filter(c => c.governorateId !== governorateId);
       } else {
-        // Add new with default price
         return [...prev, { governorateId, price: 0 }];
       }
     });
@@ -316,7 +556,6 @@ const StoreDetails = () => {
         return;
       }
 
-      // Validate at least one payment method
       if (depositSettings.depositRequired && 
           !depositSettings.instapayNumber && 
           !depositSettings.vodafoneCashNumber) {
@@ -324,7 +563,6 @@ const StoreDetails = () => {
         return;
       }
 
-      // Prepare deposit settings data
       const depositData = {
         storeId: store.id,
         depositType: depositSettings.depositType,
@@ -334,15 +572,57 @@ const StoreDetails = () => {
         depositRequired: depositSettings.depositRequired
       };
 
-      console.log('📤 Sending deposit settings:', JSON.stringify(depositData, null, 2));
-
       await storeAPI.updateDepositSettings(depositData);
       
       setSuccess('Deposit settings updated successfully!');
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      console.error('❌ Save error:', err);
       handleError(err);
+    } finally {
+      savingRef.current = false;
+      setSaving(false);
+    }
+  };
+
+  const handleSavePaymentMethods = async () => {
+    if (savingRef.current) return;
+    savingRef.current = true;
+
+    try {
+      setSaving(true);
+      setError(null);
+      setSuccess(null);
+
+      if (!store?.id) {
+        setError('Store not found');
+        return;
+      }
+
+      if (!validatePaymentMethods()) {
+        savingRef.current = false;
+        setSaving(false);
+        return;
+      }
+
+      const methodsToSend = paymentMethods.map(method => ({
+        storeId: store.id,
+        paymentMethodId: method.paymentMethodId,
+        paymentMethodName: method.paymentMethodName,
+        accountNumber: method.accountNumber || '',
+        accountName: method.accountName || '',
+        isActive: method.isActive || false
+      }));
+
+      await paymentAPI.addPaymentMethod(store.id, methodsToSend);
+      await fetchPaymentMethods();
+
+      setSuccess('Payment methods updated successfully!');
+      setTimeout(() => setSuccess(null), 3000);
+
+    } catch (err) {
+      handleError(err);
+
+      setError(err.message || 'Failed to save payment methods');
     } finally {
       savingRef.current = false;
       setSaving(false);
@@ -353,81 +633,73 @@ const StoreDetails = () => {
     if (savingRef.current) return;
     savingRef.current = true;
     
-  try {
-    setSaving(true);
-    setError(null);
-    setSuccess(null);
+    try {
+      setSaving(true);
+      setError(null);
+      setSuccess(null);
 
-    const uniqueShippingCosts = shippingCosts.reduce((acc, cost) => {
-      const exists = acc.find(c => c.governorateId === cost.governorateId);
-      if (!exists) {
-        acc.push(cost);
+      const uniqueShippingCosts = shippingCosts.reduce((acc, cost) => {
+        const exists = acc.find(c => c.governorateId === cost.governorateId);
+        if (!exists) {
+          acc.push(cost);
+        }
+        return acc;
+      }, []);
+
+      if (!store?.id) {
+        setError('Store not found. Please create a store first.');
+        return;
       }
-      return acc;
-    }, []);
 
+      const updateData = {
+        id: store.id,
+        vendorId: vendor?.id,
+        vendorName: vendor?.name,
+        storeName: storeInfo.storeName,
+        storeDescription: storeInfo.storeDescription,
+        storePhone: storeInfo.storePhone,
+        storeAddress: storeInfo.storeAddress,
+        createdAt: storeInfo.createdAt || new Date().toISOString(),
+        primaryColor: branding.primaryColor,
+        secondaryColor: branding.secondaryColor,
+        storeLogoUrl: branding.storeLogoUrl,
+        fontFamily: storeInfo.fontFamily || 'Poppins',
+        facebook: socialMedia.facebook,
+        instagram: socialMedia.instagram,
+        storeStatus: storeInfo.storeStatus,
+        products: store?.products || [],
+        categories: categories || [],
+        orders: store?.orders || [],
+        customerIds: [],
+        shippingCosts: uniqueShippingCosts.map(cost => ({
+          governorateId: cost.governorateId,
+          price: parseFloat(cost.price) || 0
+        })),
+        depositType: depositSettings.depositType,
+        depositValue: depositSettings.depositValue,
+        instapayNumber: depositSettings.instapayNumber,
+        vodafoneCashNumber: depositSettings.vodafoneCashNumber,
+        depositRequired: depositSettings.depositRequired
+      };
 
-    if (!store?.id) {
-      setError('Store not found. Please create a store first.');
-      return;
+      Object.keys(updateData).forEach(key => {
+        if (updateData[key] === undefined || updateData[key] === null) {
+          delete updateData[key];
+        }
+      });
+
+      await storeAPI.update(updateData);
+      
+      setSuccess('Store details updated successfully!');
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (err) {
+      handleError(err);
+    } finally {
+      savingRef.current = false;
+      setSaving(false);
     }
+  };
 
-    // Prepare update data
-    const updateData = {
-      id: store.id,
-      vendorId: vendor?.id,
-      vendorName: vendor?.name,
-      storeName: storeInfo.storeName,
-      storeDescription: storeInfo.storeDescription,
-      storePhone: storeInfo.storePhone,
-      storeAddress: storeInfo.storeAddress,
-      createdAt: storeInfo.createdAt || new Date().toISOString(),
-      primaryColor: branding.primaryColor,
-      secondaryColor: branding.secondaryColor,
-      storeLogoUrl: branding.storeLogoUrl,
-      fontFamily: storeInfo.fontFamily || 'Poppins',
-      facebook: socialMedia.facebook,
-      instagram: socialMedia.instagram,
-      storeStatus: storeInfo.storeStatus,
-      products: store?.products || [],
-      categories: categories || [],
-      orders: store?.orders || [],
-      customerIds: [],
-      shippingCosts: uniqueShippingCosts.map(cost => ({
-        governorateId: cost.governorateId,
-        price: parseFloat(cost.price) || 0
-      })),
-      // Deposit settings
-      depositType: depositSettings.depositType,
-      depositValue: depositSettings.depositValue,
-      instapayNumber: depositSettings.instapayNumber,
-      vodafoneCashNumber: depositSettings.vodafoneCashNumber,
-      depositRequired: depositSettings.depositRequired
-    };
-
-    // Remove undefined or null values
-    Object.keys(updateData).forEach(key => {
-      if (updateData[key] === undefined || updateData[key] === null) {
-        delete updateData[key];
-      }
-    });
-
-    console.log('📤 Sending complete update data:', JSON.stringify(updateData, null, 2));
-
-    await storeAPI.update(updateData);
-    
-    setSuccess('Store details updated successfully!');
-    setTimeout(() => setSuccess(null), 3000);
-  } catch (err) {
-    console.error('❌ Save error:', err);
-    handleError(err);
-  } finally {
-    savingRef.current = false;
-    setSaving(false);
-  }
-};
-
-  // ✅ دالة رفع الصور المعدلة - تستخدم API الباكند
   const handleImageUpload = async (file, type) => {
     try {
       type === "logo" && setUploadingLogo(true);
@@ -436,10 +708,7 @@ const StoreDetails = () => {
       formData.append('file', file);
       formData.append('type', type);
 
-      // استخدام API الباكند
       const response = await storeAPI.uploadImage(store.id, formData);
-      
-      // الباكند بيرجع { url: "..." }
       const data = await response.json();
 
       if (type === "logo") {
@@ -452,7 +721,6 @@ const StoreDetails = () => {
       setSuccess(`${type === "logo" ? "Logo" : "Image"} uploaded successfully`);
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      console.error('❌ Upload error:', err);
       handleError(err);
     } finally {
       type === "logo" && setUploadingLogo(false);
@@ -465,11 +733,9 @@ const StoreDetails = () => {
         return;
       }
 
-      // TODO: إضافة API لحذف الصورة إذا كان موجود
       if (type === 'logo') {
         setBranding(prev => ({ ...prev, storeLogoUrl: '' }));
         
-        // تحديث المتجر بدون اللوجو
         await storeAPI.update({
           id: store.id,
           storeLogoUrl: ''
@@ -536,16 +802,6 @@ const StoreDetails = () => {
       maximumFractionDigits: 0
     }).format(price || 0);
   };
-
-  const tabs = [
-    { id: 'basic', label: 'Basic Info', icon: Store, description: 'Store name & description' },
-    { id: 'shipping', label: 'Shipping', icon: Truck, description: 'Shipping costs by governorate' },
-    { id: 'deposit', label: 'Deposit', icon: Wallet, description: 'Payment deposit settings' },
-    { id: 'branding', label: 'Branding', icon: Brush, description: 'Logo & colors' },
-    { id: 'contact', label: 'Contact', icon: MapPin, description: 'Phone & Location' },
-    { id: 'social', label: 'Social', icon: Facebook, description: 'Social media profiles' },
-    { id: 'domain', label: 'Domain & QR', icon: Globe, description: 'Store URL & QR code' },
-  ];
 
   if (authLoading || loading) {
     return (
@@ -634,7 +890,7 @@ const StoreDetails = () => {
                   ) : (
                     <>
                       <Save className="h-4 w-4" />
-                      <span className="text-sm font-medium">Save</span>
+                      <span className="text-sm font-medium">Save All</span>
                     </>
                   )}
                 </button>
@@ -693,7 +949,10 @@ const StoreDetails = () => {
                     <ChevronRight className="h-4 w-4 text-gray-400" />
                   </a>
                   <button
-                    onClick={handleSave}
+                    onClick={() => {
+                      handleSave();
+                      setIsMobileMenuOpen(false);
+                    }}
                     disabled={saving}
                     className="flex items-center justify-between w-full px-4 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50"
                   >
@@ -898,7 +1157,6 @@ const StoreDetails = () => {
                       </div>
                     </div>
                   </div>
-                  
                 </div>
               </div>
             </div>
@@ -922,7 +1180,6 @@ const StoreDetails = () => {
                 </div>
                 
                 <div className="space-y-6">
-                  {/* Store Name */}
                   <div className="group">
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Store Name <span className="text-red-500">*</span>
@@ -937,13 +1194,8 @@ const StoreDetails = () => {
                         placeholder="Enter your store name"
                       />
                     </div>
-                    <p className="mt-2 text-sm text-gray-500 flex items-center">
-                      <Tag className="h-4 w-4 mr-1 text-gray-400" />
-                      This will be displayed as your store name across the platform
-                    </p>
                   </div>
 
-                  {/* Store Description */}
                   <div className="group">
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Store Description
@@ -956,22 +1208,8 @@ const StoreDetails = () => {
                       className="w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all focus:bg-white resize-none"
                       placeholder="Describe your store and what makes it unique..."
                     />
-                    <div className="mt-2 flex justify-between items-center">
-                      <p className="text-sm text-gray-500 flex items-center">
-                        <Clock className="h-4 w-4 mr-1 text-gray-400" />
-                        This description appears on your store page
-                      </p>
-                      <span className={`text-xs px-3 py-1.5 rounded-full ${
-                        storeInfo.storeDescription.length >= 450 
-                          ? 'bg-yellow-100 text-yellow-700' 
-                          : 'bg-gray-100 text-gray-600'
-                      }`}>
-                        {storeInfo.storeDescription.length}/500
-                      </span>
-                    </div>
                   </div>
 
-                  {/* Store Category */}
                   <div className="group">
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Store Category
@@ -988,30 +1226,6 @@ const StoreDetails = () => {
                           <option key={cat.id} value={cat.id}>{cat.name}</option>
                         ))}
                       </select>
-                    </div>
-                  </div>
-
-                  {/* Store Created */}
-                  <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className="h-12 w-12 bg-white rounded-xl flex items-center justify-center shadow-sm">
-                          <Calendar className="h-6 w-6 text-indigo-600" />
-                        </div>
-                        <div>
-                          <div className="text-sm text-gray-600">Store Created</div>
-                          <div className="font-semibold text-gray-900">
-                            {formatDate(storeInfo.createdAt)}
-                          </div>
-                        </div>
-                      </div>
-                      <span className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                        storeInfo.storeStatus === 'Active'
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-yellow-100 text-yellow-700'
-                      }`}>
-                        {storeInfo.storeStatus}
-                      </span>
                     </div>
                   </div>
                 </div>
@@ -1036,7 +1250,6 @@ const StoreDetails = () => {
                   </div>
                 ) : (
                   <>
-                    {/* Summary */}
                     <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
                       <div className="flex items-start gap-3">
                         <div className="h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -1051,7 +1264,6 @@ const StoreDetails = () => {
                       </div>
                     </div>
 
-                    {/* Governorates List */}
                     <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
                       {governorates.map((gov) => {
                         const isSelected = isShippingSelected(gov.id);
@@ -1103,9 +1315,7 @@ const StoreDetails = () => {
                                         />
                                       </div>
                                       <button
-                                        onClick={() => {
-                                          saveEditingShipping(gov.id);
-                                        }}
+                                        onClick={() => saveEditingShipping(gov.id)}
                                         className="p-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-colors"
                                       >
                                         <Check className="h-4 w-4" />
@@ -1139,23 +1349,6 @@ const StoreDetails = () => {
                         );
                       })}
                     </div>
-
-                    {/* Summary Stats */}
-                    <div className="mt-6 grid grid-cols-2 gap-4">
-                      <div className="bg-green-50 rounded-xl p-4 border border-green-100">
-                        <div className="text-2xl font-bold text-green-700">{shippingCosts.length}</div>
-                        <div className="text-sm text-green-600">Configured Governorates</div>
-                      </div>
-                      
-                    </div>
-
-                    {shippingCosts.length === 0 && (
-                      <div className="text-center py-8">
-                        <Truck className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                        <p className="text-gray-500">No shipping costs configured yet</p>
-                        <p className="text-sm text-gray-400 mt-1">Check the boxes above to add shipping costs for governorates</p>
-                      </div>
-                    )}
                   </>
                 )}
               </div>
@@ -1198,7 +1391,7 @@ const StoreDetails = () => {
                     </div>
                   </div>
 
-                  {/* Deposit Type */}
+                  {/* Deposit Calculation Method */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-3">
                       Deposit Calculation Method
@@ -1242,7 +1435,7 @@ const StoreDetails = () => {
                     </div>
                   </div>
 
-                  {/* Deposit Value - فقط للـ percentage */}
+                  {/* Deposit Percentage */}
                   {depositSettings.depositType === 'PERCENTAGE' && (
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -1263,14 +1456,10 @@ const StoreDetails = () => {
                           placeholder="10"
                         />
                       </div>
-                      <p className="mt-2 text-sm text-gray-500 flex items-center">
-                        <Info className="h-4 w-4 mr-1 text-amber-500" />
-                        Percentage of the total order value to be paid as deposit
-                      </p>
                     </div>
                   )}
 
-                  {/* Info for shipping type */}
+                  {/* Shipping Info */}
                   {depositSettings.depositType === 'SHIPPING' && (
                     <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
                       <div className="flex items-start gap-3">
@@ -1278,27 +1467,27 @@ const StoreDetails = () => {
                         <div>
                           <p className="text-sm text-blue-800 font-medium">Deposit will be the shipping cost</p>
                           <p className="text-xs text-blue-600 mt-1">
-                            The deposit amount will be calculated based on the customer's governorate shipping cost configured in the Shipping tab.
+                            The deposit amount will be calculated based on the customer's governorate shipping cost.
                           </p>
                         </div>
                       </div>
                     </div>
                   )}
 
-                  {/* Payment Methods */}
+                  {/* Payment Methods for Deposit */}
                   <div className="pt-4 border-t border-gray-200">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                      <Smartphone className="h-5 w-5 mr-2 text-amber-600" />
-                      Payment Methods
+                      <CreditCard className="h-5 w-5 mr-2 text-amber-600" />
+                      Payment Methods for Deposit
                     </h3>
-
+                    
                     {/* Instapay */}
-                    <div className="mb-4">
+                    <div className="mb-6">
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Instapay Number
                       </label>
                       <div className="relative">
-                        <Smartphone className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                        <img className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" src="instapay.png" alt="Instapay" />
                         <input
                           type="text"
                           value={depositSettings.instapayNumber}
@@ -1307,6 +1496,10 @@ const StoreDetails = () => {
                           placeholder="01012345678"
                         />
                       </div>
+                      <p className="mt-1 text-xs text-gray-500 flex items-center">
+                        <Info className="h-3 w-3 mr-1 text-amber-500" />
+                        Customers will use this number to send deposits via Instapay
+                      </p>
                     </div>
 
                     {/* Vodafone Cash */}
@@ -1315,7 +1508,7 @@ const StoreDetails = () => {
                         Vodafone Cash Number
                       </label>
                       <div className="relative">
-                        <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                        <img className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" src="vodafoneCash.png" alt="Vodafone Cash" />
                         <input
                           type="text"
                           value={depositSettings.vodafoneCashNumber}
@@ -1324,34 +1517,49 @@ const StoreDetails = () => {
                           placeholder="01012345678"
                         />
                       </div>
+                      <p className="mt-1 text-xs text-gray-500 flex items-center">
+                        <Info className="h-3 w-3 mr-1 text-amber-500" />
+                        Customers will use this number to send deposits via Vodafone Cash
+                      </p>
                     </div>
 
-                    <p className="mt-4 text-sm text-gray-500 flex items-center">
-                      <Info className="h-4 w-4 mr-1 text-amber-500" />
-                      At least one payment method is required when deposit is enabled
-                    </p>
+                    {/* Help Text */}
+                    <div className="mt-4 p-4 bg-amber-50 border border-amber-100 rounded-xl">
+                      <div className="flex items-start gap-3">
+                        <Info className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-sm text-amber-800 font-medium">Important</p>
+                          <p className="text-xs text-amber-700 mt-1">
+                            These numbers will be shown to customers when they need to pay deposits. 
+                            Make sure they are correct and active.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
-                  {/* Preview */}
-                  <div className="mt-6 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl p-5 text-white">
-                    <h3 className="font-semibold mb-3 flex items-center">
-                      <Eye className="h-5 w-5 mr-2" />
-                      Deposit Preview
-                    </h3>
-                    <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
-                      <div className="flex justify-between items-center mb-2">
-                        <span>Order Total (example)</span>
-                        <span className="font-bold">1,000 EGP</span>
-                      </div>
-                      <div className="flex justify-between items-center text-amber-100">
-                        <span>Deposit</span>
-                        <span className="font-bold text-white">
-                          {depositSettings.depositType === 'PERCENTAGE' 
-                            ? `${(1000 * (depositSettings.depositValue / 100)).toFixed(0)} EGP`
-                            : depositSettings.depositType === 'SHIPPING'
-                              ? 'Shipping cost (varies by governorate)'
-                              : `${depositSettings.depositValue} EGP`}
-                        </span>
+                  {/* Deposit Preview */}
+                  <div className="pt-4 border-t border-gray-200">
+                    <div className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl p-5 text-white">
+                      <h3 className="font-semibold mb-3 flex items-center">
+                        <Eye className="h-5 w-5 mr-2" />
+                        Deposit Preview
+                      </h3>
+                      <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                        <div className="flex justify-between items-center mb-2">
+                          <span>Order Total (example)</span>
+                          <span className="font-bold">1,000 EGP</span>
+                        </div>
+                        <div className="flex justify-between items-center text-amber-100">
+                          <span>Deposit</span>
+                          <span className="font-bold text-white">
+                            {depositSettings.depositType === 'PERCENTAGE' 
+                              ? `${(1000 * (depositSettings.depositValue / 100)).toFixed(0)} EGP`
+                              : depositSettings.depositType === 'SHIPPING'
+                                ? 'Shipping cost (varies by governorate)'
+                                : `${depositSettings.depositValue} EGP`}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1376,24 +1584,241 @@ const StoreDetails = () => {
                       )}
                     </button>
                   </div>
-
-                  {/* Info Box */}
-                  <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl">
-                    <div className="flex items-start gap-3">
-                      <div className="h-8 w-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <Info className="h-4 w-4 text-blue-600" />
-                      </div>
-                      <p className="text-sm text-blue-800">
-                        When enabled, customers will be required to pay a deposit before their order is confirmed. 
-                        You'll receive a screenshot of the payment and can confirm it in your orders dashboard.
-                      </p>
-                    </div>
-                  </div>
                 </div>
               </div>
             )}
 
-            {/* باقي التبويبات كما هي */}
+            {/* Payment Methods Tab - NEW */}
+            {activeTab === 'payment' && (
+              <div className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-200/80 shadow-sm">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center">
+                    <div className="h-10 w-10 bg-green-100 rounded-xl flex items-center justify-center mr-3">
+                      <CardIcon className="h-5 w-5 text-green-600" />
+                    </div>
+                    Payment Methods
+                  </h2>
+                  <span className="hidden sm:inline text-xs text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full">
+                    {paymentStats.totalActive} Active
+                  </span>
+                </div>
+
+                <div className="mb-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-100">
+                  <div className="flex items-start gap-3">
+                    <div className="h-10 w-10 bg-green-100 rounded-lg flex items-center justify-center">
+                      <Info className="h-5 w-5 text-green-600" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-green-900 mb-1">Configure Payment Options</h3>
+                      <p className="text-sm text-green-700">
+                        Choose which payment methods are available to your customers. 
+                        For Instapay and Vodafone Cash, provide your account details.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  {/* Instapay */}
+                  <div className="bg-gray-50 rounded-xl p-6 border border-gray-200 hover:border-emerald-300 transition-all">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center space-x-4">
+                        <div className="h-14 w-14 bg-emerald-100 rounded-xl flex items-center justify-center">
+                          <img src="/public/instapay.png" alt="Instapay" className="scale-100" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-bold text-gray-900">Instapay</h3>
+                          <p className="text-sm text-gray-500">Fast and secure transfers via Instapay</p>
+                        </div>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={isMethodActive('INSTAPAY')}
+                          onChange={() => toggleMethod('INSTAPAY')}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                      </label>
+                    </div>
+
+                    {isMethodActive('INSTAPAY') && (
+                      <div className="space-y-4 mt-4 pt-4 border-t border-gray-200 animate-slide-down">
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            Account Name
+                          </label>
+                          <input
+                            type="text"
+                            value={getMethodAccount('INSTAPAY', 'accountName')}
+                            onChange={(e) => updateMethod('INSTAPAY', 'accountName', e.target.value)}
+                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+                            placeholder="John Doe"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            Account Number / Phone
+                          </label>
+                          <input
+                            type="text"
+                            value={getMethodAccount('INSTAPAY', 'accountNumber')}
+                            onChange={(e) => updateMethod('INSTAPAY', 'accountNumber', e.target.value)}
+                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+                            placeholder="01012345678"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Vodafone Cash */}
+                  <div className="bg-gray-50 rounded-xl p-6 border border-gray-200 hover:border-red-300 transition-all">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center space-x-4">
+                        <div className="h-14 w-14 bg-red-100 rounded-xl flex items-center justify-center">
+                          <img className="" src="/public/vodafoneCash.png" alt="Vodafone Cash" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-bold text-gray-900">Vodafone Cash</h3>
+                          <p className="text-sm text-gray-500">Pay using Vodafone Cash wallet</p>
+                        </div>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={isMethodActive('VODAFONE_CASH')}
+                          onChange={() => toggleMethod('VODAFONE_CASH')}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                      </label>
+                    </div>
+
+                    {isMethodActive('VODAFONE_CASH') && (
+                      <div className="space-y-4 mt-4 pt-4 border-t border-gray-200 animate-slide-down">
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            Account Name
+                          </label>
+                          <input
+                            type="text"
+                            value={getMethodAccount('VODAFONE_CASH', 'accountName')}
+                            onChange={(e) => updateMethod('VODAFONE_CASH', 'accountName', e.target.value)}
+                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all"
+                            placeholder="John Doe"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            Account Number / Phone
+                          </label>
+                          <input
+                            type="text"
+                            value={getMethodAccount('VODAFONE_CASH', 'accountNumber')}
+                            onChange={(e) => updateMethod('VODAFONE_CASH', 'accountNumber', e.target.value)}
+                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all"
+                            placeholder="01012345678"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Cash on Delivery */}
+                  <div className="bg-gray-50 rounded-xl p-6 border border-gray-200 hover:border-blue-300 transition-all">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center space-x-4">
+                        <div className="h-14 w-14 bg-blue-100 rounded-xl flex items-center justify-center">
+                          <DollarSign className="h-7 w-7 text-blue-600" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-bold text-gray-900">Cash on Delivery</h3>
+                          <p className="text-sm text-gray-500">Customer pays cash upon delivery</p>
+                        </div>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={isMethodActive('COD')}
+                          onChange={() => toggleMethod('COD')}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                      </label>
+                    </div>
+
+                    {isMethodActive('COD') && (
+                      <div className="mt-4 pt-4 border-t border-gray-200 animate-slide-down">
+                        <div className="bg-blue-50 rounded-xl p-4">
+                          <div className="flex items-start gap-3">
+                            <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                            <div>
+                              <p className="text-sm text-blue-800">
+                                COD is enabled. Customers can choose to pay cash when they receive their order.
+                              </p>
+                              <p className="text-xs text-blue-600 mt-1">
+                                Note: You can configure deposit requirements in the Deposit Settings tab.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Payment Summary */}
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div className="bg-gray-50 rounded-xl p-4 text-center">
+                      <div className="text-2xl font-bold text-indigo-600">{paymentStats.totalActive}</div>
+                      <div className="text-xs text-gray-600">Active Methods</div>
+                    </div>
+                    <div className="bg-gray-50 rounded-xl p-4 text-center">
+                      <div className={`text-2xl font-bold ${paymentStats.instapayConfigured ? 'text-emerald-600' : 'text-gray-400'}`}>
+                        {paymentStats.instapayConfigured ? '✓' : '✗'}
+                      </div>
+                      <div className="text-xs text-gray-600">Instapay</div>
+                    </div>
+                    <div className="bg-gray-50 rounded-xl p-4 text-center">
+                      <div className={`text-2xl font-bold ${paymentStats.vodafoneConfigured ? 'text-red-600' : 'text-gray-400'}`}>
+                        {paymentStats.vodafoneConfigured ? '✓' : '✗'}
+                      </div>
+                      <div className="text-xs text-gray-600">Vodafone Cash</div>
+                    </div>
+                    <div className="bg-gray-50 rounded-xl p-4 text-center">
+                      <div className={`text-2xl font-bold ${paymentStats.codEnabled ? 'text-blue-600' : 'text-gray-400'}`}>
+                        {paymentStats.codEnabled ? '✓' : '✗'}
+                      </div>
+                      <div className="text-xs text-gray-600">Cash on Delivery</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Save Payment Methods Button */}
+                <div className="flex justify-end mt-6">
+                  <button
+                    onClick={handleSavePaymentMethods}
+                    disabled={saving}
+                    className="px-8 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all shadow-md hover:shadow-lg disabled:opacity-50 flex items-center space-x-2"
+                  >
+                    {saving ? (
+                      <>
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        <span>Saving Payment Methods...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-5 w-5" />
+                        <span>Save Payment Methods</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Branding Tab */}
             {activeTab === 'branding' && (
               <div className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-200/80 shadow-sm">
@@ -1407,7 +1832,6 @@ const StoreDetails = () => {
                 </div>
                 
                 <div className="space-y-8">
-                  {/* Logo Section - المعدل */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-4">
                       Store Logo
@@ -1483,7 +1907,6 @@ const StoreDetails = () => {
                     </div>
                   </div>
 
-                  {/* Color Scheme */}
                   <div className="pt-6 border-t border-gray-100">
                     <h3 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
                       <Palette className="h-5 w-5 mr-2 text-indigo-600" />
@@ -1545,14 +1968,8 @@ const StoreDetails = () => {
                         </div>
                       </div>
                     </div>
-                    
-                    <p className="mt-4 text-sm text-gray-500 flex items-center">
-                      <Sparkles className="h-4 w-4 mr-2 text-yellow-500" />
-                      Primary color is used for buttons and highlights. Secondary color for accents.
-                    </p>
                   </div>
 
-                  {/* Live Preview */}
                   <div className="mt-8 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-6">
                     <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
                       <Eye className="h-5 w-5 mr-2 text-indigo-400" />
@@ -1640,10 +2057,6 @@ const StoreDetails = () => {
                         placeholder="Enter your business address"
                       />
                     </div>
-                    <p className="mt-2 text-sm text-gray-500 flex items-center">
-                      <Building2 className="h-4 w-4 mr-1 text-gray-400" />
-                      Displayed for customers and used for shipping calculations
-                    </p>
                   </div>
                 </div>
               </div>
@@ -1658,12 +2071,8 @@ const StoreDetails = () => {
                   </div>
                   Social Media Profiles
                 </h2>
-                <p className="text-gray-600 mb-8 ml-13">
-                  Connect your social media accounts to build trust with customers
-                </p>
 
-                <div className="space-y-6">
-                  {/* Facebook */}
+                <div className="space-y-6 mt-8">
                   <div className="group">
                     <div className="flex items-center space-x-3 mb-2">
                       <div className="h-8 w-8 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -1685,7 +2094,6 @@ const StoreDetails = () => {
                     </div>
                   </div>
 
-                  {/* Instagram */}
                   <div className="group">
                     <div className="flex items-center space-x-3 mb-2">
                       <div className="h-8 w-8 bg-pink-100 rounded-lg flex items-center justify-center">
@@ -1707,17 +2115,6 @@ const StoreDetails = () => {
                     </div>
                   </div>
                 </div>
-
-                <div className="mt-8 p-5 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100 rounded-xl">
-                  <div className="flex items-start space-x-3">
-                    <div className="h-8 w-8 bg-indigo-100 rounded-full flex items-center justify-center">
-                      <Sparkles className="h-4 w-4 text-indigo-600" />
-                    </div>
-                    <p className="text-sm text-indigo-800">
-                      Social media links will be displayed on your store page to help customers connect with you.
-                    </p>
-                  </div>
-                </div>
               </div>
             )}
 
@@ -1731,7 +2128,6 @@ const StoreDetails = () => {
                   Domain & Store URL
                 </h2>
                 
-                {/* Store URL */}
                 <div className="mb-8">
                   <label className="block text-sm font-semibold text-gray-700 mb-3">
                     Your Store URL
@@ -1764,7 +2160,6 @@ const StoreDetails = () => {
                   </div>
                 </div>
 
-                {/* QR Code */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-4">
                     Store QR Code

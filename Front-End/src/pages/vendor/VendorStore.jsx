@@ -15,7 +15,6 @@ import { orderAPI } from '../../api/order.api';
 import StoreFooter from '../../components/StoreFooter';
 import { useErrorHandler } from '../../hooks/useErrorHandler';
 import useAuthStore from '../../store/authStore';
-// import { useErrorHandler } from './../../hooks/useErrorHandler';
 
 const VendorStore = () => {
   const [store, setStore] = useState(null);
@@ -36,7 +35,7 @@ const VendorStore = () => {
   const { store: authStore, vendor, setStore: setAuthStore, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-    const { handleError } = useErrorHandler();
+  const { handleError } = useErrorHandler();
   const {authInialized,isAuthenticated} = useAuthStore();
 
   useEffect(() => {
@@ -164,7 +163,7 @@ const VendorStore = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="relative">
             <div className="animate-spin rounded-full h-16 w-16 border-4 border-indigo-200 border-t-indigo-600 mx-auto mb-4"></div>
@@ -179,7 +178,7 @@ const VendorStore = () => {
 
   if (error || !store) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="text-center max-w-md">
           <div className="bg-red-100 rounded-full h-24 w-24 flex items-center justify-center mx-auto mb-6">
             <AlertCircle className="h-12 w-12 text-red-600" />
@@ -188,7 +187,7 @@ const VendorStore = () => {
           <p className="text-gray-600 mb-8">{error || 'Please create a store first'}</p>
           <Link
             to="/vendor/create-store"
-            className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
+            className="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
           >
             <Plus className="h-5 w-5 mr-2" />
             Create Your Store
@@ -199,10 +198,9 @@ const VendorStore = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
-      
-      {/* Sticky Header with Glassmorphism */}
-      <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-gray-200/80 shadow-sm">
+    <div className="min-h-screen bg-gray-50">
+      {/* Simple Header */}
+      <div className="bg-white border-b border-gray-200">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             {/* Logo & Store Name */}
@@ -211,11 +209,11 @@ const VendorStore = () => {
                 <img 
                   src={store.storeLogoUrl} 
                   alt={store.storeName}
-                  className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl object-cover ring-2 ring-gray-100"
+                  className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg object-cover"
                 />
               ) : (
                 <div 
-                  className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl flex items-center justify-center text-xl shadow-md"
+                  className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg flex items-center justify-center text-xl"
                   style={{ 
                     backgroundColor: store.primaryColor || '#800020',
                     color: store.secondaryColor || '#ffffff'
@@ -243,28 +241,27 @@ const VendorStore = () => {
               </div>
             </div>
 
-            {/* Desktop Navigation - Top Right */}
+            {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-2">
-              {/* Pricing Button - NEW */}
               <Link
                 to="/vendor/pricing"
-                className="px-4 py-2.5 text-indigo-700 hover:text-white hover:bg-indigo-600 rounded-xl transition-all flex items-center space-x-2 border border-indigo-200 hover:border-indigo-600 group"
+                className="px-4 py-2 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-lg transition-colors flex items-center space-x-2"
               >
-                <CreditCard className="h-5 w-5 group-hover:text-white" />
+                <CreditCard className="h-5 w-5" />
                 <span className="font-medium">Pricing</span>
               </Link>
               
               <Link
                 to="/vendor/settings"
-                className="px-4 py-2.5 text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all flex items-center space-x-2 group"
+                className="px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors flex items-center space-x-2"
               >
-                <Settings className="h-5 w-5 group-hover:rotate-90 transition-transform" />
+                <Settings className="h-5 w-5" />
                 <span className="font-medium">Settings</span>
               </Link>
               
               <Link
                 to="/vendor/dashboard"
-                className="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-xl hover:from-indigo-700 hover:to-indigo-800 transition-all flex items-center space-x-2 shadow-md hover:shadow-lg"
+                className="px-5 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center space-x-2"
               >
                 <BarChart className="h-5 w-5" />
                 <span className="font-medium">Dashboard</span>
@@ -272,7 +269,7 @@ const VendorStore = () => {
               
               <button
                 onClick={() => { logout(); navigate('/login'); }}
-                className="px-4 py-2.5 text-red-600 hover:text-white hover:bg-red-600 rounded-xl transition-all flex items-center space-x-2 border border-red-200 hover:border-red-600"
+                className="px-4 py-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors flex items-center space-x-2 border border-red-200"
               >
                 <LogOut className="h-5 w-5" />
                 <span className="font-medium">Logout</span>
@@ -283,7 +280,7 @@ const VendorStore = () => {
             <div className="md:hidden">
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="p-2.5 text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors"
+                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 {isMobileMenuOpen ? (
                   <X className="h-6 w-6" />
@@ -296,114 +293,87 @@ const VendorStore = () => {
         </div>
       </div>
 
-      {/* Mobile Menu Slide Panel */}
+      {/* Simple Mobile Menu */}
       {isMobileMenuOpen && (
         <>
           <div 
-            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden"
+            className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
             onClick={() => setIsMobileMenuOpen(false)}
           ></div>
-          <div className="fixed right-0 top-0 h-full w-72 bg-white shadow-2xl z-50 md:hidden animate-slide-left">
-            <div className="flex flex-col h-full">
-              <div className="p-6 border-b border-gray-100">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="h-12 w-12 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-xl flex items-center justify-center">
-                      <Store className="h-6 w-6 text-indigo-600" />
-                    </div>
-                    <div>
-                      <div className="font-semibold text-gray-900">{store.storeName}</div>
-                      <div className="text-xs text-gray-500">Store Menu</div>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="p-2 hover:bg-gray-100 rounded-lg"
-                  >
-                    <X className="h-5 w-5 text-gray-500" />
-                  </button>
-                </div>
+          <div className="fixed right-0 top-0 h-full w-72 bg-white shadow-xl z-50 md:hidden">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="font-semibold text-gray-900">Menu</div>
+                <button
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="p-2 hover:bg-gray-100 rounded-lg"
+                >
+                  <X className="h-5 w-5 text-gray-500" />
+                </button>
               </div>
-              
-              <div className="flex-1 p-6">
-                <div className="space-y-2">
-                  {/* Pricing Link in Mobile Menu */}
-                  <Link
-                    to="/vendor/pricing"
-                    className="flex items-center px-4 py-3.5 text-gray-700 hover:bg-indigo-50 rounded-xl transition-all group"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <div className="h-10 w-10 bg-indigo-50 rounded-lg flex items-center justify-center group-hover:bg-indigo-100 transition-colors">
-                      <CreditCard className="h-5 w-5 text-indigo-600" />
-                    </div>
-                    <div className="ml-3 flex-1">
-                      <div className="font-medium text-gray-900">Pricing</div>
-                      <div className="text-xs text-gray-500">View subscription plans</div>
-                    </div>
-                    <ChevronRight className="h-5 w-5 text-gray-400" />
-                  </Link>
+            </div>
+            
+            <div className="p-4">
+              <div className="space-y-1">
+                <Link
+                  to="/vendor/pricing"
+                  className="block px-4 py-3 text-gray-700 hover:bg-indigo-50 rounded-lg transition-colors"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <div className="flex items-center">
+                    <CreditCard className="h-5 w-5 text-indigo-600 mr-3" />
+                    <span>Pricing</span>
+                  </div>
+                </Link>
 
-                  <Link
-                    to="/vendor/settings"
-                    className="flex items-center px-4 py-3.5 text-gray-700 hover:bg-indigo-50 rounded-xl transition-all group"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <div className="h-10 w-10 bg-gray-100 rounded-lg flex items-center justify-center group-hover:bg-indigo-100 transition-colors">
-                      <Settings className="h-5 w-5 text-gray-600 group-hover:text-indigo-600" />
-                    </div>
-                    <div className="ml-3 flex-1">
-                      <div className="font-medium text-gray-900">Settings</div>
-                      <div className="text-xs text-gray-500">Manage your store</div>
-                    </div>
-                    <ChevronRight className="h-5 w-5 text-gray-400" />
-                  </Link>
-                  
-                  <Link
-                    to="/vendor/dashboard"
-                    className="flex items-center px-4 py-3.5 bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 rounded-xl border border-indigo-100"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <div className="h-10 w-10 bg-white rounded-lg flex items-center justify-center shadow-sm">
-                      <BarChart className="h-5 w-5 text-indigo-600" />
-                    </div>
-                    <div className="ml-3 flex-1">
-                      <div className="font-medium text-indigo-700">Dashboard</div>
-                      <div className="text-xs text-indigo-500">Analytics & reports</div>
-                    </div>
-                    <ChevronRight className="h-5 w-5 text-indigo-400" />
-                  </Link>
-                  
-                  <div className="border-t border-gray-100 my-4"></div>
-                  
-                  <button
-                    onClick={() => {
-                      logout();
-                      navigate('/login');
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className="flex items-center px-4 py-3.5 w-full text-red-600 hover:bg-red-50 rounded-xl transition-all group"
-                  >
-                    <div className="h-10 w-10 bg-red-50 rounded-lg flex items-center justify-center group-hover:bg-red-100">
-                      <LogOut className="h-5 w-5 text-red-600" />
-                    </div>
-                    <div className="ml-3 flex-1 text-left">
-                      <div className="font-medium">Logout</div>
-                      <div className="text-xs text-red-500">Sign out of account</div>
-                    </div>
-                    <ChevronRight className="h-5 w-5 text-red-400" />
-                  </button>
-                </div>
+                <Link
+                  to="/vendor/settings"
+                  className="block px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <div className="flex items-center">
+                    <Settings className="h-5 w-5 text-gray-600 mr-3" />
+                    <span>Settings</span>
+                  </div>
+                </Link>
+                
+                <Link
+                  to="/vendor/dashboard"
+                  className="block px-4 py-3 text-indigo-700 bg-indigo-50 rounded-lg"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <div className="flex items-center">
+                    <BarChart className="h-5 w-5 text-indigo-600 mr-3" />
+                    <span className="font-medium">Dashboard</span>
+                  </div>
+                </Link>
+                
+                <div className="border-t border-gray-200 my-4"></div>
+                
+                <button
+                  onClick={() => {
+                    logout();
+                    navigate('/login');
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="block w-full px-4 py-3 text-left text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                >
+                  <div className="flex items-center">
+                    <LogOut className="h-5 w-5 mr-3" />
+                    <span>Logout</span>
+                  </div>
+                </button>
               </div>
-              
-              <div className="p-6 border-t border-gray-100 bg-gray-50">
-                <div className="flex items-center space-x-3">
-                  <div className="h-8 w-8 bg-indigo-100 rounded-full flex items-center justify-center">
-                    <User className="h-4 w-4 text-indigo-600" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-sm font-medium text-gray-900">{vendor?.name || 'Vendor'}</div>
-                    <div className="text-xs text-gray-500">{vendor?.email || ''}</div>
-                  </div>
+            </div>
+            
+            <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-gray-200 bg-gray-50">
+              <div className="flex items-center space-x-3">
+                <div className="h-8 w-8 bg-indigo-100 rounded-full flex items-center justify-center">
+                  <User className="h-4 w-4 text-indigo-600" />
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-gray-900">{vendor?.name || 'Vendor'}</div>
+                  <div className="text-xs text-gray-500">{vendor?.email || ''}</div>
                 </div>
               </div>
             </div>
@@ -414,15 +384,15 @@ const VendorStore = () => {
       {/* Main Content */}
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
-        {/* Store URL Bar */}
-        <div className="bg-white rounded-2xl p-4 sm:p-5 mb-8 border border-gray-200/80 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {/* Simple Store URL Bar */}
+        <div className="bg-white rounded-lg p-4 mb-8 border border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center space-x-3 min-w-0">
-            <div className="h-10 w-10 bg-indigo-50 rounded-lg flex items-center justify-center flex-shrink-0">
-              <ExternalLink className="h-5 w-5 text-indigo-600" />
+            <div className="h-8 w-8 bg-indigo-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <ExternalLink className="h-4 w-4 text-indigo-600" />
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-xs text-gray-500 mb-1">Your store is live at</p>
-              <p className="text-sm sm:text-base font-medium text-gray-900 truncate">
+              <p className="text-sm font-medium text-gray-900 truncate">
                 {getStoreUrl()}
               </p>
             </div>
@@ -430,17 +400,17 @@ const VendorStore = () => {
           <div className="flex items-center space-x-2 sm:flex-shrink-0">
             <button
               onClick={copyStoreLink}
-              className="flex-1 sm:flex-none px-4 py-2.5 bg-indigo-50 text-indigo-700 rounded-xl hover:bg-indigo-100 transition-all flex items-center justify-center space-x-2 group"
+              className="flex-1 sm:flex-none px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-colors flex items-center justify-center space-x-2"
             >
               {copied ? (
                 <>
                   <Check className="h-4 w-4" />
-                  <span className="text-sm font-medium">Copied!</span>
+                  <span className="text-sm">Copied!</span>
                 </>
               ) : (
                 <>
-                  <Copy className="h-4 w-4 group-hover:scale-110 transition-transform" />
-                  <span className="text-sm font-medium">Copy Link</span>
+                  <Copy className="h-4 w-4" />
+                  <span className="text-sm">Copy Link</span>
                 </>
               )}
             </button>
@@ -448,37 +418,37 @@ const VendorStore = () => {
               href={getStoreUrl()}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 sm:flex-none px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all flex items-center justify-center space-x-2"
+              className="flex-1 sm:flex-none px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2"
             >
               <Eye className="h-4 w-4" />
-              <span className="text-sm font-medium">View</span>
+              <span className="text-sm">View</span>
             </a>
           </div>
         </div>
 
-        {/* Statistics Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
-          <div className="bg-white rounded-2xl p-5 sm:p-6 border border-gray-200/80 shadow-sm hover:shadow-md transition-all group">
+        {/* Simple Statistics Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="bg-white rounded-lg p-5 border border-gray-200">
             <div className="flex items-center justify-between mb-3">
-              <div className="h-10 w-10 sm:h-12 sm:w-12 bg-indigo-50 rounded-xl flex items-center justify-center group-hover:bg-indigo-100 transition-colors">
-                <Package className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-600" />
+              <div className="h-10 w-10 bg-indigo-100 rounded-lg flex items-center justify-center">
+                <Package className="h-5 w-5 text-indigo-600" />
               </div>
               {stats.lowStock > 0 && (
-                <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">
+                <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-medium rounded-full">
                   {stats.lowStock} low
                 </span>
               )}
             </div>
-            <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
+            <div className="text-xl font-bold text-gray-900 mb-1">
               {formatNumber(stats.totalProducts)}
             </div>
-            <div className="text-xs sm:text-sm text-gray-600">Total Products</div>
+            <div className="text-sm text-gray-600">Total Products</div>
           </div>
 
-          <div className="bg-white rounded-2xl p-5 sm:p-6 border border-gray-200/80 shadow-sm hover:shadow-md transition-all group">
+          <div className="bg-white rounded-lg p-5 border border-gray-200">
             <div className="flex items-center justify-between mb-3">
-              <div className="h-10 w-10 sm:h-12 sm:w-12 bg-green-50 rounded-xl flex items-center justify-center group-hover:bg-green-100 transition-colors">
-                <ShoppingBag className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
+              <div className="h-10 w-10 bg-green-100 rounded-lg flex items-center justify-center">
+                <ShoppingBag className="h-5 w-5 text-green-600" />
               </div>
               {stats.pendingOrders > 0 && (
                 <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-medium rounded-full">
@@ -486,87 +456,96 @@ const VendorStore = () => {
                 </span>
               )}
             </div>
-            <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
+            <div className="text-xl font-bold text-gray-900 mb-1">
               {formatNumber(stats.totalOrders)}
             </div>
-            <div className="text-xs sm:text-sm text-gray-600">Total Orders</div>
+            <div className="text-sm text-gray-600">Total Orders</div>
           </div>
 
-          <div className="bg-white rounded-2xl p-5 sm:p-6 border border-gray-200/80 shadow-sm hover:shadow-md transition-all group">
+          <div className="bg-white rounded-lg p-5 border border-gray-200">
             <div className="flex items-center justify-between mb-3">
-              <div className="h-10 w-10 sm:h-12 sm:w-12 bg-blue-50 rounded-xl flex items-center justify-center group-hover:bg-blue-100 transition-colors">
-                <DollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
+              <div className="h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                <DollarSign className="h-5 w-5 text-blue-600" />
               </div>
             </div>
-            <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
+            <div className="text-xl font-bold text-gray-900 mb-1">
               {formatCurrency(stats.totalRevenue)}
             </div>
-            <div className="text-xs sm:text-sm text-gray-600">Total Revenue</div>
+            <div className="text-sm text-gray-600">Total Revenue</div>
+          </div>
+
+          <div className="bg-white rounded-lg p-5 border border-gray-200">
+            <div className="flex items-center justify-between mb-3">
+              <div className="h-10 w-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                <Users className="h-5 w-5 text-purple-600" />
+              </div>
+            </div>
+            <div className="text-xl font-bold text-gray-900 mb-1">
+              {formatNumber(stats.totalCustomers)}
+            </div>
+            <div className="text-sm text-gray-600">Total Customers</div>
           </div>
         </div>
 
-        {/* Quick Actions */}
+        {/* Simple Quick Actions */}
         <div className="mb-10">
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Quick Actions</h2>
-            <span className="text-xs text-gray-500 sm:hidden">Swipe →</span>
-          </div>
-          <div className="flex sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-4 overflow-x-auto pb-2 sm:pb-0 -mx-4 px-4 sm:px-0 scrollbar-hide">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <Link
               to="/vendor/products"
-              className="flex-shrink-0 w-64 sm:w-auto bg-white rounded-xl p-5 sm:p-6 border border-gray-200/80 hover:border-blue-300 hover:shadow-lg transition-all group"
+              className="bg-white rounded-lg p-5 border border-gray-200 hover:border-indigo-300 hover:shadow-sm transition-all"
             >
-              <div className="h-12 w-12 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <Edit className="h-6 w-6 text-blue-600" />
+              <div className="h-12 w-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-3">
+                <Edit className="h-6 w-6 text-indigo-600" />
               </div>
-              <div className="font-semibold text-gray-900 mb-1">Manage Products</div>
+              <div className="font-medium text-gray-900 mb-1">Manage Products</div>
               <div className="text-sm text-gray-500">Edit or update stock</div>
             </Link>
 
             <Link
               to="/vendor/categories"
-              className="flex-shrink-0 w-64 sm:w-auto bg-white rounded-xl p-5 sm:p-6 border border-gray-200/80 hover:border-blue-300 hover:shadow-lg transition-all group"
+              className="bg-white rounded-lg p-5 border border-gray-200 hover:border-indigo-300 hover:shadow-sm transition-all"
             >
-              <div className="h-12 w-12 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <Edit className="h-6 w-6 text-blue-600" />
+              <div className="h-12 w-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-3">
+                <Layers className="h-6 w-6 text-indigo-600" />
               </div>
-              <div className="font-semibold text-gray-900 mb-1">Manage Categories</div>
-              <div className="text-sm text-gray-500">Edit or update categories</div>
+              <div className="font-medium text-gray-900 mb-1">Manage Categories</div>
+              <div className="text-sm text-gray-500">Organize your products</div>
             </Link>
 
             <Link
               to="/vendor/orders"
-              className="flex-shrink-0 w-64 sm:w-auto bg-white rounded-xl p-5 sm:p-6 border border-gray-200/80 hover:border-green-300 hover:shadow-lg transition-all group"
+              className="bg-white rounded-lg p-5 border border-gray-200 hover:border-green-300 hover:shadow-sm transition-all"
             >
-              <div className="h-12 w-12 bg-gradient-to-br from-green-50 to-green-100 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center mb-3">
                 <ShoppingBag className="h-6 w-6 text-green-600" />
               </div>
-              <div className="font-semibold text-gray-900 mb-1">View Orders</div>
+              <div className="font-medium text-gray-900 mb-1">View Orders</div>
               <div className="text-sm text-gray-500">Process & fulfill</div>
             </Link>
 
             <Link
               to="/vendor/analytics"
-              className="flex-shrink-0 w-64 sm:w-auto bg-white rounded-xl p-5 sm:p-6 border border-gray-200/80 hover:border-purple-300 hover:shadow-lg transition-all group"
+              className="bg-white rounded-lg p-5 border border-gray-200 hover:border-purple-300 hover:shadow-sm transition-all"
             >
-              <div className="h-12 w-12 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <div className="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center mb-3">
                 <BarChart className="h-6 w-6 text-purple-600" />
               </div>
-              <div className="font-semibold text-gray-900 mb-1">Analytics</div>
+              <div className="font-medium text-gray-900 mb-1">Analytics</div>
               <div className="text-sm text-gray-500">Track performance</div>
             </Link>
           </div>
         </div>
 
-        {/* Main Grid - Store Info, Recent Products, Recent Orders */}
-        <div className="grid lg:grid-cols-3 gap-6 sm:gap-8">
-          {/* Left Column - Store Info & Recent Products */}
-          <div className="lg:col-span-2 space-y-6 sm:space-y-8">
+        {/* Main Grid */}
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* Left Column */}
+          <div className="lg:col-span-2 space-y-6">
             {/* Store Info Card */}
-            <div className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-200/80 shadow-sm">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center">
-                  <Store className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-indigo-600" />
+            <div className="bg-white rounded-lg p-6 border border-gray-200">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-bold text-gray-900 flex items-center">
+                  <Store className="h-5 w-5 mr-2 text-indigo-600" />
                   Store Overview
                 </h2>
                 <Link
@@ -577,27 +556,25 @@ const VendorStore = () => {
                 </Link>
               </div>
               
-              <div className="space-y-5">
-                <div>
-                  <p className="text-gray-600 leading-relaxed">
-                    {store.storeDescription || (
-                      <span className="text-gray-400 italic">No description provided. Add one in settings.</span>
-                    )}
-                  </p>
-                </div>
+              <div className="space-y-4">
+                <p className="text-gray-600">
+                  {store.storeDescription || (
+                    <span className="text-gray-400 italic">No description provided. Add one in settings.</span>
+                  )}
+                </p>
 
                 <div className="grid sm:grid-cols-2 gap-4">
-                  <div className="bg-gray-50 rounded-xl p-4">
+                  <div className="bg-gray-50 rounded-lg p-3">
                     <div className="flex items-center text-gray-500 mb-1">
                       <MapPin className="h-4 w-4 mr-2" />
-                      <span className="text-xs uppercase tracking-wider">Address</span>
+                      <span className="text-xs">Address</span>
                     </div>
                     <p className="text-gray-900 font-medium">{store.storeAddress || 'Not set'}</p>
                   </div>
-                  <div className="bg-gray-50 rounded-xl p-4">
+                  <div className="bg-gray-50 rounded-lg p-3">
                     <div className="flex items-center text-gray-500 mb-1">
                       <Phone className="h-4 w-4 mr-2" />
-                      <span className="text-xs uppercase tracking-wider">Contact</span>
+                      <span className="text-xs">Contact</span>
                     </div>
                     <p className="text-gray-900 font-medium">{store.storePhone || 'Not set'}</p>
                   </div>
@@ -606,10 +583,10 @@ const VendorStore = () => {
             </div>
 
             {/* Recent Products */}
-            <div className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-200/80 shadow-sm">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center">
-                  <Package className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-indigo-600" />
+            <div className="bg-white rounded-lg p-6 border border-gray-200">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-bold text-gray-900 flex items-center">
+                  <Package className="h-5 w-5 mr-2 text-indigo-600" />
                   Recent Products
                 </h2>
                 <Link
@@ -622,14 +599,12 @@ const VendorStore = () => {
               </div>
 
               {products.length === 0 ? (
-                <div className="text-center py-12 bg-gray-50 rounded-xl">
-                  <div className="h-16 w-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Package className="h-8 w-8 text-gray-400" />
-                  </div>
-                  <p className="text-gray-600 mb-4">Your product catalog is empty</p>
+                <div className="text-center py-8 bg-gray-50 rounded-lg">
+                  <Package className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-gray-600 mb-3">Your product catalog is empty</p>
                   <Link
                     to="/vendor/products"
-                    className="inline-flex items-center px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-md"
+                    className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm"
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Add Your First Product
@@ -640,29 +615,29 @@ const VendorStore = () => {
                   {products.slice(0, 4).map((product) => (
                     <div
                       key={product.id}
-                      className="group border border-gray-200 rounded-xl p-4 hover:border-indigo-300 hover:shadow-md transition-all"
+                      className="border border-gray-200 rounded-lg p-4 hover:border-indigo-300 transition-colors"
                     >
-                      <div className="flex items-start space-x-4">
-                        <div className="h-16 w-16 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
+                      <div className="flex items-start space-x-3">
+                        <div className="h-14 w-14 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
                           {product.imageUrls?.[0] ? (
                             <img 
                               src={product.imageUrls[0]} 
                               alt={product.productName || product.name}
-                              className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-300"
+                              className="h-full w-full object-cover rounded-lg"
                             />
                           ) : (
-                            <Package className="h-8 w-8 text-gray-400" />
+                            <Package className="h-6 w-6 text-gray-400" />
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-gray-900 mb-1 truncate">
+                          <h3 className="font-medium text-gray-900 mb-1 truncate">
                             {product.productName || product.name}
                           </h3>
                           <div className="flex items-center justify-between">
                             <p className="text-sm text-gray-900 font-medium">
                               {formatCurrency(product.price || 0)}
                             </p>
-                            <span className={`text-xs px-2 py-1 rounded-full ${
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${
                               (product.quantity || product.stock || 0) > 0
                                 ? 'bg-green-100 text-green-700'
                                 : 'bg-red-100 text-red-700'
@@ -679,13 +654,13 @@ const VendorStore = () => {
             </div>
           </div>
 
-          {/* Right Column - Recent Orders */}
-          <div className="space-y-6 sm:space-y-8">
+          {/* Right Column */}
+          <div className="space-y-6">
             {/* Recent Orders */}
-            <div className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-200/80 shadow-sm">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center">
-                  <ShoppingBag className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-indigo-600" />
+            <div className="bg-white rounded-lg p-6 border border-gray-200">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-bold text-gray-900 flex items-center">
+                  <ShoppingBag className="h-5 w-5 mr-2 text-indigo-600" />
                   Recent Orders
                 </h2>
                 <Link
@@ -698,15 +673,13 @@ const VendorStore = () => {
               </div>
 
               {orders.length === 0 ? (
-                <div className="text-center py-8">
-                  <div className="h-16 w-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <ShoppingBag className="h-8 w-8 text-gray-400" />
-                  </div>
+                <div className="text-center py-6">
+                  <ShoppingBag className="h-8 w-8 text-gray-400 mx-auto mb-2" />
                   <p className="text-gray-600">No orders yet</p>
                   <p className="text-sm text-gray-500 mt-1">Orders will appear here</p>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {orders.slice(0, 5).map((order) => {
                     const status = (order.orderStatus || order.status || 'PENDING').toUpperCase();
                     const statusColors = {
@@ -721,13 +694,13 @@ const VendorStore = () => {
                       <Link
                         key={order.id}
                         to={`/vendor/orders`}
-                        className="block border border-gray-200 rounded-xl p-4 hover:border-indigo-300 hover:shadow-md transition-all group"
+                        className="block border border-gray-200 rounded-lg p-4 hover:border-indigo-300 transition-colors"
                       >
                         <div className="flex items-center justify-between mb-2">
-                          <span className="font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">
+                          <span className="font-medium text-gray-900">
                             #{order.orderNumber || order.id}
                           </span>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[status] || 'bg-gray-100 text-gray-700'}`}>
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[status] || 'bg-gray-100 text-gray-700'}`}>
                             {status}
                           </span>
                         </div>
@@ -740,13 +713,11 @@ const VendorStore = () => {
                               <Clock className="h-3 w-3 mr-1" />
                               {new Date(order.orderDate || order.createdAt || Date.now()).toLocaleDateString('en-US', {
                                 month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
+                                day: 'numeric'
                               })}
                             </p>
                           </div>
-                          <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-indigo-600 transition-colors" />
+                          <ChevronRight className="h-4 w-4 text-gray-400" />
                         </div>
                       </Link>
                     );
@@ -761,30 +732,5 @@ const VendorStore = () => {
     </div>
   );
 };
-
-// Add this CSS to your global styles or component
-const styles = `
-  @keyframes slideLeft {
-    from {
-      transform: translateX(100%);
-    }
-    to {
-      transform: translateX(0);
-    }
-  }
-
-  .animate-slide-left {
-    animation: slideLeft 0.3s ease-out;
-  }
-
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
-  
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-`;
 
 export default VendorStore;

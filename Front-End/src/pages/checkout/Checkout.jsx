@@ -6,15 +6,16 @@ import {
   MapPin, User, Mail, Phone,
   CheckCircle, Shield, Loader2,
   ShoppingBag, AlertCircle, Package, Palette, Ruler, ChevronDown,
-  Wallet, Camera, Upload, X, Smartphone, Copy
+  Wallet, Camera, Upload, X, Smartphone, Copy,
+  DollarSign, Banknote, QrCode
 } from 'lucide-react';
 import { orderAPI } from '../../api/order.api';
 import { customerAPI } from '../../api/customer.api';
 import { shippingAPI } from '../../api/shipping.api';
 import { storeAPI } from '../../api/store.api';
+import { paymentAPI } from '../../api/payment.api';
 import StoreFooter from '../../components/StoreFooter';
 import { useErrorHandler } from '../../hooks/useErrorHandler';
-import { se } from 'date-fns/locale';
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -24,15 +25,23 @@ const Checkout = () => {
   const [error, setError] = useState(null);
   const [selectedShipping, setSelectedShipping] = useState(null);
   const [depositSettings, setDepositSettings] = useState(null);
-  const [showDepositModal, setShowDepositModal] = useState(false);
-  const [depositAmount, setDepositAmount] = useState(0);
-  const [depositProof, setDepositProof] = useState(null);
-  const [depositProofPreview, setDepositProofPreview] = useState(null);
-  const [uploadingDeposit, setUploadingDeposit] = useState(false);
-  const [depositSuccess, setDepositSuccess] = useState(false);
-  const [depositError, setDepositError] = useState(null);
+  const [paymentMethods, setPaymentMethods] = useState([]);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
+  
+  // Modal states - مودالين منفصلين
+  const [showPaymentModal, setShowPaymentModal] = useState(false); // للدفع الكامل
+  const [showDepositModal, setShowDepositModal] = useState(false); // للإيداع
+  
+  // Shared states
+  const [paymentAmount, setPaymentAmount] = useState(0);
+  const [paymentProof, setPaymentProof] = useState(null);
+  const [paymentProofPreview, setPaymentProofPreview] = useState(null);
+  const [uploadingPayment, setUploadingPayment] = useState(false);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [paymentError, setPaymentError] = useState(null);
   const [copiedInstapay, setCopiedInstapay] = useState(false);
   const [copiedVodafone, setCopiedVodafone] = useState(false);
+  
   const [customerInfo, setCustomerInfo] = useState({
     firstName: '',
     lastName: '',
@@ -53,6 +62,8 @@ const Checkout = () => {
           setCartData(parsedCart);
           fetchStoreShippingCosts(parsedCart.storeId);
           fetchDepositSettings(parsedCart.storeId);
+          fetchPaymentMethods(parsedCart.storeId);
+          fetchStoreColors(parsedCart.storeId);
         } else {
           navigate(`/store/${parsedCart.storeName}`);
         }
@@ -63,6 +74,19 @@ const Checkout = () => {
       navigate('/');
     }
   }, [navigate]);
+
+  const fetchStoreColors = async (storeId) => {
+    try {
+      const storeData = await storeAPI.getById(storeId);
+      setCartData(prev => ({
+        ...prev,
+        primaryColor: storeData.primaryColor || '#4f46e5',
+        secondaryColor: storeData.secondaryColor || '#8b5cf6'
+      }));
+    } catch (err) {
+      console.error('Error fetching store colors:', err);
+    }
+  };
 
   const fetchStoreShippingCosts = async (storeId) => {
     try {
@@ -84,12 +108,34 @@ const Checkout = () => {
     try {
       const response = await storeAPI.getDepositSettings(storeId);
       const settings = await response.json();
-      console.log('Deposit settings:', settings);
-      setDepositSettings(settings);
+      console.log('📦 Deposit settings from API:', settings);
+      
+      setDepositSettings({
+        depositType: settings.depositType || 'PERCENTAGE',
+        depositValue: settings.depositValue || 0,
+        instapayNumber: settings.instapayNumber || '',
+        vodafoneCashNumber: settings.vodafoneCashNumber || '',
+        depositRequired: settings.depositRequired || false
+      });
     } catch (err) {
       console.error('Error fetching deposit settings:', err);
       setDepositSettings(null);
-      // Don't show error, deposit might be optional
+    }
+  };
+
+  const fetchPaymentMethods = async (storeId) => {
+    try {
+      const methods = await paymentAPI.getPaymentMethods(storeId);
+      console.log('📦 Payment methods from API:', methods);
+      
+      const activeMethods = methods.filter(m => m.isActive);
+      setPaymentMethods(activeMethods);
+      
+      if (activeMethods.length > 0) {
+        setSelectedPaymentMethod(activeMethods[0]);
+      }
+    } catch (err) {
+      console.error('Error fetching payment methods:', err);
     }
   };
 
@@ -129,76 +175,81 @@ const Checkout = () => {
         setError('Please select a governorate for shipping.');
         return;
       }
+      if (paymentMethods.length === 0) {
+        setError('No payment methods available for this store.');
+        return;
+      }
       setStep(2);
       return;
     }
 
     if (step === 2) {
-      
-      // في حالة عدم وجود deposit مطلوب
-      if(depositSettings=== null || !depositSettings.depositRequired) {
-        setIsLoading(true);
-        setError(null);
-
-        try {
-          const orderResponse = await createOrder();
-
-          if (!orderResponse || !orderResponse.id) {
-            throw new Error('Failed to create order');
-          }
-
-          // إظهار Modal التأكيد
-          setDepositSuccess(true);
-          
-          // تأخير قبل التوجيه
-          setTimeout(() => {
-            localStorage.removeItem('checkout_cart');
-            if (cartData.storeName) localStorage.removeItem(`cart_${cartData.storeName}`);
-            navigate(`/store/${cartData.storeName}?order=success`);
-          }, 500);
-
-        } catch (err) {
-          console.error('Order error:', err);
-          setError(err.message || 'Failed to place order');
-        } finally {
-          setIsLoading(false);
+      if (selectedPaymentMethod?.paymentMethodName === 'COD') {
+        if (depositSettings===null || !depositSettings?.depositRequired) {
+          await placeOrderWithoutPayment();
+        } else {
+          const amount = calculateDepositAmount();
+          setPaymentAmount(amount);
+          setShowDepositModal(true); // فتح مودال الإيداع
         }
-      }else{
-        const amount = calculateDepositAmount();
-        setDepositAmount(amount);
-        setShowDepositModal(true);
+      } else {
+        setPaymentAmount(getTotal());
+        setShowPaymentModal(true); // فتح مودال الدفع الكامل
       }
-      
     }
-
-    
   };
 
-  const handleDepositProofUpload = (e) => {
+  const placeOrderWithoutPayment = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const orderResponse = await createOrder();
+
+      if (!orderResponse || !orderResponse.id) {
+        throw new Error('Failed to create order');
+      }
+
+      setPaymentSuccess(true);
+      
+      setTimeout(() => {
+        localStorage.removeItem('checkout_cart');
+        if (cartData.storeName) localStorage.removeItem(`cart_${cartData.storeName}`);
+        navigate(`/store/${cartData.storeName}?order=success`);
+      }, 500);
+
+    } catch (err) {
+      console.error('Order error:', err);
+      setError(err.message || 'Failed to place order');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePaymentProofUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // تحقق من حجم الصورة (5MB كحد أقصى)
       if (file.size > 5 * 1024 * 1024) {
-        setDepositError('File too large. Maximum size is 5MB');
+        setPaymentError('File too large. Maximum size is 5MB');
         return;
       }
       
-      // تحقق من نوع الصورة
       if (!file.type.startsWith('image/')) {
-        setDepositError('Please upload an image file');
+        setPaymentError('Please upload an image file');
         return;
       }
       
-      setDepositProof(file);
+      setPaymentProof(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setDepositProofPreview(reader.result);
+        setPaymentProofPreview(reader.result);
       };
       reader.readAsDataURL(file);
     }
   };
 
   const handleCopy = (text, type) => {
+    if (!text) return;
     navigator.clipboard.writeText(text);
     if (type === 'instapay') {
       setCopiedInstapay(true);
@@ -213,6 +264,7 @@ const Checkout = () => {
     const subtotal = getSubtotal();
     const shippingCost = selectedShipping?.price || 0;
     const totalPrice = subtotal + shippingCost;
+    const depositAmount = calculateDepositAmount();
 
     const customerData = {
       firstName: customerInfo.firstName,
@@ -227,9 +279,14 @@ const Checkout = () => {
     const customerResponse = await customerAPI.add(customerData);
     if (!customerResponse || !customerResponse.id) throw new Error('Failed to create customer');
 
+    const paymentMethodId = selectedPaymentMethod?.paymentMethodId || 
+      (selectedPaymentMethod?.paymentMethodName === 'COD' ? 3 : 
+       selectedPaymentMethod?.paymentMethodName === 'INSTAPAY' ? 1 : 2);
+
     const orderData = {
       storeId: cartData.storeId,
       customerId: customerResponse.id,
+      paymentMethodId: paymentMethodId,
       shippingCost: shippingCost,
       governorateId: selectedShipping?.governorateId || null,
       governorateName: selectedShipping?.governorateName || null,
@@ -237,7 +294,7 @@ const Checkout = () => {
       totalPrice: totalPrice,
       depositAmount: depositAmount,
       depositRequired: depositSettings?.depositRequired || false,
-      depositStatus: depositSettings?.depositRequired ? 'pending' : 'not_required',
+      depositStatus: (selectedPaymentMethod?.paymentMethodName === 'COD' && depositSettings?.depositRequired) ? 'PENDING' : 'NOT_REQUIRED',
       items: cartData.items.map(item => ({
         productId: item.productId || item.id,
         price: item.price,
@@ -248,24 +305,29 @@ const Checkout = () => {
       })),
     };
 
+    console.log('📤 Order data:', orderData);
     const orderResponse = await orderAPI.checkout(orderData);
     return orderResponse;
   };
 
-  const handleDepositConfirm = async () => {
-    if (!depositProof) {
-      setDepositError('Please upload proof of payment');
+  const handlePaymentConfirm = async () => {
+    if (paymentAmount === 0) {
+      await placeOrderWithoutPayment();
       return;
     }
 
-    setUploadingDeposit(true);
-    setDepositError(null);
+    if (!paymentProof) {
+      setPaymentError('Please upload proof of payment');
+      return;
+    }
+
+    setUploadingPayment(true);
+    setPaymentError(null);
 
     let createdOrderId = null;
 
     try {
-      // 1. إنشاء الطلب
-      console.log('📝 Creating order with deposit...');
+      console.log('📝 Creating order with payment...');
       const orderResponse = await createOrder();
       
       if (!orderResponse || !orderResponse.id) {
@@ -275,40 +337,32 @@ const Checkout = () => {
       createdOrderId = orderResponse.id;
       console.log('✅ Order created:', createdOrderId);
 
-      // 2. محاولة رفع صورة الإيداع
       try {
         const formData = new FormData();
-        formData.append('screenshot', depositProof); // ✅ اسم الحقل "file" مهم
+        formData.append('screenshot', paymentProof);
         
-        // للتصحيح
-        console.log('📤 Uploading file:', depositProof.name);
-        console.log('📤 File size:', depositProof.size);
-        console.log('📤 File type:', depositProof.type);
+        console.log('📤 Uploading file:', paymentProof.name);
+        console.log('📤 File size:', paymentProof.size);
+        console.log('📤 File type:', paymentProof.type);
         
         await orderAPI.uploadDepositProof(createdOrderId, formData);
-        console.log('✅ Deposit proof uploaded successfully');
+        console.log('✅ Payment proof uploaded successfully');
 
       } catch (uploadError) {
-        // لو فشل رفع الصورة، نحذف الطلب اللي اتعمل
         console.error('❌ Upload failed, deleting order:', createdOrderId);
         
         try {
-          // حذف الطلب
           await orderAPI.delete(createdOrderId);
           console.log('✅ Order deleted successfully');
         } catch (deleteError) {
           console.error('❌ Failed to delete order:', deleteError);
-          // هنا ممكن تسجل error للـ admin
         }
         
-        // نرمي الخطأ عشان نعرضه للمستخدم
         throw new Error('فشل رفع صورة الدفع. تم إلغاء الطلب.');
       }
 
-      // 3. كل حاجة تمام
-      setDepositSuccess(true);
+      setPaymentSuccess(true);
       
-      // 4. تنظيف الـ localStorage والتحويل بعد 3 ثواني
       setTimeout(() => {
         localStorage.removeItem('checkout_cart');
         if (cartData.storeName) localStorage.removeItem(`cart_${cartData.storeName}`);
@@ -317,9 +371,9 @@ const Checkout = () => {
 
     } catch (err) {
       console.error('❌ Transaction error:', err);
-      setDepositError(err.message || 'فشلت العملية. الرجاء المحاولة مرة أخرى.');
+      setPaymentError(err.message || 'فشلت العملية. الرجاء المحاولة مرة أخرى.');
     } finally {
-      setUploadingDeposit(false);
+      setUploadingPayment(false);
     }
   };
 
@@ -354,12 +408,52 @@ const Checkout = () => {
     return null;
   };
 
-  const handleDepositModalClose = () => {
-    if (!uploadingDeposit && !depositSuccess) {
+  const handleModalClose = () => {
+    if (!uploadingPayment && !paymentSuccess) {
+      setShowPaymentModal(false);
       setShowDepositModal(false);
-      setDepositProof(null);
-      setDepositProofPreview(null);
-      setDepositError(null);
+      setPaymentProof(null);
+      setPaymentProofPreview(null);
+      setPaymentError(null);
+    }
+  };
+
+  const getPaymentMethodIcon = (methodName) => {
+    switch(methodName) {
+      case 'INSTAPAY':
+        return <img className='scale-200' src="instapay.png" alt="Instapay" />;
+      case 'VODAFONE_CASH':
+        return <img className='scale-200' src="vodafoneCash.png" alt="Vodafone Cash" />;
+      case 'COD':
+        return <Banknote className="h-5 w-5" />;
+      default:
+        return <CreditCard className="h-5 w-5" />;
+    }
+  };
+
+  const getPaymentMethodColor = (methodName) => {
+    switch(methodName) {
+      case 'INSTAPAY':
+        return 'emerald';
+      case 'VODAFONE_CASH':
+        return 'red';
+      case 'COD':
+        return 'blue';
+      default:
+        return 'gray';
+    }
+  };
+
+  const getPaymentMethodDisplayName = (methodName) => {
+    switch(methodName) {
+      case 'INSTAPAY':
+        return 'Instapay';
+      case 'VODAFONE_CASH':
+        return 'Vodafone Cash';
+      case 'COD':
+        return 'Cash on Delivery';
+      default:
+        return methodName;
     }
   };
 
@@ -389,11 +483,11 @@ const Checkout = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Deposit Modal */}
-      {showDepositModal && (
+      {/* مودال الدفع الكامل (Instapay / Vodafone Cash) */}
+      {showPaymentModal && (
         <div 
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-          onClick={handleDepositModalClose}
+          onClick={handleModalClose}
         >
           <div 
             className="bg-white rounded-3xl max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl animate-scale-in"
@@ -401,17 +495,17 @@ const Checkout = () => {
           >
             <div className="sticky top-0 bg-white border-b border-gray-100 p-6 flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <div className="h-12 w-12 bg-amber-100 rounded-xl flex items-center justify-center">
-                  <Wallet className="h-6 w-6 text-amber-600" />
+                <div className="h-12 w-12 bg-green-100 rounded-xl flex items-center justify-center">
+                  <CreditCard className="h-6 w-6 text-green-600" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900">Deposit Required</h3>
-                  <p className="text-sm text-gray-500">Complete payment to confirm order</p>
+                  <h3 className="text-xl font-bold text-gray-900">Complete Payment</h3>
+                  <p className="text-sm text-gray-500">Pay total amount to confirm your order</p>
                 </div>
               </div>
-              {!uploadingDeposit && !depositSuccess && (
+              {!uploadingPayment && !paymentSuccess && (
                 <button
-                  onClick={handleDepositModalClose}
+                  onClick={handleModalClose}
                   className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 >
                   <X className="h-5 w-5 text-gray-500" />
@@ -420,78 +514,103 @@ const Checkout = () => {
             </div>
 
             <div className="p-6 space-y-6">
-              {depositSuccess ? (
+              {paymentSuccess ? (
                 <div className="text-center py-8">
                   <div className="h-20 w-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <CheckCircle className="h-10 w-10 text-green-600" />
                   </div>
-                  <h4 className="text-xl font-bold text-gray-900 mb-2">Deposit Submitted!</h4>
+                  <h4 className="text-xl font-bold text-gray-900 mb-2">Payment Confirmed!</h4>
                   <p className="text-gray-600 mb-4">
-                    Your deposit proof has been uploaded. The vendor will confirm your payment shortly.
+                    Your payment has been received. The vendor will process your order shortly.
                   </p>
                   <p className="text-sm text-gray-500">Redirecting to store...</p>
                 </div>
               ) : (
                 <>
-                  {/* Deposit Amount */}
-                  <div className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl p-5 text-white">
+                  {/* المبلغ كامل */}
+                  <div 
+                    className="rounded-xl p-5 text-white"
+                    style={{
+                      background: `linear-gradient(to right, ${cartData?.primaryColor || '#4f46e5'}, ${cartData?.secondaryColor || '#8b5cf6'})`
+                    }}
+                  >
                     <h4 className="font-medium mb-2">Amount to Pay</h4>
-                    <div className="text-3xl font-bold">{formatPrice(depositAmount)}</div>
-                    <p className="text-sm text-amber-100 mt-1">
-                      {depositSettings?.depositType === 'SHIPPING' 
-                        ? 'Deposit equals shipping cost'
-                        : `${depositSettings?.depositValue}% of order total`}
-                    </p>
+                    <div className="text-3xl font-bold">{formatPrice(paymentAmount)}</div>
+                    <p className="text-sm opacity-80 mt-1">Total order amount</p>
                   </div>
 
-                  {/* Payment Methods */}
+                  {/* Payment Details - منفصلة */}
                   <div className="space-y-4">
-                    <h4 className="font-semibold text-gray-900">Payment Methods</h4>
+                    <h4 className="font-semibold text-gray-900">Payment Details</h4>
                     
-                    {depositSettings?.instapayNumber && (
-                      <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center space-x-2">
-                            <Smartphone className="h-5 w-5 text-amber-600" />
-                            <span className="font-medium">Instapay</span>
+                    {/* Instapay */}
+                    {selectedPaymentMethod?.paymentMethodName === 'INSTAPAY' && (
+                      <>
+                        {depositSettings?.instapayNumber ? (
+                          <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center space-x-2">
+                                <Smartphone className="h-5 w-5 text-emerald-600" />
+                                <span className="font-medium">Instapay</span>
+                              </div>
+                              <button
+                                onClick={() => handleCopy(depositSettings.instapayNumber, 'instapay')}
+                                className="text-sm text-emerald-600 hover:text-emerald-700 flex items-center space-x-1"
+                              >
+                                <Copy className="h-4 w-4" />
+                                <span>{copiedInstapay ? 'Copied!' : 'Copy'}</span>
+                              </button>
+                            </div>
+                            <p className="text-lg font-mono text-gray-900">{depositSettings.instapayNumber}</p>
+                            {selectedPaymentMethod?.accountName && (
+                              <p className="text-sm text-gray-500 mt-2">Account: {selectedPaymentMethod.accountName}</p>
+                            )}
                           </div>
-                          <button
-                            onClick={() => handleCopy(depositSettings.instapayNumber, 'instapay')}
-                            className="text-sm text-amber-600 hover:text-amber-700 flex items-center space-x-1"
-                          >
-                            <Copy className="h-4 w-4" />
-                            <span>{copiedInstapay ? 'Copied!' : 'Copy'}</span>
-                          </button>
-                        </div>
-                        <p className="text-lg font-mono text-gray-900">{depositSettings.instapayNumber}</p>
-                      </div>
+                        ) : (
+                          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                            <p className="text-sm text-yellow-700">Instapay number not configured by vendor.</p>
+                          </div>
+                        )}
+                      </>
                     )}
 
-                    {depositSettings?.vodafoneCashNumber && (
-                      <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center space-x-2">
-                            <Phone className="h-5 w-5 text-amber-600" />
-                            <span className="font-medium">Vodafone Cash</span>
+                    {/* Vodafone Cash */}
+                    {selectedPaymentMethod?.paymentMethodName === 'VODAFONE_CASH' && (
+                      <>
+                        {depositSettings?.vodafoneCashNumber ? (
+                          <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center space-x-2">
+                                <img src="vodafoneCash.png" alt="Vodafone Cash" />
+                                <span className="font-medium">Vodafone Cash</span>
+                              </div>
+                              <button
+                                onClick={() => handleCopy(depositSettings.vodafoneCashNumber, 'vodafone')}
+                                className="text-sm text-red-600 hover:text-red-700 flex items-center space-x-1"
+                              >
+                                <Copy className="h-4 w-4" />
+                                <span>{copiedVodafone ? 'Copied!' : 'Copy'}</span>
+                              </button>
+                            </div>
+                            <p className="text-lg font-mono text-gray-900">{depositSettings.vodafoneCashNumber}</p>
+                            {selectedPaymentMethod?.accountName && (
+                              <p className="text-sm text-gray-500 mt-2">Account: {selectedPaymentMethod.accountName}</p>
+                            )}
                           </div>
-                          <button
-                            onClick={() => handleCopy(depositSettings.vodafoneCashNumber, 'vodafone')}
-                            className="text-sm text-amber-600 hover:text-amber-700 flex items-center space-x-1"
-                          >
-                            <Copy className="h-4 w-4" />
-                            <span>{copiedVodafone ? 'Copied!' : 'Copy'}</span>
-                          </button>
-                        </div>
-                        <p className="text-lg font-mono text-gray-900">{depositSettings.vodafoneCashNumber}</p>
-                      </div>
+                        ) : (
+                          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                            <p className="text-sm text-yellow-700">Vodafone Cash number not configured by vendor.</p>
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
 
                   {/* Upload Proof */}
                   <div className="space-y-4">
-                    <h4 className="font-semibold text-gray-900">Upload Payment Proof</h4>
+                    <h4 className="font-semibold text-gray-900">Upload Payment Screenshot</h4>
                     
-                    {!depositProofPreview ? (
+                    {!paymentProofPreview ? (
                       <label className="block cursor-pointer">
                         <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-amber-500 transition-colors">
                           <Camera className="h-12 w-12 text-gray-400 mx-auto mb-3" />
@@ -500,7 +619,7 @@ const Checkout = () => {
                           <input
                             type="file"
                             accept="image/*"
-                            onChange={handleDepositProofUpload}
+                            onChange={handlePaymentProofUpload}
                             className="hidden"
                           />
                         </div>
@@ -508,14 +627,14 @@ const Checkout = () => {
                     ) : (
                       <div className="relative">
                         <img 
-                          src={depositProofPreview} 
-                          alt="Deposit proof" 
+                          src={paymentProofPreview} 
+                          alt="Payment proof" 
                           className="w-full rounded-xl border border-gray-200"
                         />
                         <button
                           onClick={() => {
-                            setDepositProof(null);
-                            setDepositProofPreview(null);
+                            setPaymentProof(null);
+                            setPaymentProofPreview(null);
                           }}
                           className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
                         >
@@ -524,10 +643,10 @@ const Checkout = () => {
                       </div>
                     )}
 
-                    {depositError && (
+                    {paymentError && (
                       <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl flex items-center space-x-2">
                         <AlertCircle className="h-5 w-5" />
-                        <span className="text-sm">{depositError}</span>
+                        <span className="text-sm">{paymentError}</span>
                       </div>
                     )}
                   </div>
@@ -535,21 +654,24 @@ const Checkout = () => {
                   {/* Action Buttons */}
                   <div className="flex space-x-4 pt-4">
                     <button
-                      onClick={handleDepositModalClose}
-                      disabled={uploadingDeposit}
+                      onClick={handleModalClose}
+                      disabled={uploadingPayment}
                       className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors disabled:opacity-50"
                     >
                       Cancel
                     </button>
                     <button
-                      onClick={handleDepositConfirm}
-                      disabled={uploadingDeposit || !depositProof}
-                      className="flex-1 py-3 bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-xl hover:from-amber-700 hover:to-orange-700 transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
+                      onClick={handlePaymentConfirm}
+                      disabled={uploadingPayment || !paymentProof}
+                      className="flex-1 py-3 text-white rounded-xl transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
+                      style={{
+                        background: `linear-gradient(to right, ${cartData?.primaryColor || '#4f46e5'}, ${cartData?.secondaryColor || '#8b5cf6'})`
+                      }}
                     >
-                      {uploadingDeposit ? (
+                      {uploadingPayment ? (
                         <>
                           <Loader2 className="h-5 w-5 animate-spin" />
-                          <span>Uploading...</span>
+                          <span>Processing...</span>
                         </>
                       ) : (
                         <>
@@ -560,8 +682,7 @@ const Checkout = () => {
                     </button>
                   </div>
 
-                  {/* رسالة تحذير للمستخدم */}
-                  {uploadingDeposit && (
+                  {uploadingPayment && (
                     <div className="text-center py-2">
                       <p className="text-xs text-gray-500">
                         Please don't close this window while we process your order...
@@ -575,7 +696,224 @@ const Checkout = () => {
         </div>
       )}
 
-      {/* باقي الكود زي ما هو ... */}
+      {/* مودال الإيداع (Deposit) - منفصل */}
+      {showDepositModal && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+          onClick={handleModalClose}
+        >
+          <div 
+            className="bg-white rounded-3xl max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 bg-white border-b border-gray-100 p-6 flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="h-12 w-12 bg-amber-100 rounded-xl flex items-center justify-center">
+                  <Wallet className="h-6 w-6 text-amber-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">Deposit Required</h3>
+                  <p className="text-sm text-gray-500">Pay deposit to confirm your order</p>
+                </div>
+              </div>
+              {!uploadingPayment && !paymentSuccess && (
+                <button
+                  onClick={handleModalClose}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="h-5 w-5 text-gray-500" />
+                </button>
+              )}
+            </div>
+
+            <div className="p-6 space-y-6">
+              {paymentSuccess ? (
+                <div className="text-center py-8">
+                  <div className="h-20 w-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle className="h-10 w-10 text-green-600" />
+                  </div>
+                  <h4 className="text-xl font-bold text-gray-900 mb-2">Deposit Submitted!</h4>
+                  <p className="text-gray-600 mb-4">
+                    Your deposit proof has been uploaded. The vendor will confirm your payment shortly.
+                  </p>
+                  <p className="text-sm text-gray-500">Redirecting to store...</p>
+                </div>
+              ) : (
+                <>
+                  {/* مبلغ الإيداع */}
+                  <div 
+                    className="rounded-xl p-5 text-white"
+                    style={{
+                      background: `linear-gradient(to right, ${cartData?.primaryColor || '#4f46e5'}, ${cartData?.secondaryColor || '#8b5cf6'})`
+                    }}
+                  >
+                    <h4 className="font-medium mb-2">Deposit Amount</h4>
+                    <div className="text-3xl font-bold">{formatPrice(paymentAmount)}</div>
+                    <p className="text-sm opacity-80 mt-1">
+                      {depositSettings?.depositType === 'SHIPPING' 
+                        ? 'Deposit equals shipping cost'
+                        : `${depositSettings?.depositValue}% of order total`}
+                    </p>
+                  </div>
+
+                  {/* Payment Details للإيداع - هنا الأرقام */}
+                  <div className="space-y-4">
+                    <h4 className="font-semibold text-gray-900">Send deposit to</h4>
+                    
+                    {/* Instapay - هنا يظهر الرقم */}
+                    {depositSettings?.instapayNumber && (
+                      <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center space-x-2">
+                            <Smartphone className="h-5 w-5 text-emerald-600" />
+                            <span className="font-medium">Instapay</span>
+                          </div>
+                          <button
+                            onClick={() => handleCopy(depositSettings.instapayNumber, 'instapay')}
+                            className="text-sm text-emerald-600 hover:text-emerald-700 flex items-center space-x-1"
+                          >
+                            <Copy className="h-4 w-4" />
+                            <span>{copiedInstapay ? 'Copied!' : 'Copy'}</span>
+                          </button>
+                        </div>
+                        <p className="text-lg font-mono text-gray-900">{depositSettings.instapayNumber}</p>
+                      </div>
+                    )}
+
+                    {/* Vodafone Cash - هنا يظهر الرقم */}
+                    {depositSettings?.vodafoneCashNumber && (
+                      <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center space-x-2">
+                            <Phone className="h-5 w-5 text-red-600" />
+                            <span className="font-medium">Vodafone Cash</span>
+                          </div>
+                          <button
+                            onClick={() => handleCopy(depositSettings.vodafoneCashNumber, 'vodafone')}
+                            className="text-sm text-red-600 hover:text-red-700 flex items-center space-x-1"
+                          >
+                            <Copy className="h-4 w-4" />
+                            <span>{copiedVodafone ? 'Copied!' : 'Copy'}</span>
+                          </button>
+                        </div>
+                        <p className="text-lg font-mono text-gray-900">{depositSettings.vodafoneCashNumber}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* رسالة لو مفيش أرقام */}
+                  {!depositSettings?.instapayNumber && !depositSettings?.vodafoneCashNumber && (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                      <p className="text-sm text-yellow-700">No payment methods configured for deposit.</p>
+                    </div>
+                  )}
+
+                  {/* رسالة COD */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                    <div className="flex items-start gap-3">
+                      <Banknote className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm text-blue-800 font-medium">
+                          Pay {formatPrice(paymentAmount)} as deposit
+                        </p>
+                        <p className="text-xs text-blue-600 mt-1">
+                          The remaining {formatPrice(getTotal() - paymentAmount)} will be paid upon delivery.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Upload Proof */}
+                  <div className="space-y-4">
+                    <h4 className="font-semibold text-gray-900">Upload Deposit Proof</h4>
+                    
+                    {!paymentProofPreview ? (
+                      <label className="block cursor-pointer">
+                        <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-amber-500 transition-colors">
+                          <Camera className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                          <p className="text-gray-600 mb-1">Click to upload screenshot</p>
+                          <p className="text-xs text-gray-500">PNG, JPG up to 5MB</p>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handlePaymentProofUpload}
+                            className="hidden"
+                          />
+                        </div>
+                      </label>
+                    ) : (
+                      <div className="relative">
+                        <img 
+                          src={paymentProofPreview} 
+                          alt="Payment proof" 
+                          className="w-full rounded-xl border border-gray-200"
+                        />
+                        <button
+                          onClick={() => {
+                            setPaymentProof(null);
+                            setPaymentProofPreview(null);
+                          }}
+                          className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    )}
+
+                    {paymentError && (
+                      <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl flex items-center space-x-2">
+                        <AlertCircle className="h-5 w-5" />
+                        <span className="text-sm">{paymentError}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex space-x-4 pt-4">
+                    <button
+                      onClick={handleModalClose}
+                      disabled={uploadingPayment}
+                      className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handlePaymentConfirm}
+                      disabled={uploadingPayment || !paymentProof}
+                      className="flex-1 py-3 text-white rounded-xl transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
+                      style={{
+                        background: `linear-gradient(to right, ${cartData?.primaryColor || '#4f46e5'}, ${cartData?.secondaryColor || '#8b5cf6'})`
+                      }}
+                    >
+                      {uploadingPayment ? (
+                        <>
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                          <span>Processing...</span>
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="h-5 w-5" />
+                          <span>Confirm Deposit</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {uploadingPayment && (
+                    <div className="text-center py-2">
+                      <p className="text-xs text-gray-500">
+                        Please don't close this window while we process your order...
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* باقي الكود زي ما هو */}
       <div className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-between">
@@ -735,6 +1073,51 @@ const Checkout = () => {
                       )}
                     </div>
 
+                    {/* Payment Method Selection */}
+                    <div className="mt-6">
+                      <label className="block text-sm font-medium text-gray-700 mb-4">
+                        Payment Method *
+                      </label>
+                      {paymentMethods.length === 0 ? (
+                        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-xl text-yellow-700 text-sm">
+                          No payment methods available for this store.
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          {paymentMethods.map(method => {
+                            const color = getPaymentMethodColor(method.paymentMethodName);
+                            const isSelected = selectedPaymentMethod?.paymentMethodId === method.paymentMethodId;
+                            
+                            return (
+                              <div
+                                key={method.paymentMethodId}
+                                onClick={() => setSelectedPaymentMethod(method)}
+                                className={`cursor-pointer border-2 rounded-xl p-4 transition-all ${
+                                  isSelected 
+                                    ? `border-${color}-500 bg-${color}-50` 
+                                    : 'border-gray-200 hover:border-gray-300'
+                                }`}
+                              >
+                                <div className="flex flex-col items-center text-center">
+                                  <div className={`h-12 w-12 rounded-full bg-${color}-100 flex items-center justify-center mb-2`}>
+                                    {getPaymentMethodIcon(method.paymentMethodName)}
+                                  </div>
+                                  <span className={`text-sm font-medium ${
+                                    isSelected ? `text-${color}-700` : 'text-gray-700'
+                                  }`}>
+                                    {getPaymentMethodDisplayName(method.paymentMethodName)}
+                                  </span>
+                                  {method.paymentMethodName === 'COD' && depositSettings?.depositRequired && (
+                                    <span className="text-xs text-amber-600 mt-1">Deposit required</span>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+
                     <div className="mt-6">
                       <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
                       <input
@@ -746,7 +1129,7 @@ const Checkout = () => {
 
                     <button
                       type="submit" 
-                      disabled={isLoading || shippingOptions.length === 0}
+                      disabled={isLoading || shippingOptions.length === 0 || paymentMethods.length === 0 || !selectedPaymentMethod}
                       className="w-full mt-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Review Order
@@ -755,6 +1138,36 @@ const Checkout = () => {
                 ) : (
                   <>
                     <h3 className="text-xl font-bold text-gray-900 mb-6">Review Your Order</h3>
+
+                    {/* Payment Method Summary */}
+                    {selectedPaymentMethod && (
+                      <div className={`mb-6 p-4 bg-${getPaymentMethodColor(selectedPaymentMethod.paymentMethodName)}-50 border border-${getPaymentMethodColor(selectedPaymentMethod.paymentMethodName)}-200 rounded-xl`}>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className={`h-10 w-10 rounded-full bg-${getPaymentMethodColor(selectedPaymentMethod.paymentMethodName)}-100 flex items-center justify-center`}>
+                              {getPaymentMethodIcon(selectedPaymentMethod.paymentMethodName)}
+                            </div>
+                            <div>
+                              <div className="font-medium text-gray-900">
+                                {getPaymentMethodDisplayName(selectedPaymentMethod.paymentMethodName)}
+                              </div>
+                              <div className={`text-xs text-${getPaymentMethodColor(selectedPaymentMethod.paymentMethodName)}-600`}>
+                                {selectedPaymentMethod.paymentMethodName === 'COD' 
+                                  ? depositSettings?.depositRequired ? 'Deposit required' : 'Pay on delivery'
+                                  : 'Online payment'}
+                              </div>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setStep(1)}
+                            className="text-sm text-indigo-600 hover:text-indigo-700"
+                          >
+                            Change
+                          </button>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Order Items */}
                     <div className="mb-8">
@@ -829,8 +1242,8 @@ const Checkout = () => {
                       </div>
                     </div>
 
-                    {/* Deposit Info - if required */}
-                    {depositSettings?.depositRequired && (
+                    {/* Deposit Info - if required for COD */}
+                    {selectedPaymentMethod?.paymentMethodName === 'COD' && depositSettings?.depositRequired && (
                       <div className="mb-8 p-4 bg-amber-50 border border-amber-200 rounded-xl">
                         <div className="flex items-start space-x-3">
                           <Wallet className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
@@ -861,7 +1274,7 @@ const Checkout = () => {
                           <span className="text-gray-600">Shipping ({selectedShipping?.governorateName}):</span>
                           <span className="font-medium text-indigo-600">{formatPrice(selectedShipping?.price || 0)}</span>
                         </div>
-                        {depositSettings?.depositRequired && (
+                        {selectedPaymentMethod?.paymentMethodName === 'COD' && depositSettings?.depositRequired && (
                           <div className="flex justify-between text-sm">
                             <span className="text-gray-600">Deposit:</span>
                             <span className="font-medium text-amber-600">{formatPrice(calculateDepositAmount())}</span>
@@ -869,8 +1282,16 @@ const Checkout = () => {
                         )}
                         <div className="border-t border-gray-200 pt-2 mt-2">
                           <div className="flex justify-between font-bold">
-                            <span>Total:</span>
-                            <span className="text-indigo-600">{formatPrice(getTotal())}</span>
+                            <span>
+                              {selectedPaymentMethod?.paymentMethodName === 'COD' && depositSettings?.depositRequired
+                                ? 'Remaining (on delivery):'
+                                : 'Total:'}
+                            </span>
+                            <span className="text-indigo-600">
+                              {selectedPaymentMethod?.paymentMethodName === 'COD' && depositSettings?.depositRequired
+                                ? formatPrice(getTotal() - calculateDepositAmount())
+                                : formatPrice(getTotal())}
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -894,11 +1315,24 @@ const Checkout = () => {
                         Back
                       </button>
                       <button
-                        type="submit" disabled={isLoading}
-                        className="flex-1 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all shadow-lg flex items-center justify-center space-x-2 disabled:opacity-50"
+                        type="submit" 
+                        disabled={isLoading}
+                        className="flex-1 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg flex items-center justify-center space-x-2 disabled:opacity-50"
+                        style={{
+                          background: `linear-gradient(to right, ${cartData?.primaryColor || '#4f46e5'}, ${cartData?.secondaryColor || '#8b5cf6'})`
+                        }}
                       >
-                        <CheckCircle className="h-5 w-5" />
-                        <span>Place Order</span>
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="h-5 w-5 animate-spin" />
+                            <span>Processing...</span>
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle className="h-5 w-5" />
+                            <span>Place Order</span>
+                          </>
+                        )}
                       </button>
                     </div>
                   </>
@@ -932,7 +1366,7 @@ const Checkout = () => {
                     {selectedShipping ? formatPrice(selectedShipping.price) : '— Select governorate'}
                   </span>
                 </div>
-                {depositSettings?.depositRequired && (
+                {selectedPaymentMethod?.paymentMethodName === 'COD' && depositSettings?.depositRequired && (
                   <div className="flex justify-between">
                     <span className="text-gray-600">Deposit</span>
                     <span className="font-medium text-amber-600">
@@ -942,10 +1376,22 @@ const Checkout = () => {
                 )}
                 <div className="border-t border-gray-200 pt-4">
                   <div className="flex justify-between text-xl font-bold">
-                    <span>Total</span>
-                    <span className="text-indigo-600">{formatPrice(getTotal())}</span>
+                    <span>
+                      {selectedPaymentMethod?.paymentMethodName === 'COD' && depositSettings?.depositRequired
+                        ? 'To Pay Now'
+                        : 'Total'}
+                    </span>
+                    <span className="text-indigo-600">
+                      {selectedPaymentMethod?.paymentMethodName === 'COD' && depositSettings?.depositRequired
+                        ? formatPrice(calculateDepositAmount())
+                        : formatPrice(getTotal())}
+                    </span>
                   </div>
-                  <p className="text-sm text-gray-500 mt-2">All prices in Egyptian Pound (EGP)</p>
+                  {selectedPaymentMethod?.paymentMethodName === 'COD' && depositSettings?.depositRequired && (
+                    <p className="text-sm text-gray-500 mt-2">
+                      Remaining {formatPrice(getTotal() - calculateDepositAmount())} on delivery
+                    </p>
+                  )}
                 </div>
               </div>
 

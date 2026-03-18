@@ -115,4 +115,8 @@ export const API_ENDPOINTS = {
   GOVERNORATE: {
     GET_ALL:() => '/shipping-cost/governorates',
   },
+  PaymentMethods: {
+    GET_ALL: (storeId) => `/store-payment-methods/${storeId}`,
+    ADD: (storeId) => `/store-payment-methods/${storeId}/add`,
+  }
 };
