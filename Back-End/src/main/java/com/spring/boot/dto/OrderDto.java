@@ -39,4 +39,6 @@ public class OrderDto {
     private Long paymentMethodId;
 
     private String paymentMethodName;
+
+    private String paymentStatus;
 }

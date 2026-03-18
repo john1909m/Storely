@@ -14,6 +14,7 @@ public interface OrderMapper {
     @Mapping(source = "orderItems",target = "orderItems")
     @Mapping(source = "paymentMethod.id" , target = "paymentMethodId")
     @Mapping(source = "paymentMethod.name" , target = "paymentMethodName")
+    @Mapping(source = "paymentStatus",target = "paymentStatus")
     OrderDto toOrderDto(Order order);
 
     @Mapping(source = "status", target = "status")
@@ -22,5 +23,6 @@ public interface OrderMapper {
     @Mapping(source = "orderItems",target = "orderItems")
     @Mapping(source = "paymentMethodId" , target = "paymentMethod.id")
     @Mapping(source = "paymentMethodName" , target = "paymentMethod.name")
+    @Mapping(source = "paymentStatus",target = "paymentStatus")
     Order toOrderEntity(OrderDto orderDto);
 }

@@ -174,6 +174,7 @@ public class OrderServiceImpl implements OrderService {
         if(newStatus == OrderStatus.CONFIRMED) {
             existingOrder.setDepositPaid(true);
             existingOrder.setDepositStatus(DepositStatus.CONFIRMED);
+
         }
 
         existingOrder.setStatus(newStatus);
