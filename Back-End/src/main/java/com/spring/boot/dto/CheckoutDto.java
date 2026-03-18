@@ -12,4 +12,5 @@ public class CheckoutDto {
     private UUID storeId;
     private UUID customerId;
     private List<CheckoutItemDto> items;
+    private Long paymentMethodId;
 }

@@ -58,6 +58,8 @@ public class StoreDto {
 
     private List<ShippingCostDto> shippingCosts;
 
+    private List<StorePaymentMethodDto> storePaymentMethods;
+
 
 
 

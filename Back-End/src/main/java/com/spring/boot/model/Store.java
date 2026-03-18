@@ -68,6 +68,9 @@ public class Store {
     @OneToOne(mappedBy = "store",cascade = CascadeType.ALL)
     private DepositSetting depositSetting;
 
+    @OneToMany(mappedBy = "store",cascade = CascadeType.ALL,orphanRemoval = true)
+    private List<StorePaymentMethod> storePaymentMethods;
+
 
 
 }

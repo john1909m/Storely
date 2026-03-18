@@ -5,6 +5,7 @@ import com.spring.boot.dto.OrderDto;
 import com.spring.boot.enums.DepositStatus;
 import com.spring.boot.enums.DepositType;
 import com.spring.boot.enums.OrderStatus;
+import com.spring.boot.enums.PaymentStatus;
 import com.spring.boot.mapper.OrderMapper;
 import com.spring.boot.model.*;
 import com.spring.boot.repo.*;
@@ -30,6 +31,8 @@ public class OrderServiceImpl implements OrderService {
     private GovernorateRepo governorateRepo;
     private DepositSettingRepo depositSettingRepo;
     private R2StorageService storageService;
+    private PaymentMethodRepo paymentMethodRepo;
+    private StorePaymentMethodRepo storePaymentMethodRepo;
 
     @Autowired
     public OrderServiceImpl(OrderMapper orderMapper,
@@ -220,16 +223,49 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderDto checkout(CheckoutDto dto) {
 
+        // =========================
+        // FETCH DATA
+        // =========================
+
         Store store = storeRepo.findById(dto.getStoreId())
                 .orElseThrow(() -> new RuntimeException("store.not.found"));
 
         Customer customer = customerRepo.findById(dto.getCustomerId())
                 .orElseThrow(() -> new RuntimeException("customer.not.found"));
 
+        PaymentMethod paymentMethod = paymentMethodRepo.findById(dto.getPaymentMethodId())
+                .orElseThrow(() -> new RuntimeException("payment.method.not.found"));
+
+        // =========================
+        // VALIDATE PAYMENT METHOD
+        // =========================
+
+        boolean isAllowed = storePaymentMethodRepo
+                .findByStoreId(store.getId())
+                .stream()
+                .anyMatch(pm ->
+                        pm.getPaymentMethod().getId().equals(paymentMethod.getId())
+                                && Boolean.TRUE.equals(pm.getIsActive())
+                );
+
+        if (!isAllowed) {
+            throw new RuntimeException("payment.method.not.allowed");
+        }
+
+        // =========================
+        // CREATE ORDER
+        // =========================
+
         Order order = new Order();
         order.setStore(store);
         order.setCustomer(customer);
         order.setStatus(OrderStatus.PENDING);
+        order.setPaymentMethod(paymentMethod);
+        order.setPaymentStatus(PaymentStatus.PENDING);
+
+        // =========================
+        // ORDER ITEMS
+        // =========================
 
         List<OrderItem> orderItems = dto.getItems().stream().map(i -> {
 
@@ -259,21 +295,25 @@ public class OrderServiceImpl implements OrderService {
 
         order.setOrderItems(orderItems);
 
-        // subtotal
+        // =========================
+        // ITEMS TOTAL
+        // =========================
+
         double itemsTotal = orderItems.stream()
                 .mapToDouble(i -> i.getPrice() * i.getQuantity())
                 .sum();
 
         order.setItemsTotal(itemsTotal);
 
-    /*
-    =========================
-    SHIPPING COST
-    =========================
-    */
+        // =========================
+        // SHIPPING COST
+        // =========================
 
         String governorateName = customer.getCity();
-        Long governorateId = governorateRepo.findByName(governorateName).get().getId();
+
+        Long governorateId = governorateRepo.findByName(governorateName)
+                .orElseThrow(() -> new RuntimeException("governorate.not.found"))
+                .getId();
 
         ShippingCost shippingCost = shippingCostRepo
                 .findByStoreIdAndGovernorateId(store.getId(), governorateId)
@@ -283,48 +323,68 @@ public class OrderServiceImpl implements OrderService {
 
         order.setShippingCost(shippingPrice);
 
-    /*
-    =========================
-    TOTAL PRICE
-    =========================
-    */
+        // =========================
+        // TOTAL PRICE
+        // =========================
 
         double totalPrice = itemsTotal + shippingPrice;
-
         order.setTotalPrice(totalPrice);
 
-    /*
-    =========================
-    DEPOSIT CALCULATION
-    =========================
-    */
+        // =========================
+        // DEPOSIT SETTINGS
+        // =========================
 
         DepositSetting depositSetting = depositSettingRepo
                 .findByStoreId(store.getId())
                 .orElse(null);
 
-        if (depositSetting != null && Boolean.TRUE.equals(depositSetting.getDepositRequired())) {
+        // =========================
+        // PAYMENT LOGIC
+        // =========================
 
-            double depositAmount = 0;
+        String method = paymentMethod.getName();
 
-            if (depositSetting.getDepositType() == DepositType.SHIPPING) {
+        // 🟢 ONLINE PAYMENT (Instapay / Vodafone Cash)
+        if (method.equals("INSTAPAY") || method.equals("VODAFONE_CASH")) {
 
-                depositAmount = shippingPrice;
-
-            } else if (depositSetting.getDepositType() == DepositType.PERCENTAGE) {
-
-                depositAmount = itemsTotal * depositSetting.getDepositValue() / 100;
-
-            }
-
-            order.setDepositValue(depositAmount);
+            // لازم يدفع كامل
+            order.setDepositValue(totalPrice);
             order.setDepositStatus(DepositStatus.PENDING);
             order.setDepositPaid(false);
 
-        } else {
+            order.setPaymentStatus(PaymentStatus.PENDING);
 
-            order.setDepositStatus(DepositStatus.NOT_REQUIRED);
         }
+
+        // 🟡 CASH ON DELIVERY
+        else if (method.equals("COD")) {
+
+            if (depositSetting != null && Boolean.TRUE.equals(depositSetting.getDepositRequired())) {
+
+                double depositAmount = 0;
+
+                if (depositSetting.getDepositType() == DepositType.SHIPPING) {
+                    depositAmount = shippingPrice;
+
+                } else if (depositSetting.getDepositType() == DepositType.PERCENTAGE) {
+                    depositAmount = itemsTotal * depositSetting.getDepositValue() / 100;
+                }
+
+                order.setDepositValue(depositAmount);
+                order.setDepositStatus(DepositStatus.PENDING);
+                order.setDepositPaid(false);
+
+            } else {
+
+                order.setDepositStatus(DepositStatus.NOT_REQUIRED);
+            }
+
+            order.setPaymentStatus(PaymentStatus.PENDING);
+        }
+
+        // =========================
+        // SAVE ORDER
+        // =========================
 
         Order savedOrder = orderRepo.save(order);
 

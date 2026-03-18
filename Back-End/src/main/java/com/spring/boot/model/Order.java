@@ -2,6 +2,7 @@ package com.spring.boot.model;
 
 import com.spring.boot.enums.DepositStatus;
 import com.spring.boot.enums.OrderStatus;
+import com.spring.boot.enums.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -52,4 +53,11 @@ public class Order {
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderItem> orderItems;
+
+    @ManyToOne
+    @JoinColumn(name = "payment_method_id")
+    private PaymentMethod paymentMethod;
+
+    @Enumerated(EnumType.STRING)
+    private PaymentStatus paymentStatus;
 }
