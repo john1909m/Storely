@@ -43,7 +43,9 @@ public class OrderServiceImpl implements OrderService {
                             ShippingCostRepo shippingCostRepo,
                             GovernorateRepo governorateRepo,
                             DepositSettingRepo depositSettingRepo,
-                            R2StorageService storageService) {
+                            R2StorageService storageService,
+                            PaymentMethodRepo paymentMethodRepo,
+                            StorePaymentMethodRepo storePaymentMethodRepo) {
         this.orderMapper = orderMapper;
         this.orderRepo = orderRepo;
         this.storeRepo = storeRepo;
@@ -53,6 +55,8 @@ public class OrderServiceImpl implements OrderService {
         this.governorateRepo = governorateRepo;
         this.depositSettingRepo = depositSettingRepo;
         this.storageService = storageService;
+        this.paymentMethodRepo = paymentMethodRepo;
+        this.storePaymentMethodRepo = storePaymentMethodRepo;
 
     }
 
