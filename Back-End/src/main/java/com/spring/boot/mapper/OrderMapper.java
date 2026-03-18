@@ -12,11 +12,15 @@ public interface OrderMapper {
     @Mapping(source = "customer",target = "customer")
     @Mapping(source = "store.id",target = "storeId")
     @Mapping(source = "orderItems",target = "orderItems")
+    @Mapping(source = "paymentMethod.id" , target = "paymentMethodId")
+    @Mapping(source = "paymentMethod.name" , target = "paymentMethodName")
     OrderDto toOrderDto(Order order);
 
     @Mapping(source = "status", target = "status")
     @Mapping(source = "customer",target = "customer")
     @Mapping(source = "storeId",target = "store.id")
     @Mapping(source = "orderItems",target = "orderItems")
+    @Mapping(source = "paymentMethodId" , target = "paymentMethod.id")
+    @Mapping(source = "paymentMethodName" , target = "paymentMethod.name")
     Order toOrderEntity(OrderDto orderDto);
 }

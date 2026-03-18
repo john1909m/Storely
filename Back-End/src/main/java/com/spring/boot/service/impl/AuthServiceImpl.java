@@ -71,7 +71,7 @@ public class AuthServiceImpl implements AuthService {
 
 
         if (!passwordEncoder.matches(loginRequestVm.getPassword(), user.getPassword())) {
-            throw new SystemException("invalid.password.error");
+            throw new SystemException("User.not.found");
         }
 
         // هنا ممكن تعمل authentication يدوي بدون استدعاء authenticationManager

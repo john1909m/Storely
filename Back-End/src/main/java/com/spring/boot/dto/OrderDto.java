@@ -35,4 +35,8 @@ public class OrderDto {
     private String depositScreenShotUrl;
 
     private String depositStatus;
+
+    private Long paymentMethodId;
+
+    private String paymentMethodName;
 }
