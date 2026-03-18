@@ -31,9 +31,12 @@ public class StorePaymentMethodController {
     public ResponseEntity<List<StorePaymentMethodDto>> updateStorePaymentMethods(
             @PathVariable UUID storeId,
             @RequestBody List<StorePaymentMethodDto> storePaymentMethods) throws URISyntaxException {
-        return ResponseEntity.created(new URI("/store-payment-methods/{storeId}/add")).body(
-                storePaymentMethodService.updateStorePaymentMethods(storeId,storePaymentMethods)
-        );
+        List<StorePaymentMethodDto> updatedMethods = storePaymentMethodService.updateStorePaymentMethods(storeId, storePaymentMethods);
+
+        // ✅ صح - استخدم storeId الفعلي
+        URI location = new URI("/store-payment-methods/" + storeId + "/add");
+
+        return ResponseEntity.created(location).body(updatedMethods);
     }
 
 }
