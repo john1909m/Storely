@@ -1491,7 +1491,7 @@ const StoreDetails = () => {
                         Instapay Number
                       </label>
                       <div className="relative">
-                        <img className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" src="instapay.png" alt="Instapay" />
+                        <img className="absolute left-4 top-1/2 transform -translate-y-1/2 scale-150 h-5 w-5 text-gray-400" src="/public/instapay.png" alt="Instapay" />
                         <input
                           type="text"
                           value={depositSettings.instapayNumber}
@@ -1512,7 +1512,7 @@ const StoreDetails = () => {
                         Vodafone Cash Number
                       </label>
                       <div className="relative">
-                        <img className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" src="vodafoneCash.png" alt="Vodafone Cash" />
+                        <img className="absolute left-4 top-1/2 transform -translate-y-1/2 scale-125 h-5 w-7 text-gray-400" src="/public/vodafoneCash.png" alt="Vodafone Cash" />
                         <input
                           type="text"
                           value={depositSettings.vodafoneCashNumber}
