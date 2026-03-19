@@ -4,6 +4,7 @@ import com.spring.boot.dto.DepositSettingDto;
 import com.spring.boot.service.DepositSettingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,6 +19,7 @@ public class DepositSettingController {
 
 
     @PostMapping("/update")
+    @PreAuthorize("hasAnyRole('VENDOR','ADMIN')")
     public ResponseEntity<DepositSettingDto> update(@RequestBody DepositSettingDto dto) {
         return ResponseEntity.ok(depositSettingService.saveOrUpdate(dto));
     }

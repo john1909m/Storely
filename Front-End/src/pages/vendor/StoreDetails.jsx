@@ -274,7 +274,7 @@ const StoreDetails = () => {
     try {
       if (store?.id) {
         const storeData = await storeAPI.getById(store.id);
-        const deposit = await storeAPI.getDepositSettings(store.id);
+        const deposit = await storeAPI.getDepositSettings(store.id) || {};
         const depositSettingsData = await deposit.json();
         
         setStoreInfo({
@@ -298,7 +298,7 @@ const StoreDetails = () => {
           facebook: storeData.facebook || '',
           instagram: storeData.instagram || '',
         });
-
+        
         setDepositSettings({
           depositType: depositSettingsData.depositType || 'PERCENTAGE',
           depositValue: depositSettingsData.depositValue || 10,
@@ -312,7 +312,11 @@ const StoreDetails = () => {
       setCategories(storeCategories || []);
 
     } catch (err) {
-      handleError(err);
+      if(!depositSettings) {
+          handleError(err);
+      }else{
+        console.error('Failed to fetch store data or deposit settings:', err);
+      }
     }
   };
 
@@ -1188,7 +1192,7 @@ const StoreDetails = () => {
                       <Store className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-indigo-500 transition-colors" />
                       <input
                         type="text"
-                        value={storeInfo.storeName}
+                        value={storeInfo.storeName?.slice(0, 50) || ''}
                         onChange={(e) => handleStoreInfoChange('storeName', e.target.value)}
                         className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all group-focus-within:bg-white"
                         placeholder="Enter your store name"
