@@ -46,6 +46,8 @@ public class StoreDto {
 
     private String instagram;
 
+    private Long totalVisits;
+
     private String storeStatus="Inactive";
 
     private List<ProductDto> products;

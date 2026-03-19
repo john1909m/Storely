@@ -84,6 +84,18 @@ public class StoreController {
         );
     }
 
+    @GetMapping("/visits/{storeId}")
+    @PreAuthorize("hasAnyRole('ADMIN','VENDOR')")
+    public ResponseEntity<Long> getTotalVisits(@PathVariable UUID storeId) {
+        return ResponseEntity.ok(storeService.getTotalVisits(storeId));
+    }
+
+    @PostMapping("/incVisit/{storeId}")
+    public ResponseEntity<Void> incVisit(@PathVariable UUID storeId) {
+        storeService.updateTotalVisits(storeId);
+        return ResponseEntity.noContent().build();
+    }
+
 
 
 

@@ -25,6 +25,10 @@ public interface StoreService {
 
     String uploadStoreImage(UUID storeId, MultipartFile file, String type);
 
+    Long getTotalVisits(UUID storeId);
+
+    void updateTotalVisits(UUID storeId);
+
 
 
 

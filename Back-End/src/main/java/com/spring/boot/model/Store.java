@@ -43,6 +43,8 @@ public class Store {
 
     private String instagram;
 
+    private Long totalVisits;
+
     @OneToMany(mappedBy = "store",cascade = CascadeType.ALL)
     private List<ShippingCost> shippingCosts;
 
@@ -70,6 +72,8 @@ public class Store {
 
     @OneToMany(mappedBy = "store",cascade = CascadeType.ALL,orphanRemoval = true)
     private List<StorePaymentMethod> storePaymentMethods;
+
+
 
 
 

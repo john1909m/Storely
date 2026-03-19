@@ -175,6 +175,29 @@ public class StoreServiceImpl implements StoreService {
 
     }
 
+    @Override
+    public Long getTotalVisits(UUID storeId) {
+        Store store = storeRepo.findById(storeId)
+                .orElseThrow(() -> new RuntimeException("store.not.found"));
+
+        return store.getTotalVisits();
+    }
+
+    @Transactional
+    @Override
+    public void updateTotalVisits(UUID storeId) {
+        Store store = storeRepo.findById(storeId)
+                .orElseThrow(() -> new RuntimeException("store.not.found"));
+
+        if (store.getTotalVisits() == null) {
+            store.setTotalVisits(0L);
+        }
+
+        store.setTotalVisits(store.getTotalVisits() + 1);
+        storeRepo.save(store);
+
+    }
+
     private String getFileExtension(String filename) {
         if (filename == null || !filename.contains(".")) {
             return "png";
