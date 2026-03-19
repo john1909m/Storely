@@ -68,6 +68,17 @@ export const storeAPI = {
     });
   },
 
+  getVisits: async (storeId) => {
+
+    return fetchWithAuth(API_ENDPOINTS.STORE.GET_VISITS(storeId));
+  },
+
+  incrementVisits: async (storeId) => {
+    return fetchJSON(API_ENDPOINTS.STORE.incrementVisits(storeId), {
+      method: 'POST',
+    });
+  },
+
 
   /**
    * Upload store image

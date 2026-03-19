@@ -1,5 +1,5 @@
 // StoreHome.jsx - مع دعم الألوان المخصصة وتأثيرات Fade In
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, use } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { storeAPI } from '../../api/store.api';
 import { productAPI } from '../../api/product.api';
@@ -161,6 +161,10 @@ const StoreHome = () => {
     }
   }, [storeName]);
 
+  // useEffect(async () => {
+  //   await storeAPI.incrementVisits(store?.id);
+  // }, [store?.id]);
+
   // 🔄 جلب المنتجات عند تغيير التصنيف
   useEffect(() => {
     if (store?.id) {
@@ -261,6 +265,7 @@ const StoreHome = () => {
 
       // Fetch store by name
       const storeData = await storeAPI.getByName(storeName);
+      const visitResponse = await storeAPI.incrementVisits(storeData.id);
       if (!storeData) {
         throw new Error('Store not found');
       }

@@ -136,6 +136,7 @@ const VendorStore = () => {
     }
   };
 
+
   const copyStoreLink = () => {
     const storeLink = `${window.location.origin}/store/${store?.storeName || ''}`;
     navigator.clipboard.writeText(storeLink);
@@ -384,6 +385,21 @@ const VendorStore = () => {
       {/* Main Content */}
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">
+            Welcome back, {store?.vendorName || 'Vendor'}!
+          </h1>
+          
+          {/* بار صغير لزيارات المتجر */}
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-lg border border-gray-200">
+            <svg className="h-4 w-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            <span className="text-sm text-gray-600">Total visits:</span>
+            <span className="font-semibold text-gray-900">{store.totalVisits/2 || 0}</span>
+          </div>
+        </div>
         {/* Simple Store URL Bar */}
         <div className="bg-white rounded-lg p-4 mb-8 border border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center space-x-3 min-w-0">

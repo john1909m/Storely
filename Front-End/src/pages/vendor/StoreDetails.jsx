@@ -157,7 +157,8 @@ const StoreDetails = () => {
     categoryId: '',
     createdAt: '',
     storeStatus: store?.storeStatus || 'Inactive',
-    fontFamily: 'Poppins'
+    fontFamily: 'Poppins',
+    totalVisits:0
   });
 
   // Branding state
@@ -285,7 +286,8 @@ const StoreDetails = () => {
           categoryId: storeData.categoryId || '',
           createdAt: storeData.createdAt || new Date().toISOString(),
           storeStatus: storeData.storeStatus || 'Inactive',
-          fontFamily: storeData.fontFamily || 'Poppins'
+          fontFamily: storeData.fontFamily || 'Poppins',
+          totalVisits: storeData.totalVisits || 0
         });
 
         setBranding({

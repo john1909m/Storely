@@ -34,6 +34,8 @@ export const API_ENDPOINTS = {
     UPLOAD_IMAGE: (storeId) => `/store/${storeId}/upload-image`,
     UPDATE_DEPOSIT_SETTINGS:  `/deposit-settings/update`,
     GET_DEPOSIT_SETTINGS: (storeId) => `/deposit-settings/get/${storeId}`,
+      GET_VISITS: (storeId) => `/store/visits/${storeId}`,
+      incrementVisits: (storeId) => `/store/incVisit/${storeId}`,
   },
   // Product
   PRODUCT: {
