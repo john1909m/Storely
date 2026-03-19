@@ -217,7 +217,12 @@ const AdminDashboard = () => {
                         <div className="text-sm text-gray-500">
                           Status: {store.storeStatus || 'Inactive'} • 
                           Products: {store.products?.length || 0} • 
-                          Orders: {store.orders?.length || 0}
+                          Orders: {store.orders?.length || 0} •
+                          Visits: {(() => {
+                            const value = store.totalVisits / 2;
+                            return (value % 1 !== 0 ? Math.ceil(value) : value) || 0;
+                          })()}
+
                         </div>
                       </div>
                       <Link
