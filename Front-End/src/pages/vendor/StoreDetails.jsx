@@ -1491,7 +1491,7 @@ const StoreDetails = () => {
                         Instapay Number
                       </label>
                       <div className="relative">
-                        <img className="absolute left-4 top-1/2 transform -translate-y-1/2 scale-150 h-5 w-5 text-gray-400" src="/public/instapay.png" alt="Instapay" />
+                        <img className="absolute left-4 top-1/2 transform -translate-y-1/2 scale-150 h-5 w-5 text-gray-400" src="instapay.png" alt="Instapay" />
                         <input
                           type="text"
                           value={depositSettings.instapayNumber}
@@ -1512,7 +1512,7 @@ const StoreDetails = () => {
                         Vodafone Cash Number
                       </label>
                       <div className="relative">
-                        <img className="absolute left-4 top-1/2 transform -translate-y-1/2 scale-125 h-5 w-7 text-gray-400" src="/public/vodafoneCash.png" alt="Vodafone Cash" />
+                        <img className="absolute left-4 top-1/2 transform -translate-y-1/2 scale-125 h-5 w-7 text-gray-400" src="vodafoneCash.png" alt="Vodafone Cash" />
                         <input
                           type="text"
                           value={depositSettings.vodafoneCashNumber}
@@ -1628,7 +1628,7 @@ const StoreDetails = () => {
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center space-x-4">
                         <div className="h-14 w-14 bg-emerald-100 rounded-xl flex items-center justify-center">
-                          <img src="/public/instapay.png" alt="Instapay" className="scale-100" />
+                          <img src="instapay.png" alt="Instapay" className="scale-100" />
                         </div>
                         <div>
                           <h3 className="text-lg font-bold text-gray-900">Instapay</h3>
@@ -1681,7 +1681,7 @@ const StoreDetails = () => {
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center space-x-4">
                         <div className="h-14 w-14 bg-red-100 rounded-xl flex items-center justify-center">
-                          <img className="" src="/public/vodafoneCash.png" alt="Vodafone Cash" />
+                          <img className="" src="vodafoneCash.png" alt="Vodafone Cash" />
                         </div>
                         <div>
                           <h3 className="text-lg font-bold text-gray-900">Vodafone Cash</h3>
