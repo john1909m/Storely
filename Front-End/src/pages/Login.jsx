@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowRight, Mail, Lock, Eye, EyeOff, Loader2, Home, Sparkles, Layers, Shield, Zap, Compass } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useErrorHandler } from './../hooks/useErrorHandler';
+import { useTranslation } from 'react-i18next';
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -20,6 +21,7 @@ const Login = () => {
   const location = useLocation();
   const { login, isAuthenticated, isLoading, role, store } = useAuth();
   const { handleError } = useErrorHandler();
+  const { t } = useTranslation();
 
   // Helper to get dashboard path based on role and store existence
   const getDashboardPath = (userRole, userStore) => {
@@ -213,10 +215,10 @@ const Login = () => {
           style={{
             transform: `perspective(1000px) rotateY(${mousePosition.x * 0.2}deg) rotateX(${-mousePosition.y * 0.2}deg)`,
           }}
-          aria-label="Back to home"
+          aria-label={t('pages.login.backToHomeAria')}
         >
           <Home className="h-5 w-5 text-blue-400 group-hover:-translate-x-1 transition-transform" />
-          <span className="text-sm font-medium text-gray-300 group-hover:text-white">Home</span>
+          <span className="text-sm font-medium text-gray-300 group-hover:text-white">{t('pages.login.homeLabel')}</span>
         </Link>
 
         {/* Login Card */}
@@ -246,12 +248,8 @@ const Login = () => {
                   </div>
                 </div>
                 
-                <h1 className="text-4xl font-bold text-white mb-2 text-shadow-3d">
-                  Welcome Back
-                </h1>
-                <p className="text-blue-100/70">
-                  Sign in to continue your journey
-                </p>
+                <h1 className="text-4xl font-bold text-white mb-2 text-shadow-3d">{t('pages.login.welcomeBack')}</h1>
+                <p className="text-blue-100/70">{t('pages.login.subtitle')}</p>
               </div>
 
               {/* 3D Corner decoration */}
@@ -272,7 +270,7 @@ const Login = () => {
                 {/* Email */}
                 <div>
                   <label className="block text-sm font-medium text-blue-200 mb-1.5">
-                    Email Address
+                    {t('pages.login.form.emailLabel')}
                   </label>
                   <div className="relative">
                     <Mail className={`absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 transition-all duration-300 ${
@@ -292,7 +290,7 @@ const Login = () => {
                       className={`w-full pl-12 pr-4 py-3.5 bg-white/5 border rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent outline-none transition-all text-white placeholder-gray-400 ${
                         focusedField === 'email' ? 'border-blue-400 bg-white/10' : 'border-white/10'
                       } disabled:opacity-50`}
-                      placeholder="hello@example.com"
+                      placeholder={t('pages.login.form.emailPlaceholder')}
                       style={{
                         transform: hoveredField === 'email' ? 'translateZ(20px)' : 'translateZ(0)',
                       }}
@@ -304,7 +302,7 @@ const Login = () => {
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
                     <label className="block text-sm font-medium text-blue-200">
-                      Password
+                      {t('pages.login.form.passwordLabel')}
                     </label>
                     
                   </div>
@@ -326,7 +324,7 @@ const Login = () => {
                       className={`w-full pl-12 pr-12 py-3.5 bg-white/5 border rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent outline-none transition-all text-white placeholder-gray-400 ${
                         focusedField === 'password' ? 'border-blue-400 bg-white/10' : 'border-white/10'
                       } disabled:opacity-50`}
-                      placeholder="••••••••"
+                      placeholder={t('pages.login.form.passwordPlaceholder')}
                       style={{
                         transform: hoveredField === 'password' ? 'translateZ(20px)' : 'translateZ(0)',
                       }}
@@ -352,11 +350,13 @@ const Login = () => {
                   {showLoading ? (
                     <>
                       <Loader2 className="h-5 w-5 animate-spin relative z-10" />
-                      <span className="relative z-10">{isRedirecting ? 'Redirecting...' : 'Signing in...'}</span>
+                      <span className="relative z-10">
+                        {isRedirecting ? t('pages.login.button.redirecting') : t('pages.login.button.signingIn')}
+                      </span>
                     </>
                   ) : (
                     <>
-                      <span className="relative z-10">Sign In</span>
+                      <span className="relative z-10">{t('pages.login.button.signIn')}</span>
                       <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform relative z-10" />
                     </>
                   )}
@@ -366,9 +366,9 @@ const Login = () => {
               {/* Sign Up Link */}
               <div className="mt-6 text-center relative z-10">
                 <p className="text-sm text-gray-400">
-                  Don't have an account?{' '}
+                  {t('pages.login.signupPrompt')}{' '}
                   <Link to="/signup" className="text-blue-400 hover:text-blue-300 font-semibold transition-colors">
-                    Create account
+                    {t('pages.login.createAccountLink')}
                   </Link>
                 </p>
               </div>
@@ -376,11 +376,11 @@ const Login = () => {
               {/* Footer with 3D style */}
               <div className="mt-6 pt-4 border-t border-white/10 relative z-10">
                 <div className="flex justify-center space-x-4 text-xs text-gray-400">
-                  <Link to="/contact" className="hover:text-blue-400 transition-colors">Support</Link>
+                  <Link to="/contact" className="hover:text-blue-400 transition-colors">{t('pages.login.footer.support')}</Link>
                   <span>•</span>
-                  <Link to="/pricing" className="hover:text-blue-400 transition-colors">Pricing</Link>
+                  <Link to="/pricing" className="hover:text-blue-400 transition-colors">{t('pages.login.footer.pricing')}</Link>
                   <span>•</span>
-                  <Link to="/privacy" className="hover:text-blue-400 transition-colors">Privacy</Link>
+                  <Link to="/privacy" className="hover:text-blue-400 transition-colors">{t('pages.login.footer.privacy')}</Link>
                 </div>
               </div>
             </div>
@@ -391,7 +391,7 @@ const Login = () => {
             <div className="inline-flex items-center space-x-2 glass-card px-4 py-2 rounded-full border border-white/10">
               <Shield className="h-3 w-3 text-blue-400" />
               <p className="text-xs text-gray-400">
-                Secured by Storely • © 2026
+                {t('pages.login.trust.securedBy')} • {t('pages.login.trust.copyright', { year: new Date().getFullYear() })}
               </p>
               <Zap className="h-3 w-3 text-purple-400" />
             </div>

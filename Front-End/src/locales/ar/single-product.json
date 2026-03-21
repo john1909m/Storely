@@ -1,0 +1,35 @@
+{
+  "productDetail": {
+    "loading": {
+      "product": "جاري تحميل المنتج..."
+    },
+    "errors": {
+      "failedToLoad": "فشل تحميل المنتج",
+      "productNotFound": "المنتج غير موجود",
+      "productNotFoundMessage": "هذا المنتج غير موجود أو تمت إزالته."
+    },
+    "buttons": {
+      "backToStore": "العودة للمتجر",
+      "backToStoreName": "العودة إلى {{storeName}}"
+    },
+    "uncategorized": "غير مصنف",
+    "off": "خصم",
+    "color": "اللون",
+    "size": "المقاس",
+    "select": "اختر",
+    "out": "نفد",
+    "selected": "المختار",
+    "unitsAvailable": "وحدة متاحة",
+    "description": "الوصف",
+    "noDescription": "لا يوجد وصف متاح.",
+    "quantity": "الكمية",
+    "max": "الحد الأقصى",
+    "units": "وحدة",
+    "selectOptions": "اختر الخيارات",
+    "outOfStock": "نفد من المخزون",
+    "addToCart": "أضف إلى السلة",
+    "soldBy": "بواسطة",
+    "verifiedSeller": "بائع موثوق",
+    "storeColors": "ألوان المتجر"
+  }
+}

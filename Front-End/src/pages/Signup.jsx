@@ -5,6 +5,7 @@ import {
   Sparkles, Shield, Zap, Layers, Compass, Star, Gift, Rocket
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { useTranslation } from 'react-i18next';
 
 const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -25,6 +26,7 @@ const Signup = () => {
   const [signupSuccess, setSignupSuccess] = useState(false);
   const { signup, isAuthenticated, role } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   // Styles for 3D animations
   const styles = `
@@ -182,7 +184,9 @@ const Signup = () => {
   };
 
   const passwordStrength = (password) => {
-    if (!password) return { score: 0, label: 'Weak', color: 'red' };
+    if (!password) {
+      return { score: 0, label: t('pages.signup.passwordStrength.labels.weak'), color: 'red' };
+    }
     
     let score = 0;
     if (password.length >= 8) score++;
@@ -190,7 +194,13 @@ const Signup = () => {
     if (/[0-9]/.test(password)) score++;
     if (/[^A-Za-z0-9]/.test(password)) score++;
     
-    const labels = ['Weak', 'Fair', 'Good', 'Strong', 'Very Strong'];
+    const labels = [
+      t('pages.signup.passwordStrength.labels.weak'),
+      t('pages.signup.passwordStrength.labels.fair'),
+      t('pages.signup.passwordStrength.labels.good'),
+      t('pages.signup.passwordStrength.labels.strong'),
+      t('pages.signup.passwordStrength.labels.veryStrong'),
+    ];
     const colors = ['red', 'orange', 'yellow', 'green', 'blue'];
     return { score, label: labels[score], color: colors[score] };
   };
@@ -245,8 +255,8 @@ const Signup = () => {
             transform: `perspective(1000px) rotateY(${mousePosition.x * 0.2}deg) rotateX(${-mousePosition.y * 0.2}deg)`,
           }}
         >
-          <img src="Logo_new_w.png" alt="Storely Logo" className="h-10 w-10 scale-125" />
-          <span className="text-xl font-bold text-white ml-2">Home</span>
+          <img src="Logo_new_w.png" alt={t('pages.signup.homeLabel')} className="h-10 w-10 scale-125" />
+          <span className="text-xl font-bold text-white ml-2">{t('pages.signup.homeLabel')}</span>
           <Sparkles className="h-4 w-4 text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity" />
         </Link> 
 
@@ -279,10 +289,10 @@ const Signup = () => {
                   </div>
                   
                   <h1 className="text-4xl font-bold text-white mb-2 text-shadow-3d">
-                    Create Your Vendor Account
+                    {t('pages.signup.title')}
                   </h1>
                   <p className="text-blue-100/70">
-                    Join thousands of vendors selling on Storely
+                    {t('pages.signup.subtitle')}
                   </p>
                 </div>
 
@@ -295,7 +305,7 @@ const Signup = () => {
                 {signupSuccess && (
                   <div className="bg-green-500/10 backdrop-blur-sm border border-green-500/20 text-green-400 px-4 py-3 rounded-xl mb-4 flex items-center space-x-2">
                     <Check className="h-5 w-5" />
-                    <span>Account created successfully! Redirecting to login...</span>
+                    <span>{t('pages.signup.success')}</span>
                   </div>
                 )}
 
@@ -311,7 +321,7 @@ const Signup = () => {
                   {/* Name */}
                   <div>
                     <label className="block text-sm font-medium text-blue-200 mb-2">
-                      Full Name
+                      {t('pages.signup.form.fullNameLabel')}
                     </label>
                     <div className="relative">
                       <User className={`absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 transition-all duration-300 ${
@@ -331,7 +341,7 @@ const Signup = () => {
                         className={`w-full pl-12 pr-4 py-3 bg-white/5 border rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent outline-none transition-all text-white placeholder-gray-400 ${
                           focusedField === 'name' ? 'border-blue-400 bg-white/10' : 'border-white/10'
                         } disabled:opacity-50`}
-                        placeholder="John Doe"
+                        placeholder={t('pages.signup.form.placeholders.fullName')}
                         style={{
                           transform: hoveredField === 'name' ? 'translateZ(20px)' : 'translateZ(0)',
                         }}
@@ -342,7 +352,7 @@ const Signup = () => {
                   {/* Email */}
                   <div>
                     <label className="block text-sm font-medium text-blue-200 mb-2">
-                      Email Address
+                      {t('pages.signup.form.emailLabel')}
                     </label>
                     <div className="relative">
                       <Mail className={`absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 transition-all duration-300 ${
@@ -362,7 +372,7 @@ const Signup = () => {
                         className={`w-full pl-12 pr-4 py-3 bg-white/5 border rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent outline-none transition-all text-white placeholder-gray-400 ${
                           focusedField === 'email' ? 'border-blue-400 bg-white/10' : 'border-white/10'
                         } disabled:opacity-50`}
-                        placeholder="vendor@example.com"
+                        placeholder={t('pages.signup.form.placeholders.email')}
                         style={{
                           transform: hoveredField === 'email' ? 'translateZ(20px)' : 'translateZ(0)',
                         }}
@@ -373,7 +383,7 @@ const Signup = () => {
                   {/* Phone Number */}
                   <div>
                     <label className="block text-sm font-medium text-blue-200 mb-2">
-                      Phone Number
+                      {t('pages.signup.form.phoneLabel')}
                     </label>
                     <div className="relative">
                       <Phone className={`absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 transition-all duration-300 ${
@@ -393,7 +403,7 @@ const Signup = () => {
                         className={`w-full pl-12 pr-4 py-3 bg-white/5 border rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent outline-none transition-all text-white placeholder-gray-400 ${
                           focusedField === 'phone' ? 'border-blue-400 bg-white/10' : 'border-white/10'
                         } disabled:opacity-50`}
-                        placeholder="+1234567890"
+                        placeholder={t('pages.signup.form.placeholders.phone')}
                         style={{
                           transform: hoveredField === 'phone' ? 'translateZ(20px)' : 'translateZ(0)',
                         }}
@@ -404,7 +414,7 @@ const Signup = () => {
                   {/* Password */}
                   <div>
                     <label className="block text-sm font-medium text-blue-200 mb-2">
-                      Password
+                      {t('pages.signup.form.passwordLabel')}
                     </label>
                     <div className="relative">
                       <Lock className={`absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 transition-all duration-300 ${
@@ -424,7 +434,7 @@ const Signup = () => {
                         className={`w-full pl-12 pr-12 py-3 bg-white/5 border rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent outline-none transition-all text-white placeholder-gray-400 ${
                           focusedField === 'password' ? 'border-blue-400 bg-white/10' : 'border-white/10'
                         } disabled:opacity-50`}
-                        placeholder="Create a strong password"
+                        placeholder={t('pages.signup.form.placeholders.password')}
                         style={{
                           transform: hoveredField === 'password' ? 'translateZ(20px)' : 'translateZ(0)',
                         }}
@@ -443,7 +453,7 @@ const Signup = () => {
                     {formData.password && !signupSuccess && (
                       <div className="mt-3">
                         <div className="flex items-center justify-between text-sm mb-1">
-                          <span className="text-gray-400">Password strength</span>
+                          <span className="text-gray-400">{t('pages.signup.passwordStrength.label')}</span>
                           <span className={`font-medium text-${strength.color}-400`}>
                             {strength.label}
                           </span>
@@ -462,23 +472,23 @@ const Signup = () => {
                       <ul className="mt-3 space-y-1 text-sm">
                         <li className={`flex items-center ${formData.password.length >= 8 ? 'text-green-400' : 'text-gray-400'}`}>
                           <Check className={`h-4 w-4 mr-2 ${formData.password.length >= 8 ? 'text-green-400' : 'text-gray-600'}`} />
-                          At least 8 characters
+                          {t('pages.signup.passwordRequirements.atLeast8')}
                         </li>
                         <li className={`flex items-center ${/[A-Z]/.test(formData.password) ? 'text-green-400' : 'text-gray-400'}`}>
                           <Check className={`h-4 w-4 mr-2 ${/[A-Z]/.test(formData.password) ? 'text-green-400' : 'text-gray-600'}`} />
-                          One uppercase letter
+                          {t('pages.signup.passwordRequirements.oneUppercase')}
                         </li>
                         <li className={`flex items-center ${/[a-z]/.test(formData.password) ? 'text-green-400' : 'text-gray-400'}`}>
                           <Check className={`h-4 w-4 mr-2 ${/[a-z]/.test(formData.password) ? 'text-green-400' : 'text-gray-600'}`} />
-                          One lowercase letter
+                          {t('pages.signup.passwordRequirements.oneLowercase')}
                         </li>
                         <li className={`flex items-center ${/[0-9]/.test(formData.password) ? 'text-green-400' : 'text-gray-400'}`}>
                           <Check className={`h-4 w-4 mr-2 ${/[0-9]/.test(formData.password) ? 'text-green-400' : 'text-gray-600'}`} />
-                          One number
+                          {t('pages.signup.passwordRequirements.oneNumber')}
                         </li>
                         <li className={`flex items-center ${/[!@#$%^&*()-+]/.test(formData.password) ? 'text-green-400' : 'text-gray-400'}`}>
                           <Check className={`h-4 w-4 mr-2 ${/[!@#$%^&*()-+]/.test(formData.password) ? 'text-green-400' : 'text-gray-600'}`} />
-                          One special character
+                          {t('pages.signup.passwordRequirements.oneSpecial')}
                         </li>
                       </ul>
                     )}
@@ -487,7 +497,7 @@ const Signup = () => {
                   {/* Confirm Password */}
                   <div>
                     <label className="block text-sm font-medium text-blue-200 mb-2">
-                      Confirm Password
+                      {t('pages.signup.form.confirmPasswordLabel')}
                     </label>
                     <div className="relative">
                       <Lock className={`absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 transition-all duration-300 ${
@@ -507,7 +517,7 @@ const Signup = () => {
                         className={`w-full pl-12 pr-12 py-3 bg-white/5 border rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent outline-none transition-all text-white placeholder-gray-400 ${
                           focusedField === 'confirmPassword' ? 'border-blue-400 bg-white/10' : 'border-white/10'
                         } disabled:opacity-50`}
-                        placeholder="Confirm your password"
+                        placeholder={t('pages.signup.form.placeholders.confirmPassword')}
                         style={{
                           transform: hoveredField === 'confirmPassword' ? 'translateZ(20px)' : 'translateZ(0)',
                         }}
@@ -523,7 +533,7 @@ const Signup = () => {
                     </div>
                     {formData.confirmPassword && formData.password !== formData.confirmPassword && !signupSuccess && (
                       <p className="mt-2 text-sm text-red-400">
-                        Passwords do not match
+                        {t('pages.signup.errors.passwordsDoNotMatch')}
                       </p>
                     )}
                   </div>
@@ -539,16 +549,16 @@ const Signup = () => {
                       {isLoading ? (
                         <>
                           <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin relative z-10"></div>
-                          <span className="relative z-10">Creating Account...</span>
+                          <span className="relative z-10">{t('pages.signup.submit.creating')}</span>
                         </>
                       ) : signupSuccess ? (
                         <>
                           <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin relative z-10"></div>
-                          <span className="relative z-10">Redirecting to Login...</span>
+                          <span className="relative z-10">{t('pages.signup.submit.redirecting')}</span>
                         </>
                       ) : (
                         <>
-                          <span className="relative z-10">Create Vendor Account</span>
+                          <span className="relative z-10">{t('pages.signup.submit.button')}</span>
                           <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform relative z-10" />
                         </>
                       )}
@@ -560,24 +570,24 @@ const Signup = () => {
                 <div className="mt-8 p-6 glass-card rounded-2xl border border-white/10">
                   <h3 className="font-semibold text-white mb-3 flex items-center">
                     <Gift className="h-5 w-5 mr-2 text-blue-400" />
-                    Why join Storely?
+                    {t('pages.signup.benefits.title')}
                   </h3>
                   <ul className="space-y-2 text-sm">
                     <li className="flex items-center text-gray-300">
                       <Check className="h-4 w-4 text-green-400 mr-2" />
-                      No coding skills required - set up your store in minutes
+                      {t('pages.signup.benefits.items.0')}
                     </li>
                     <li className="flex items-center text-gray-300">
                       <Check className="h-4 w-4 text-green-400 mr-2" />
-                      Get your own branded store URL
+                      {t('pages.signup.benefits.items.1')}
                     </li>
                     <li className="flex items-center text-gray-300">
                       <Check className="h-4 w-4 text-green-400 mr-2" />
-                      No bulk payment - pay only small monthly fee
+                      {t('pages.signup.benefits.items.2')}
                     </li>
                     <li className="flex items-center text-gray-300">
                       <Check className="h-4 w-4 text-green-400 mr-2" />
-                      24/7 customer support
+                      {t('pages.signup.benefits.items.3')}
                     </li>
                   </ul>
                 </div>
@@ -585,12 +595,12 @@ const Signup = () => {
                 {/* Login Link */}
                 <div className="mt-8 text-center">
                   <p className="text-gray-400">
-                    Already have an account?{' '}
+                    {t('pages.signup.loginPrompt.text')}{' '}
                     <Link
                       to="/login"
                       className="text-blue-400 hover:text-blue-300 font-semibold transition-colors"
                     >
-                      Sign in here
+                      {t('pages.signup.loginPrompt.link')}
                     </Link>
                   </p>
                 </div>
@@ -603,7 +613,7 @@ const Signup = () => {
             <div className="inline-flex items-center space-x-2 glass-card px-4 py-2 rounded-full border border-white/10">
               <Shield className="h-3 w-3 text-blue-400" />
               <p className="text-xs text-gray-400">
-                Secured by Storely • Join 10k+ vendors
+                {t('pages.signup.trust.securedBy')} • {t('pages.signup.trust.joinVendors')}
               </p>
               <Rocket className="h-3 w-3 text-purple-400" />
             </div>

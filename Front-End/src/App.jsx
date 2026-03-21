@@ -1,6 +1,7 @@
 // src/App.jsx
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 // Authentication Pages
 import Login from './pages/Login';
@@ -48,6 +49,7 @@ import { ToastProvider } from './contexts/ToastContext';
 import useAuthStore from './store/authStore';
 import { Analytics } from "@vercel/analytics/react"
 import ManageCategories from './pages/vendor/Categories';
+import LanguageSwitcher from './components/LanguageSwitcher';
 
 // Create a wrapper component that uses useLocation
 const AppContent = () => {
@@ -212,6 +214,8 @@ const AppContent = () => {
 function App() {
   // Handle redirect logic on component mount
   const {initializeAuth} = useAuthStore();
+  const { i18n } = useTranslation();
+
   useEffect(() => {
     // Check authentication on initial load
     const token = sessionStorage.getItem('authToken');
@@ -227,9 +231,18 @@ function App() {
     }
   }, [initializeAuth]); // Run only on initial mount
 
+  useEffect(() => {
+    const dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.dir = dir;
+    // Keep compatibility with existing code using `document.dir`.
+    document.dir = dir;
+    document.documentElement.lang = i18n.language;
+  }, [i18n.language]);
+
   return (
     <Router>
       <AppContent />
+      <LanguageSwitcher />
       <Analytics/>
     </Router>
     

@@ -17,11 +17,13 @@
     "@vercel/analytics": "^1.6.1",
     "data-fns": "^1.1.0",
     "date-fns": "^4.1.0",
+    "i18next": "^25.8.20",
     "lottie-react": "^2.4.1",
     "lucide-react": "^0.563.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-helmet": "^6.1.0",
+    "react-i18next": "^16.5.8",
     "react-router-dom": "^7.13.0",
     "zustand": "^5.0.10"
   },

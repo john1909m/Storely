@@ -5,71 +5,73 @@ import {
   Sparkles, Check, Zap, Shield, Globe, Rocket, Eye,
   Layers, Box, Palette, Repeat, Clock, Award
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const Features = () => {
   const [hoveredFeature, setHoveredFeature] = useState(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const { t } = useTranslation();
 
   const features = [
     {
       icon: <Link className="h-7 w-7" />,
-      title: 'Custom Store Links',
-      description: 'Each vendor gets a unique, branded store URL to share with customers.',
+      title: t('landing.features.items.customStoreLinks.title'),
+      description: t('landing.features.items.customStoreLinks.description'),
       color: 'blue',
       gradient: 'from-blue-400 to-cyan-400',
-      benefits: ['Branded URLs', 'Easy to share', 'SEO friendly'],
+      benefits: t('landing.features.items.customStoreLinks.benefits', { returnObjects: true }),
       depth: 30,
       
     },
     {
       icon: <Package className="h-7 w-7" />,
-      title: 'Product Management',
-      description: 'Easily add, edit, and organize products with categories and variations.',
+      title: t('landing.features.items.productManagement.title'),
+      description: t('landing.features.items.productManagement.description'),
       color: 'purple',
       gradient: 'from-purple-400 to-pink-400',
-      benefits: ['Bulk upload', 'Categories', 'Variants'],
+      benefits: t('landing.features.items.productManagement.benefits', { returnObjects: true }),
       depth: 40,
      
     },
     {
       icon: <ShoppingBag className="h-7 w-7" />,
-      title: 'Order System',
-      description: 'Complete checkout flow with order tracking and customer management.',
+      title: t('landing.features.items.orderSystem.title'),
+      description: t('landing.features.items.orderSystem.description'),
       color: 'green',
       gradient: 'from-green-400 to-emerald-400',
-      benefits: ['Track orders', 'Customer history', 'Invoices'],
+      benefits: t('landing.features.items.orderSystem.benefits', { returnObjects: true }),
       depth: 50,
       
     },
     {
       icon: <Smartphone className="h-7 w-7" />,
-      title: 'Mobile-Friendly',
-      description: 'Stores look great on all devices with responsive design.',
+      title: t('landing.features.items.mobileFriendly.title'),
+      description: t('landing.features.items.mobileFriendly.description'),
       color: 'orange',
       gradient: 'from-orange-400 to-red-400',
-      benefits: ['Mobile optimized', 'Touch friendly', 'Fast loading'],
+      benefits: t('landing.features.items.mobileFriendly.benefits', { returnObjects: true }),
       depth: 60,
-      stats: '100% responsive',
+      stats: t('landing.features.items.mobileFriendly.stats'),
     },
     {
       icon: <BarChart className="h-7 w-7" />,
-      title: 'Analytics Dashboard',
-      description: 'Comprehensive insights about your store performance.',
+      title: t('landing.features.items.analyticsDashboard.title'),
+      description: t('landing.features.items.analyticsDashboard.description'),
       color: 'teal',
       gradient: 'from-teal-400 to-cyan-400',
-      benefits: ['Sales reports', 'Visitor stats', 'Revenue tracking'],
+      benefits: t('landing.features.items.analyticsDashboard.benefits', { returnObjects: true }),
       depth: 70,
-      stats: 'Real-time data',
+      stats: t('landing.features.items.analyticsDashboard.stats'),
     },
     {
       icon: <Shield className="h-7 w-7" />,
-      title: 'Secure Platform',
-      description: 'Enterprise-grade security for your store and customer data.',
+      title: t('landing.features.items.securePlatform.title'),
+      description: t('landing.features.items.securePlatform.description'),
       color: 'indigo',
       gradient: 'from-indigo-400 to-blue-400',
-      benefits: ['SSL encrypted', 'Secure payments', 'Data protection'],
+      benefits: t('landing.features.items.securePlatform.benefits', { returnObjects: true }),
       depth: 80,
-      stats: '256-bit encryption',
+      stats: t('landing.features.items.securePlatform.stats'),
     },
   ];
 
@@ -127,7 +129,7 @@ const Features = () => {
             }}
           >
             
-            <span className="text-sm font-medium">3D Features</span>
+            <span className="text-sm font-medium">{t('landing.features.sectionTitle.pill')}</span>
           </div>
           
           <h2 
@@ -138,15 +140,15 @@ const Features = () => {
             }}
           >
             <span className="bg-gradient-to-r from-white via-blue-200 to-purple-200 bg-clip-text text-transparent block">
-              Everything You Need to
+              {t('landing.features.sectionTitle.line1')}
             </span>
             <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent block mt-2">
-              Sell Online
+              {t('landing.features.sectionTitle.line2')}
             </span>
           </h2>
           
           <p className="text-lg text-blue-100/70">
-            Immerse yourself in the future of e-commerce with our 3D feature set.
+            {t('landing.features.description')}
           </p>
         </div>
 
@@ -214,7 +216,7 @@ const Features = () => {
                 <div className="relative mt-auto">
                   <div className="absolute inset-0 bg-white/5 blur-lg rounded-lg"></div>
                   <div className="relative flex items-center justify-between bg-white/5 backdrop-blur-sm rounded-lg px-4 py-2 border border-white/10">
-                    <span className="text-xs text-gray-400">Active users</span>
+                    <span className="text-xs text-gray-400">{t('landing.features.activeUsers')}</span>
                     <span className={`text-sm font-semibold text-${feature.color}-400`}>{feature.stats}</span>
                   </div>
                 </div>

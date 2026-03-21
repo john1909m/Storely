@@ -1,0 +1,281 @@
+{
+  "landing": {
+    "seo": {
+      "title": "Storely - Platform for Independent Stores",
+      "description": "Create your online store and start selling in minutes. Storely is the leading platform for independent stores in Egypt and the Arab world.",
+      "keywords": "online store, create store, e-commerce, sell online, store platform, Storely",
+      "schema": {
+        "name": "Storely",
+        "description": "Platform for independent stores"
+      }
+    },
+    "hero": {
+      "ariaLabel": "Hero section",
+      "moveDevice": "Move your device",
+      "headline": {
+        "launchYour": "Launch Your",
+        "onlineStore": "Online Store",
+        "inMinutes": "in Minutes"
+      },
+      "description": "Experience the future of e-commerce. Create your branded store with zero technical skills in an immersive 3D environment.",
+      "buttons": {
+        "startNow": "Start Now",
+        "viewPricing": "View Pricing"
+      },
+      "trust": {
+        "noCode": "No code",
+        "secure": "Secure",
+        "global": "Global"
+      },
+      "dashboardCard": {
+        "storeDashboard": "My Store Dashboard",
+        "storeUrl": "storely-eg.com/mystore",
+        "live": "Live",
+        "stats": {
+          "ordersToday": "Orders Today",
+          "revenue": "Revenue"
+        },
+        "recentOrders": "Recent Orders",
+        "customerJohn": "John Doe",
+        "customerJane": "Jane Smith",
+        "orderPrefix": "Order #{{id}}",
+        "orderMeta": "{{items}} items • {{customer}}",
+        "amountPrefix": "$"
+      }
+    },
+    "features": {
+      "sectionTitle": {
+        "pill": "3D Features",
+        "line1": "Everything You Need to",
+        "line2": "Sell Online"
+      },
+      "description": "Immerse yourself in the future of e-commerce with our 3D feature set.",
+      "items": {
+        "customStoreLinks": {
+          "title": "Custom Store Links",
+          "description": "Each vendor gets a unique, branded store URL to share with customers.",
+          "benefits": ["Branded URLs", "Easy to share", "SEO friendly"],
+          "stats": null
+        },
+        "productManagement": {
+          "title": "Product Management",
+          "description": "Easily add, edit, and organize products with categories and variations.",
+          "benefits": ["Bulk upload", "Categories", "Variants"],
+          "stats": null
+        },
+        "orderSystem": {
+          "title": "Order System",
+          "description": "Complete checkout flow with order tracking and customer management.",
+          "benefits": ["Track orders", "Customer history", "Invoices"],
+          "stats": null
+        },
+        "mobileFriendly": {
+          "title": "Mobile-Friendly",
+          "description": "Stores look great on all devices with responsive design.",
+          "benefits": ["Mobile optimized", "Touch friendly", "Fast loading"],
+          "stats": "100% responsive"
+        },
+        "analyticsDashboard": {
+          "title": "Analytics Dashboard",
+          "description": "Comprehensive insights about your store performance.",
+          "benefits": ["Sales reports", "Visitor stats", "Revenue tracking"],
+          "stats": "Real-time data"
+        },
+        "securePlatform": {
+          "title": "Secure Platform",
+          "description": "Enterprise-grade security for your store and customer data.",
+          "benefits": ["SSL encrypted", "Secure payments", "Data protection"],
+          "stats": "256-bit encryption"
+        }
+      },
+      "activeUsers": "Active users"
+    },
+    "howItWorks": {
+      "section": {
+        "badge": "3D Experience",
+        "headlineLine1": "Start Selling in",
+        "headlineLine2": "Five Simple Steps",
+        "description": "Immerse yourself in the future of e-commerce. Follow these steps in our 3D environment."
+      },
+      "steps": {
+        "01": {
+          "title": "Sign Up",
+          "description": "Create your vendor account in under 2 minutes",
+          "details": "Quick registration with email or social media"
+        },
+        "02": {
+          "title": "Create Store",
+          "description": "Set up your branded store with custom URL",
+          "details": "Customize colors, logo, and store information"
+        },
+        "03": {
+          "title": "Add Products",
+          "description": "Upload products with images, prices, and categories",
+          "details": "Bulk upload or add products one by one"
+        },
+        "04": {
+          "title": "Share Link",
+          "description": "Share your unique store link with customers",
+          "details": "Share via social media, email, or QR code"
+        },
+        "05": {
+          "title": "Receive Orders",
+          "description": "Start accepting orders and earning revenue",
+          "details": "Real-time notifications and order tracking"
+        }
+      },
+      "cta": "Get Started Now"
+    },
+    "forVendors": {
+      "badge": "Vendor Success Platform",
+      "headingLine1": "Built Specifically for",
+      "headingLine2": "Modern Vendors",
+      "description": "Storely empowers entrepreneurs, small businesses, and creators to launch their online stores in a fully immersive 3D environment.",
+      "benefits": {
+        "noSkills": {
+          "title": "No Technical Skills Required",
+          "description": "Our intuitive interface makes store setup a breeze.",
+          "stat": "Zero coding"
+        },
+        "growBusiness": {
+          "title": "Grow Your Business",
+          "description": "Access powerful analytics to make data-driven decisions.",
+          "stat": "+150% avg growth"
+        },
+        "reachCustomers": {
+          "title": "Reach More Customers",
+          "description": "Share your unique store link across social media and websites.",
+          "stat": "10k+ reach"
+        },
+        "easyOrders": {
+          "title": "Easy Order Management",
+          "description": "Track and fulfill orders from a single dashboard.",
+          "stat": "99.9% uptime"
+        }
+      },
+      "vendorTools": {
+        "analytics": "Analytics",
+        "customization": "Customization",
+        "payments": "Payments",
+        "security": "Security"
+      },
+      "testimonialsFrom": "from 500+ reviews",
+      "metrics": {
+        "title": "Vendor Success Metrics",
+        "labels": {
+          "fasterSetup": "Faster store setup",
+          "higherConversion": "Higher conversion",
+          "support": "Platform support"
+        }
+      },
+      "cta": "Join Successful Vendors"
+    },
+    "cta": {
+      "ariaLabel": "Call to action",
+      "badge": "Limited Time Offer",
+      "headlineLine1": "Ready to Launch Your",
+      "headlineLine2": "Online Store?",
+      "description": "Join successful vendors in the next generation of e-commerce. Experience the future today.",
+      "benefitBadges": {
+        "noCreditCardRequired": "No credit card required",
+        "instantSetup": "Instant setup"
+      },
+      "benefits": {
+        "noHiddenFees": "No hidden fees",
+        "securePlatform": "Secure platform",
+        "support": "24/7 support"
+      },
+      "buttons": {
+        "startSellingToday": "Start Selling Today",
+        "viewPricing": "View Pricing"
+      }
+    },
+    "footer": {
+      "ariaLabel": "Site footer",
+      "brandName": "Storely",
+      "description": "Experience the future of e-commerce with our immersive 3D platform. Empowering vendors worldwide with cutting-edge technology.",
+      "stats": {
+        "vendorsCount": "100+ vendors"
+      },
+      "quickLinksTitle": "Quick Links",
+      "quickLinks": {
+        "aboutUs": {
+          "name": "About Us",
+          "ariaLabel": "Learn about Storely"
+        },
+        "features": {
+          "name": "Features",
+          "ariaLabel": "View all features"
+        },
+        "pricing": {
+          "name": "Pricing",
+          "ariaLabel": "View pricing plans"
+        },
+        "contact": {
+          "name": "Contact",
+          "ariaLabel": "Contact us"
+        }
+      },
+      "legalTitle": "Legal",
+      "legalLinks": {
+        "privacyPolicy": {
+          "name": "Privacy Policy",
+          "ariaLabel": "Read privacy policy"
+        },
+        "termsOfService": {
+          "name": "Terms of Service",
+          "ariaLabel": "Read terms of service"
+        },
+        "cookiePolicy": {
+          "name": "Cookie Policy",
+          "ariaLabel": "Read cookie policy"
+        }
+      },
+      "connectTitle": "Connect",
+      "contactInfo": {
+        "cairo": "Cairo, Egypt",
+        "phone": "+20 103 599 9541",
+        "email": "johnemil21@yahoo.com",
+        "supportHours": "24/7 Support"
+      },
+      "social": {
+        "instagram": {
+          "name": "Instagram",
+          "ariaLabel": "Follow us on Instagram"
+        },
+        "facebook": {
+          "name": "Facebook",
+          "ariaLabel": "Follow us on Facebook"
+        }
+      },
+      "bottom": {
+        "copyrightPrefix": "© {{year}} Storely. All rights reserved.",
+        "madeWith": "Made with",
+        "forVendors": "for vendors",
+        "version": "v3.0.0"
+      }
+    },
+    "ramadanOffer": {
+      "closeAriaLabel": "Close offer",
+      "title": "Eid El-Fitr Special",
+      "heading": "Eid Mubarak",
+      "headingAr": "عيد فطر مبارك",
+      "description": "In celebration of Eid El-Fitr, enjoy 50% off your first month subscription for all plans!",
+      "timerLabel": "Offer ends in:",
+      "discount": "50% OFF",
+      "cta": "استفد من العرض الآن",
+      "footnote": "*Offer available for the first month only. Does not combine with other offers",
+      "days": "Day",
+      "hours": "Hour",
+      "minutes": "Minute",
+      "seconds": "Second"
+    },
+    "ramadanOfferBanner": {
+      "title": "Eid El-Fitr Special",
+      "discount": "50% OFF",
+      "subtext": "on your first month subscription",
+      "cta": "استفد الآن"
+    }
+  }
+}
+

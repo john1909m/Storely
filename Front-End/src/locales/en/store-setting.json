@@ -1,0 +1,198 @@
+{
+  "vendorStoreDetails": {
+    "title": "Store Settings",
+    "subtitle": "Customize your store details and branding",
+    "vendor": "Vendor",
+    "loading": {
+      "storeSettings": "Loading your store settings...",
+      "pleaseWait": "Please wait a moment"
+    },
+    "tabs": {
+      "basic": {
+        "label": "Basic Info",
+        "description": "Store name & description"
+      },
+      "shipping": {
+        "label": "Shipping",
+        "description": "Shipping costs by governorate"
+      },
+      "deposit": {
+        "label": "Deposit",
+        "description": "Payment deposit settings"
+      },
+      "payment": {
+        "label": "Payment Methods",
+        "description": "Configure payment options"
+      },
+      "branding": {
+        "label": "Branding",
+        "description": "Logo & colors"
+      },
+      "contact": {
+        "label": "Contact",
+        "description": "Phone & Location"
+      },
+      "social": {
+        "label": "Social",
+        "description": "Social media profiles"
+      },
+      "domain": {
+        "label": "Domain & QR",
+        "description": "Store URL & QR code"
+      }
+    },
+    "menu": {
+      "storeSettings": "Store Settings",
+      "previewStore": "Preview Store",
+      "navigation": "Navigation"
+    },
+    "mobile": {
+      "activeSection": "Active Section"
+    },
+    "sidebar": {
+      "storeStatus": "Store Status",
+      "storePreview": "Store Preview",
+      "storeNamePlaceholder": "Your Store Name"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "basic": {
+      "title": "Basic Store Information",
+      "requiredFields": "Required Fields *",
+      "storeName": "Store Name",
+      "storeNamePlaceholder": "Enter your store name",
+      "storeDescription": "Store Description",
+      "storeDescriptionPlaceholder": "Describe your store and what makes it unique...",
+      "storeCategory": "Store Category",
+      "selectCategory": "Select a category"
+    },
+    "shipping": {
+      "title": "Shipping Costs by Governorate",
+      "settingsTitle": "Shipping Settings",
+      "settingsDescription": "Select governorates and set shipping prices. {configured} of {total} governorates configured."
+    },
+    "deposit": {
+      "title": "Payment Deposit Settings",
+      "requireDeposit": "Require Deposit for Orders",
+      "requireDepositDescription": "Customers must pay deposit before order confirmation",
+      "calculationMethod": "Deposit Calculation Method",
+      "percentage": "Percentage (%)",
+      "percentageDescription": "Percentage of order total",
+      "shippingCost": "Shipping Cost",
+      "shippingCostDescription": "Use configured shipping cost",
+      "percentageValue": "Deposit Percentage (%)",
+      "shippingInfoTitle": "Deposit will be the shipping cost",
+      "shippingInfoDescription": "The deposit amount will be calculated based on the customer's governorate shipping cost.",
+      "paymentMethods": "Payment Methods for Deposit",
+      "instapayNumber": "Instapay Number",
+      "instapayHint": "Customers will use this number to send deposits via Instapay",
+      "vodafoneCashNumber": "Vodafone Cash Number",
+      "vodafoneCashHint": "Customers will use this number to send deposits via Vodafone Cash",
+      "important": "Important",
+      "importantMessage": "These numbers will be shown to customers when they need to pay deposits. Make sure they are correct and active.",
+      "preview": "Deposit Preview",
+      "orderTotalExample": "Order Total (example)",
+      "deposit": "Deposit",
+      "shippingCostExample": "Shipping cost (varies by governorate)"
+    },
+    "payment": {
+      "title": "Payment Methods",
+      "active": "Active",
+      "configureTitle": "Configure Payment Options",
+      "configureDescription": "Choose which payment methods are available to your customers. For Instapay and Vodafone Cash, provide your account details.",
+      "accountName": "Account Name",
+      "accountNamePlaceholder": "John Doe",
+      "accountNumber": "Account Number / Phone",
+      "codEnabledMessage": "COD is enabled. Customers can choose to pay cash when they receive their order.",
+      "codNote": "Note: You can configure deposit requirements in the Deposit Settings tab.",
+      "activeMethods": "Active Methods"
+    },
+    "paymentMethods": {
+      "instapay": "Instapay",
+      "instapayDescription": "Fast and secure transfers via Instapay",
+      "vodafoneCash": "Vodafone Cash",
+      "vodafoneCashDescription": "Pay using Vodafone Cash wallet",
+      "cod": "Cash on Delivery",
+      "codDescription": "Customer pays cash upon delivery"
+    },
+    "branding": {
+      "title": "Store Branding",
+      "storeLogo": "Store Logo",
+      "noLogo": "No logo",
+      "logoRecommendation": "Recommended: 400x400px, PNG or JPG, max 2MB",
+      "colorScheme": "Color Scheme",
+      "primaryColor": "Primary Color",
+      "secondaryColor": "Secondary Color",
+      "livePreview": "Live Preview",
+      "shopNow": "Shop Now",
+      "learnMore": "Learn More",
+      "storeNamePlaceholder": "Your Store"
+    },
+    "contact": {
+      "title": "Contact Information",
+      "phoneNumber": "Phone Number",
+      "storeAddress": "Store Address",
+      "addressPlaceholder": "Enter your business address"
+    },
+    "social": {
+      "title": "Social Media Profiles",
+      "facebook": "Facebook",
+      "instagram": "Instagram"
+    },
+    "domain": {
+      "title": "Domain & Store URL",
+      "yourStoreUrl": "Your Store URL",
+      "urlNotSet": "store-name-not-set",
+      "copy": "Copy",
+      "visit": "Visit",
+      "storeQrCode": "Store QR Code",
+      "clickToDownload": "Click to download",
+      "setUrlFirst": "Set store URL first",
+      "shareYourStore": "Share Your Store",
+      "qrDescription": "Download this QR code to share with your customers. They can scan it with their phone camera to visit your store instantly.",
+      "downloadQr": "Download QR Code",
+      "copyLink": "Copy Link"
+    },
+    "buttons": {
+      "preview": "Preview",
+      "saveAll": "Save All",
+      "saving": "Saving...",
+      "saveChanges": "Save Changes",
+      "saveDepositSettings": "Save Deposit Settings",
+      "savePaymentMethods": "Save Payment Methods",
+      "savingPaymentMethods": "Saving Payment Methods...",
+      "uploadLogo": "Upload Logo",
+      "uploading": "Uploading...",
+      "remove": "Remove",
+      "savingChanges": "Saving Changes...",
+      "saveAllChanges": "Save All Changes",
+      "createStore": "Create Your Store"
+    },
+    "errors": {
+      "storeNotFound": "Store not found. Please create a store first.",
+      "storeNotFoundTitle": "Store Not Found",
+      "storeNotFoundBody": "You need to create a store first.",
+      "urlNotSet": "Store URL is not set. Please set a store URL first.",
+      "instapayRequiresAccount": "Instapay requires account number and name",
+      "vodafoneRequiresAccount": "Vodafone Cash requires account number and name",
+      "atLeastOneMethod": "At least one payment method must be active",
+      "depositPaymentRequired": "At least one payment method (Instapay or Vodafone Cash) is required when deposit is enabled.",
+      "savePaymentFailed": "Failed to save payment methods"
+    },
+    "success": {
+      "depositSaved": "Deposit settings updated successfully!",
+      "paymentMethodsSaved": "Payment methods updated successfully!",
+      "storeDetailsSaved": "Store details updated successfully!",
+      "imageUploaded": "Image uploaded successfully",
+      "imageRemoved": "Image removed successfully!",
+      "qrDownloaded": "QR Code downloaded successfully!",
+      "linkCopied": "Store link copied to clipboard!"
+    },
+    "confirm": {
+      "removeImage": "Are you sure you want to remove the {type}?"
+    },
+    "governoratePrefix": "Governorate "
+  }
+}

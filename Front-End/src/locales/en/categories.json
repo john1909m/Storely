@@ -1,0 +1,78 @@
+{
+  "vendorCategories": {
+    "title": "Categories",
+    "categories": "categories",
+    "filters": "Filters",
+    "addCategory": "Add Category",
+    "selected": "selected",
+    "deleteSelected": "Delete Selected",
+    "edit": "Edit",
+    "delete": "Delete",
+    "products": "products",
+    "showing": "Showing {count} of {total} categories",
+    "loading": {
+      "categories": "Loading categories..."
+    },
+    "stats": {
+      "totalCategories": "Total Categories",
+      "withProducts": "With Products"
+    },
+    "search": {
+      "placeholder": "Search categories by name"
+    },
+    "table": {
+      "category": "Category",
+      "products": "Products",
+      "actions": "Actions"
+    },
+    "expanded": {
+      "categoryDetails": "Category Details",
+      "name": "Name",
+      "productsInCategory": "Products in Category",
+      "totalProducts": "Total Products:",
+      "noProducts": "No products in this category"
+    },
+    "empty": {
+      "title": "No Categories Found",
+      "adjustSearch": "Try adjusting your search",
+      "createFirst": "Create your first category to organize products",
+      "addCategory": "Add Category"
+    },
+    "modal": {
+      "add": {
+        "title": "Add New Category",
+        "categoryName": "Category Name",
+        "namePlaceholder": "e.g., Electronics",
+        "adding": "Adding...",
+        "addCategory": "Add Category",
+        "cancel": "Cancel"
+      },
+      "edit": {
+        "title": "Edit Category",
+        "categoryName": "Category Name",
+        "saving": "Saving...",
+        "saveChanges": "Save Changes",
+        "cancel": "Cancel"
+      }
+    },
+    "confirm": {
+      "deleteCategory": "Are you sure you want to delete this category?",
+      "bulkDelete": "Delete {count} category(s)? This action cannot be undone."
+    },
+    "success": {
+      "categoryAdded": "Category added successfully!",
+      "categoryUpdated": "Category updated successfully!",
+      "categoryDeleted": "Category deleted successfully!",
+      "categoriesDeleted": "{count} category(s) deleted successfully!"
+    },
+    "errors": {
+      "failedToLoad": "Failed to load categories",
+      "categoryNameRequired": "Category name is required",
+      "failedToAdd": "Failed to add category",
+      "failedToUpdate": "Failed to update category",
+      "failedToDelete": "Failed to delete category",
+      "failedToDeleteCategories": "Failed to delete categories",
+      "categoryHasProducts": "Cannot delete category with products. Please change the products of this category to 'Uncategorized' or another category before deleting."
+    }
+  }
+}

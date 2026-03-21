@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingCart, Menu, X, LogOut, User, Sparkles, Globe} from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useCart } from '../hooks/useCart';
+import { useTranslation } from 'react-i18next';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -13,6 +14,7 @@ const Navbar = () => {
   const { getItemCount } = useCart();
   const itemCount = getItemCount();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -40,9 +42,24 @@ const Navbar = () => {
   };
 
   const navLinks = [
-    { name: 'Home', href: '/', ariaLabel: 'Go to homepage', icon: <Globe className="h-4 w-4" /> },
-    { name: 'Pricing', href: '/pricing', ariaLabel: 'View pricing plans', icon: <Sparkles className="h-4 w-4" /> },
-    { name: 'Contact', href: '/contact', ariaLabel: 'Contact us', icon: <Globe className="h-4 w-4" /> },
+    {
+      name: t('components.navbar.links.home.name'),
+      href: '/',
+      ariaLabel: t('components.navbar.links.home.ariaLabel'),
+      icon: <Globe className="h-4 w-4" />,
+    },
+    {
+      name: t('components.navbar.links.pricing.name'),
+      href: '/pricing',
+      ariaLabel: t('components.navbar.links.pricing.ariaLabel'),
+      icon: <Sparkles className="h-4 w-4" />,
+    },
+    {
+      name: t('components.navbar.links.contact.name'),
+      href: '/contact',
+      ariaLabel: t('components.navbar.links.contact.ariaLabel'),
+      icon: <Globe className="h-4 w-4" />,
+    },
   ];
 
   return (
@@ -53,7 +70,7 @@ const Navbar = () => {
           : 'py-5'
       }`}
       role="navigation"
-      aria-label="Main navigation"
+      aria-label={t('components.navbar.aria.mainNavigation')}
     >
       {/* Floating glass background */}
       <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-white/5 to-transparent backdrop-blur-3xl border-b border-white/10"></div>
@@ -67,7 +84,7 @@ const Navbar = () => {
           <Link 
             to="/" 
             className="flex items-center space-x-2 group relative"
-            aria-label="Storely homepage"
+            aria-label={t('components.navbar.aria.siteHome')}
             onMouseEnter={() => setHoveredItem('logo')}
             onMouseLeave={() => setHoveredItem(null)}
           >
@@ -81,7 +98,7 @@ const Navbar = () => {
               <div className="absolute inset-0 bg-gradient-to-r from-blue-400/0 via-white/20 to-purple-400/0 group-hover:animate-shimmer fill-white" ></div>
               <img 
                 src="Logo_new_w.png" 
-                alt="Storely Logo" 
+                alt={t('components.navbar.logoAlt')}
                 className="h-10 w-10 fill-white scale-160  sm:h-7 sm:w-7 object-contain brightness-200 drop-shadow-2xl relative z-10"
                 loading="eager"
               />
@@ -142,7 +159,7 @@ const Navbar = () => {
                       {itemCount > 0 && (
                         <span 
                           className="absolute -top-1 -right-1 bg-gradient-to-r from-blue-400 to-purple-400 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center shadow-lg animate-pulse"
-                          aria-label={`${itemCount} items in cart`}
+                              aria-label={t('components.navbar.aria.cartItems', { count: itemCount })}
                         >
                           {itemCount > 9 ? '9+' : itemCount}
                         </span>
@@ -163,7 +180,7 @@ const Navbar = () => {
                   
                   <div className="relative px-4 py-2.5 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 group-hover:border-white/20 transition-all duration-300 flex items-center space-x-2">
                     <User className="h-5 w-5 text-white/80 group-hover:text-white" />
-                    <span className="text-white/80 group-hover:text-white font-medium">Dashboard</span>
+                    <span className="text-white/80 group-hover:text-white font-medium">{t('components.navbar.actions.dashboard')}</span>
                   </div>
                 </Link>
                 
@@ -179,7 +196,7 @@ const Navbar = () => {
                   
                   <div className="relative px-4 py-2.5 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 group-hover:border-white/20 transition-all duration-300 flex items-center space-x-2">
                     <LogOut className="h-5 w-5 text-white/80 group-hover:text-white" />
-                    <span className="text-white/80 group-hover:text-white font-medium">Logout</span>
+                    <span className="text-white/80 group-hover:text-white font-medium">{t('components.navbar.actions.logout')}</span>
                   </div>
                 </button>
               </>
@@ -192,7 +209,7 @@ const Navbar = () => {
                     }`}></div>
                     
                     <div className="relative px-5 py-2.5 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 group-hover:border-white/20 transition-all duration-300">
-                      <span className="text-white/80 group-hover:text-white font-medium">Login</span>
+                      <span className="text-white/80 group-hover:text-white font-medium">{t('components.navbar.actions.login')}</span>
                     </div>
                   </button>
                 </Link>
@@ -208,7 +225,7 @@ const Navbar = () => {
                     </div>
                     
                     <span className="relative z-10 px-5 py-2.5 text-white font-medium flex items-center space-x-2">
-                      <span>Sign Up</span>
+                      <span>{t('components.navbar.actions.signup')}</span>
                       <Sparkles className="h-4 w-4 group-hover:rotate-12 transition-transform" />
                     </span>
                   </button>
@@ -221,7 +238,7 @@ const Navbar = () => {
           <button
             className="md:hidden p-3 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 hover:bg-white/10 transition-all duration-300"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+            aria-label={isMenuOpen ? t('components.navbar.aria.closeMenu') : t('components.navbar.aria.openMenu')}
             aria-expanded={isMenuOpen}
             aria-controls="mobile-menu"
           >
@@ -239,7 +256,7 @@ const Navbar = () => {
             id="mobile-menu"
             className="md:hidden mt-4 rounded-3xl bg-white/10 backdrop-blur-2xl border border-white/20 p-4 animate-slide-down shadow-2xl"
             role="menu"
-            aria-label="Mobile navigation menu"
+          aria-label={t('components.navbar.aria.mobileNavigationMenu')}
           >
             <div className="flex flex-col space-y-2">
               {navLinks.map((link) => (
@@ -267,7 +284,7 @@ const Navbar = () => {
                         role="menuitem"
                       >
                         <ShoppingCart className="h-5 w-5" />
-                        <span>Cart ({itemCount})</span>
+                          <span>{t('components.navbar.actions.cartCount', { count: itemCount })}</span>
                       </Link>
                     )}
                     
@@ -278,7 +295,7 @@ const Navbar = () => {
                       role="menuitem"
                     >
                       <User className="h-5 w-5" />
-                      <span>Dashboard</span>
+                        <span>{t('components.navbar.actions.dashboard')}</span>
                     </Link>
                     
                     <button
@@ -287,7 +304,7 @@ const Navbar = () => {
                       role="menuitem"
                     >
                       <LogOut className="h-5 w-5" />
-                      <span>Logout</span>
+                        <span>{t('components.navbar.actions.logout')}</span>
                     </button>
                   </>
                 ) : (
@@ -298,7 +315,7 @@ const Navbar = () => {
                       onClick={() => setIsMenuOpen(false)}
                       role="menuitem"
                     >
-                      Login
+                      {t('components.navbar.actions.login')}
                     </Link>
                     <Link
                       to="/signup"
@@ -306,7 +323,7 @@ const Navbar = () => {
                       onClick={() => setIsMenuOpen(false)}
                       role="menuitem"
                     >
-                      Sign Up
+                      {t('components.navbar.actions.signup')}
                     </Link>
                   </>
                 )}

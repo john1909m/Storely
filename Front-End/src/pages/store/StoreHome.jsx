@@ -1,6 +1,7 @@
-// StoreHome.jsx - مع دعم الألوان المخصصة وتأثيرات Fade In
-import React, { useState, useEffect, useRef, use } from 'react';
+// src/pages/store/StoreHome.jsx
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { storeAPI } from '../../api/store.api';
 import { productAPI } from '../../api/product.api';
 import { categoryAPI } from '../../api/category.api';
@@ -112,6 +113,7 @@ const fadeInStyles = `
 const StoreHome = () => {
   const { storeName } = useParams();
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
   
   const [store, setStore] = useState(null);
   const [products, setProducts] = useState([]);
@@ -148,10 +150,10 @@ const StoreHome = () => {
   // 🎨 دالة للحصول على الألوان المخصصة مع قيم افتراضية
   const getStoreColors = () => {
     return {
-      primary: store?.primaryColor || '#4f46e5', // indigo-600 كلون افتراضي
-      secondary: store?.secondaryColor || '#9333ea', // purple-600 كلون افتراضي
-      primaryLight: store?.primaryColor ? `${store.primaryColor}20` : '#e0e7ff', // نسخة شفافة من primary
-      secondaryLight: store?.secondaryColor ? `${store.secondaryColor}20` : '#f3e8ff' // نسخة شفافة من secondary
+      primary: store?.primaryColor || '#4f46e5',
+      secondary: store?.secondaryColor || '#9333ea',
+      primaryLight: store?.primaryColor ? `${store.primaryColor}20` : '#e0e7ff',
+      secondaryLight: store?.secondaryColor ? `${store.secondaryColor}20` : '#f3e8ff'
     };
   };
 
@@ -161,11 +163,6 @@ const StoreHome = () => {
     }
   }, [storeName]);
 
-  // useEffect(async () => {
-  //   await storeAPI.incrementVisits(store?.id);
-  // }, [store?.id]);
-
-  // 🔄 جلب المنتجات عند تغيير التصنيف
   useEffect(() => {
     if (store?.id) {
       fetchProductsByCategory();
@@ -173,7 +170,6 @@ const StoreHome = () => {
   }, [selectedCategory, store?.id]);
 
   useEffect(() => {
-    // Load cart and wishlist from localStorage
     const cartKey = `cart_${storeName}`;
     const savedCart = localStorage.getItem(cartKey);
     const savedWishlist = localStorage.getItem(`wishlist_${storeName}`);
@@ -196,7 +192,6 @@ const StoreHome = () => {
   }, [storeName]);
 
   useEffect(() => {
-    // Save cart to localStorage for checkout
     if (storeName && cart.length > 0) {
       localStorage.setItem(`cart_${storeName}`, JSON.stringify(cart));
       
@@ -248,7 +243,6 @@ const StoreHome = () => {
     };
   }, [showMobileMenu, showCategoriesDrawer, showSearchBar, showVariantModal, showCart]);
 
-  // ✨ تحديد أن الصفحة تم تحميلها
   useEffect(() => {
     if (!loading && store) {
       setTimeout(() => {
@@ -263,19 +257,15 @@ const StoreHome = () => {
       setError(null);
       setPageLoaded(false);
 
-      // Fetch store by name
       const storeData = await storeAPI.getByName(storeName);
-      const visitResponse = await storeAPI.incrementVisits(storeData.id);
+      await storeAPI.incrementVisits(storeData.id);
+      
       if (!storeData) {
         throw new Error('Store not found');
       }
       setStore(storeData);
 
-      // Fetch categories for this store
       const storeCategories = await categoryAPI.getByStore(storeData.id);
-      console.log('Categories from API:', storeCategories);
-      
-      // Ensure category ids are numbers
       const enhancedCategories = storeCategories.map(cat => ({
         id: cat.id,
         categoryName: cat.categoryName || cat.name || `Category ${cat.id}`,
@@ -286,31 +276,25 @@ const StoreHome = () => {
 
     } catch (err) {
       handleError(err);
-      setError(err.message || 'Failed to load store');
+      setError(err.message || t('storeHome.errors.failedToLoad'));
     } finally {
       setLoading(false);
     }
   };
 
-  // 🆕 دالة جديدة لجلب المنتجات حسب التصنيف
   const fetchProductsByCategory = async () => {
     try {
       setLoading(true);
       
-      let productsData= [];
+      let productsData = [];
       
       if (selectedCategory === 'all') {
-        // جلب كل المنتجات
         productsData = await productAPI.getAll(store.id);
-        console.log('All products:', productsData);
       } else {
-        // جلب المنتجات حسب التصنيف
         const categoryId = selectedCategory;
         productsData = await productAPI.getByCategory(categoryId, store.id);
-        console.log(`Products for category ${categoryId}:`, productsData);
       }
       
-      // تحسين بيانات المنتجات
       const enhancedProducts = productsData.map(product => ({
         ...product,
         hasVariants: product.variants && product.variants.length > 0,
@@ -326,7 +310,7 @@ const StoreHome = () => {
       
     } catch (err) {
       handleError(err);
-      setError(err.message || 'Failed to load products');
+      setError(err.message || t('storeHome.errors.failedToLoadProducts'));
     } finally {
       setLoading(false); 
     }
@@ -420,7 +404,6 @@ const StoreHome = () => {
     }
   };
 
-  // فلترة حسب البحث فقط (المنتجات جاهزة من API)
   const filteredProducts = handleSortProducts(
     products.filter(product => {
       const productName = product.productName || product.name || '';
@@ -431,12 +414,9 @@ const StoreHome = () => {
     })
   );
 
-  const getStoreRating = () => {
-    return { rating: 4.8, reviews: 245 };
-  };
-
   const formatPrice = (price) => {
-    return new Intl.NumberFormat('en-EG', {
+    const localeCode = i18n.language === 'ar' ? 'ar-EG' : 'en-US';
+    return new Intl.NumberFormat(localeCode, {
       style: 'currency',
       currency: 'EGP',
       minimumFractionDigits: 0,
@@ -447,22 +427,19 @@ const StoreHome = () => {
   const handleCategorySelect = (categoryId) => {
     setSelectedCategory(categoryId);
     setShowCategoriesDrawer(false);
-    // إعادة تعيين البحث عند تغيير التصنيف
     setSearchQuery('');
     window.scrollTo({ top: 300, behavior: 'smooth' });
   };
 
-  // 🎨 الحصول على الألوان المخصصة
   const colors = getStoreColors();
 
-  // 🎨 دالة لتوليد style object للتدرجات
   const getGradientStyle = (fromColor, toColor) => {
     return {
       background: `linear-gradient(to right, ${fromColor}, ${toColor})`
     };
   };
 
-  // 🎨 Mobile category drawer component مع الألوان المخصصة
+  // Mobile Categories Drawer
   const MobileCategoriesDrawer = () => (
     <div 
       className={`fixed inset-0 z-50 lg:hidden transition-all duration-300 ${
@@ -494,7 +471,7 @@ const StoreHome = () => {
             >
               <Filter className="h-5 w-5" style={{ color: colors.primary }} />
             </div>
-            <h2 className="text-xl font-bold text-gray-900">Categories</h2>
+            <h2 className="text-xl font-bold text-gray-900">{t('storeHome.categories.title')}</h2>
           </div>
           <button
             onClick={() => setShowCategoriesDrawer(false)}
@@ -526,8 +503,8 @@ const StoreHome = () => {
                   <ShoppingBag className="h-5 w-5" />
                 </div>
                 <div className="text-left">
-                  <div className="font-semibold">All Products</div>
-                  <div className="text-sm opacity-75">All items</div>
+                  <div className="font-semibold">{t('storeHome.categories.allProducts')}</div>
+                  <div className="text-sm opacity-75">{t('storeHome.categories.allItems')}</div>
                 </div>
               </div>
               <ChevronRight className="h-5 w-5 opacity-75" />
@@ -566,7 +543,7 @@ const StoreHome = () => {
           </div>
           
           <div className="mt-8 pt-6 border-t border-gray-100">
-            <h3 className="font-bold text-gray-900 mb-4">Store Info</h3>
+            <h3 className="font-bold text-gray-900 mb-4">{t('storeHome.storeInfo.title')}</h3>
             <div className="space-y-3">
               {store?.storeAddress && (
                 <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
@@ -594,7 +571,7 @@ const StoreHome = () => {
             className="w-full py-3 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all"
             style={getGradientStyle(colors.primary, colors.secondary)}
           >
-            Apply Filter
+            {t('storeHome.categories.applyFilter')}
           </button>
         </div>
       </div>
@@ -620,7 +597,7 @@ const StoreHome = () => {
             <input
               ref={searchInputRef}
               type="text"
-              placeholder="Search products..."
+              placeholder={t('storeHome.search.placeholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 outline-none"
@@ -682,7 +659,7 @@ const StoreHome = () => {
                 <Package className="h-6 w-6" style={{ color: colors.primary }} />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-gray-900">Select Options</h3>
+                <h3 className="text-xl font-bold text-gray-900">{t('storeHome.variantModal.title')}</h3>
                 <p className="text-sm text-gray-500">{selectedProductForVariant.productName || selectedProductForVariant.name}</p>
               </div>
             </div>
@@ -707,6 +684,7 @@ const StoreHome = () => {
               }}
               formatPrice={formatPrice}
               colors={colors}
+              t={t}
             />
           </div>
         </div>
@@ -733,7 +711,7 @@ const StoreHome = () => {
               ></div>
             </div>
           </div>
-          <p className="text-gray-600 font-medium">Loading store...</p>
+          <p className="text-gray-600 font-medium">{t('storeHome.loading.store')}</p>
         </div>
       </div>
     );
@@ -748,14 +726,14 @@ const StoreHome = () => {
               <div className="h-20 w-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-6">
                 <div className="text-3xl text-gray-400">🏪</div>
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-3">Store Not Found</h2>
-              <p className="text-gray-600 mb-8">{error || 'This store does not exist or has been removed.'}</p>
+              <h2 className="text-2xl font-bold text-gray-900 mb-3">{t('storeHome.errors.storeNotFound')}</h2>
+              <p className="text-gray-600 mb-8">{error || t('storeHome.errors.storeNotFoundMessage')}</p>
               <Link
                 to="/"
                 className="inline-flex items-center justify-center px-6 py-3 text-white rounded-xl hover:opacity-90 transition-all font-medium shadow-sm hover:shadow"
                 style={getGradientStyle(colors.primary, colors.secondary)}
               >
-                Go Back Home
+                {t('storeHome.buttons.goBackHome')}
               </Link>
             </div>
           </div>
@@ -773,8 +751,8 @@ const StoreHome = () => {
               <div className="h-20 w-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-6">
                 <div className="text-3xl text-gray-400">🏪</div>
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-3">Store is Not Active</h2>
-              <p className="text-gray-600 mb-8">This store is currently inactive.</p>
+              <h2 className="text-2xl font-bold text-gray-900 mb-3">{t('storeHome.errors.storeInactive')}</h2>
+              <p className="text-gray-600 mb-8">{t('storeHome.errors.storeInactiveMessage')}</p>
             </div>
           </div>
         </div>
@@ -782,12 +760,8 @@ const StoreHome = () => {
     );
   }
 
-  console.log('Store data:', store);
-  console.log('Store colors:', colors);
-
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* ✨ إضافة أنماط CSS */}
       <style>{fadeInStyles}</style>
       
       <SEO 
@@ -857,7 +831,7 @@ const StoreHome = () => {
               )}
               <div>
                 <div className="font-bold text-gray-900 line-clamp-1">{store.storeName}</div>
-                <div className="text-xs text-gray-500">Online Store</div>
+                <div className="text-xs text-gray-500">{t('storeHome.header.onlineStore')}</div>
               </div>
             </Link>
             
@@ -898,7 +872,6 @@ const StoreHome = () => {
                 )}
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">{store.storeName}</h1>
-                  
                 </div>
               </Link>
             </div>
@@ -923,8 +896,8 @@ const StoreHome = () => {
                 )}
               </div>
               <div className="text-left">
-                <div className="text-sm font-medium">Your Cart</div>
-                <div className="text-xs opacity-90">{getCartItemCount()} items</div>
+                <div className="text-sm font-medium">{t('storeHome.cart.yourCart')}</div>
+                <div className="text-xs opacity-90">{getCartItemCount()} {t('storeHome.cart.items')}</div>
               </div>
               <ChevronRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
             </button>
@@ -963,7 +936,7 @@ const StoreHome = () => {
                 )}
                 <div>
                   <div className="font-bold text-gray-900">{store.storeName}</div>
-                  <div className="text-sm text-gray-500">Verified Store</div>
+                  <div className="text-sm text-gray-500">{t('storeHome.header.verifiedStore')}</div>
                 </div>
               </div>
               
@@ -985,7 +958,7 @@ const StoreHome = () => {
               >
                 <div className="flex items-center gap-3">
                   <Search className="h-5 w-5 text-gray-600" />
-                  <span className="font-medium text-gray-900">Search Products</span>
+                  <span className="font-medium text-gray-900">{t('storeHome.menu.searchProducts')}</span>
                 </div>
                 <ChevronRight className="h-5 w-5 text-gray-400" />
               </button>
@@ -999,13 +972,13 @@ const StoreHome = () => {
               >
                 <div className="flex items-center gap-3">
                   <Filter className="h-5 w-5 text-gray-600" />
-                  <span className="font-medium text-gray-900">Categories</span>
+                  <span className="font-medium text-gray-900">{t('storeHome.menu.categories')}</span>
                 </div>
                 <ChevronRight className="h-5 w-5 text-gray-400" />
               </button>
               
               <div className="mt-8">
-                <h3 className="font-bold text-gray-900 mb-4 px-4">Store Info</h3>
+                <h3 className="font-bold text-gray-900 mb-4 px-4">{t('storeHome.storeInfo.title')}</h3>
                 <div className="space-y-3">
                   {store.storeAddress && (
                     <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
@@ -1033,14 +1006,14 @@ const StoreHome = () => {
                 className="flex items-center justify-center gap-2 p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
               >
                 <Home className="h-5 w-5 text-gray-600" />
-                <span className="font-medium text-gray-900">Back to Home</span>
+                <span className="font-medium text-gray-900">{t('storeHome.menu.backToHome')}</span>
               </Link>
             </div>
           </div>
         </div>
       )}
 
-      {/* Search and Filter Section مع تأثير Fade In */}
+      {/* Search and Filter Section */}
       <div className={`bg-white border-b border-gray-100 lg:sticky lg:top-0 lg:z-20 transition-all duration-700 delay-100 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
         <div className="container mx-auto px-4 py-4">
           <div className="hidden lg:block">
@@ -1048,7 +1021,7 @@ const StoreHome = () => {
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5" style={{ color: colors.primary }} />
               <input
                 type="text"
-                placeholder="Search products..."
+                placeholder={t('storeHome.search.placeholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 outline-none"
@@ -1078,7 +1051,7 @@ const StoreHome = () => {
               }}
             >
               <Filter className="h-5 w-5" />
-              <span>Categories</span>
+              <span>{t('storeHome.filters.categories')}</span>
             </button>
             
             <button
@@ -1112,16 +1085,16 @@ const StoreHome = () => {
                 className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 outline-none text-sm"
                 style={{ '--tw-ring-color': colors.primary }}
               >
-                <option value="featured">Featured</option>
-                <option value="price-low">Price: Low to High</option>
-                <option value="price-high">Price: High to Low</option>
-                <option value="newest">Newest Arrivals</option>
+                <option value="featured">{t('storeHome.sort.featured')}</option>
+                <option value="price-low">{t('storeHome.sort.priceLowToHigh')}</option>
+                <option value="price-high">{t('storeHome.sort.priceHighToLow')}</option>
+                <option value="newest">{t('storeHome.sort.newest')}</option>
               </select>
               
               <button
                 onClick={fetchProductsByCategory}
                 className="p-3 bg-gray-50 border border-gray-200 rounded-xl hover:bg-gray-100 transition-colors"
-                title="Refresh"
+                title={t('storeHome.buttons.refresh')}
               >
                 <RefreshCw className="h-5 w-5" style={{ color: colors.primary }} />
               </button>
@@ -1151,7 +1124,7 @@ const StoreHome = () => {
                 {selectedCategory === 'all' ? (
                   <>
                     <ShoppingBag className="h-4 w-4" style={{ color: colors.primary }} />
-                    <span className="font-medium text-gray-900">All Products</span>
+                    <span className="font-medium text-gray-900">{t('storeHome.categories.allProducts')}</span>
                   </>
                 ) : (
                   <>
@@ -1160,7 +1133,7 @@ const StoreHome = () => {
                       style={{ backgroundColor: colors.primaryLight }}
                     ></div>
                     <span className="font-medium text-gray-900">
-                      {categories.find(c => c.id.toString() === selectedCategory)?.categoryName || 'Category'}
+                      {categories.find(c => c.id.toString() === selectedCategory)?.categoryName || t('storeHome.categories.category')}
                     </span>
                   </>
                 )}
@@ -1175,16 +1148,16 @@ const StoreHome = () => {
                 className="text-sm font-medium"
                 style={{ color: colors.primary }}
               >
-                Sort: {sortBy === 'featured' ? 'Featured' :
-                       sortBy === 'price-low' ? 'Low Price' :
-                       sortBy === 'price-high' ? 'High Price' : 'Newest'}
+                {t('storeHome.sort.sort')}: {sortBy === 'featured' ? t('storeHome.sort.featured') :
+                       sortBy === 'price-low' ? t('storeHome.sort.lowPrice') :
+                       sortBy === 'price-high' ? t('storeHome.sort.highPrice') : t('storeHome.sort.newest')}
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Floating Cart Button for Mobile مع تأثير Fade In */}
+      {/* Floating Cart Button for Mobile */}
       {getCartItemCount() > 0 && (
         <button
           onClick={() => setShowCart(true)}
@@ -1205,11 +1178,11 @@ const StoreHome = () => {
 
       <div className="container mx-auto px-4 py-6 lg:py-8">
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
-          {/* Desktop Categories Sidebar مع تأثير Fade In */}
+          {/* Desktop Categories Sidebar */}
           <div className={`hidden lg:block lg:w-64 flex-shrink-0 transition-all duration-700 delay-200 ${pageLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'}`}>
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sticky top-28">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="font-bold text-gray-900">Categories</h3>
+                <h3 className="font-bold text-gray-900">{t('storeHome.categories.title')}</h3>
                 <Filter className="h-5 w-5" style={{ color: colors.primary }} />
               </div>
               
@@ -1223,7 +1196,7 @@ const StoreHome = () => {
                   }`}
                   style={selectedCategory === 'all' ? getGradientStyle(colors.primary, colors.secondary) : {}}
                 >
-                  <span className="font-medium">All Products</span>
+                  <span className="font-medium">{t('storeHome.categories.allProducts')}</span>
                   <span 
                     className="text-sm px-2 py-1 rounded-full"
                     style={selectedCategory === 'all' 
@@ -1252,7 +1225,7 @@ const StoreHome = () => {
               </div>
               
               <div className="mt-8 pt-8 border-t border-gray-100">
-                <h4 className="font-bold text-gray-900 mb-4">Store Info</h4>
+                <h4 className="font-bold text-gray-900 mb-4">{t('storeHome.storeInfo.title')}</h4>
                 <div className="space-y-4">
                   {store.storeAddress && (
                     <div className="flex items-start gap-3">
@@ -1263,7 +1236,7 @@ const StoreHome = () => {
                         <MapPin className="h-5 w-5" style={{ color: colors.primary }} />
                       </div>
                       <div>
-                        <div className="font-medium text-gray-900">Location</div>
+                        <div className="font-medium text-gray-900">{t('storeHome.storeInfo.location')}</div>
                         <div className="text-sm text-gray-600">{store.storeAddress}</div>
                       </div>
                     </div>
@@ -1278,7 +1251,7 @@ const StoreHome = () => {
                         <Phone className="h-5 w-5" style={{ color: colors.primary }} />
                       </div>
                       <div>
-                        <div className="font-medium text-gray-900">Contact</div>
+                        <div className="font-medium text-gray-900">{t('storeHome.storeInfo.contact')}</div>
                         <div className="text-sm text-gray-600">{store.storePhone}</div>
                       </div>
                     </div>
@@ -1290,16 +1263,16 @@ const StoreHome = () => {
 
           {/* Main Content */}
           <div className="flex-1">
-            {/* Mobile Category Pills مع تأثير Fade In */}
+            {/* Mobile Category Pills */}
             <div className={`lg:hidden mb-6 transition-all duration-700 delay-150 ${pageLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold text-gray-900">
                   {selectedCategory === 'all' 
-                    ? 'All Products'
-                    : categories.find(c => c.id.toString() === selectedCategory)?.categoryName || 'Category'
+                    ? t('storeHome.categories.allProducts')
+                    : categories.find(c => c.id.toString() === selectedCategory)?.categoryName || t('storeHome.categories.category')
                   }
                 </h2>
-                <span className="text-sm text-gray-500">{filteredProducts.length} items</span>
+                <span className="text-sm text-gray-500">{filteredProducts.length} {t('storeHome.items')}</span>
               </div>
               
               <div className="overflow-x-auto pb-2 -mx-4 px-4">
@@ -1312,7 +1285,7 @@ const StoreHome = () => {
                       : { backgroundColor: 'white', borderColor: colors.primaryLight, color: colors.primary, borderWidth: 1 }
                     }
                   >
-                    All Products
+                    {t('storeHome.categories.allProducts')}
                   </button>
                   {categories.slice(0, 8).map((category) => (
                     <button
@@ -1334,31 +1307,31 @@ const StoreHome = () => {
                       onClick={() => setShowCategoriesDrawer(true)}
                       className="px-4 py-2 bg-gray-50 border border-gray-200 text-gray-700 rounded-lg whitespace-nowrap"
                     >
-                      More +
+                      {t('storeHome.categories.more')} +
                     </button>
                   )}
                 </div>
               </div>
             </div>
 
-            {/* Desktop Products Header مع تأثير Fade In */}
+            {/* Desktop Products Header */}
             <div className={`hidden lg:block mb-8 transition-all duration-700 delay-300 ${pageLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900">
                     {selectedCategory === 'all' 
-                      ? `All Products (${filteredProducts.length})`
-                      : `${categories.find(c => c.id.toString() === selectedCategory)?.categoryName || 'Category'} (${filteredProducts.length})`
+                      ? `${t('storeHome.categories.allProducts')} (${filteredProducts.length})`
+                      : `${categories.find(c => c.id.toString() === selectedCategory)?.categoryName || t('storeHome.categories.category')} (${filteredProducts.length})`
                     }
                   </h2>
                   <p className="text-gray-600 mt-2">
-                    {store.storeDescription || 'Premium products with exceptional quality'}
+                    {store.storeDescription || t('storeHome.storeInfo.descriptionFallback')}
                   </p>
                 </div>
                 
                 <div className="flex items-center gap-3">
                   <div className="text-sm text-gray-600">
-                    Showing {filteredProducts.length} products
+                    {t('storeHome.showing')} {filteredProducts.length} {t('storeHome.products')}
                   </div>
                 </div>
               </div>
@@ -1395,7 +1368,7 @@ const StoreHome = () => {
                       borderTopColor: colors.primary
                     }}
                   ></div>
-                  <p className="text-gray-600">Loading products...</p>
+                  <p className="text-gray-600">{t('storeHome.loading.products')}</p>
                 </div>
               </div>
             ) : filteredProducts.length === 0 ? (
@@ -1403,13 +1376,13 @@ const StoreHome = () => {
                 <div className="h-20 w-20 lg:h-24 lg:w-24 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
                   <Search className="h-10 w-10 lg:h-12 lg:w-12 text-gray-400" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">No Products Found</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">{t('storeHome.noProducts.title')}</h3>
                 <p className="text-gray-600 mb-8 max-w-md mx-auto">
                   {searchQuery 
-                    ? `No products match "${searchQuery}"`
+                    ? t('storeHome.noProducts.noMatch', { query: searchQuery })
                     : selectedCategory !== 'all'
-                    ? 'No products available in this category'
-                    : 'No products available'
+                    ? t('storeHome.noProducts.noProductsInCategory')
+                    : t('storeHome.noProducts.noProducts')
                   }
                 </p>
                 <button
@@ -1420,7 +1393,7 @@ const StoreHome = () => {
                   className="inline-flex items-center px-6 py-3 text-white rounded-xl hover:opacity-90 transition-all font-medium shadow-sm hover:shadow"
                   style={getGradientStyle(colors.primary, colors.secondary)}
                 >
-                  View All Products
+                  {t('storeHome.buttons.viewAllProducts')}
                 </button>
               </div>
             ) : (
@@ -1454,6 +1427,7 @@ const StoreHome = () => {
                       onViewDetails={() => navigate(`/store/${storeName}/product/${product.id}`)}
                       formatPrice={formatPrice}
                       colors={colors}
+                      t={t}
                     />
                   </div>
                 ))}
@@ -1512,7 +1486,9 @@ const StoreHome = () => {
           navigate('/checkout');
           setShowCart(false);
         }}
+        t={t}
       />
+      <StoreFooter />
     </div>
   );
 };

@@ -1,0 +1,103 @@
+{
+  "landingPage": {
+    "welcome": "Welcome to Storely",
+    "mainDescription": "Your one-stop platform for vendors and customers",
+    "getStartedButton": "Get Started",
+    "features": {
+      "customStoreLinks": "Custom Store Links",
+      "customStoreLinksDesc": "Each vendor gets a unique, branded store URL to share with customers.",
+      "productManagement": "Product Management",
+      "productManagementDesc": "Easily add, edit, and organize products with categories and variations.",
+      "orderSystem": "Order System",
+      "orderSystemDesc": "Complete checkout flow with order tracking and customer management.",
+      "mobileFriendly": "Mobile-Friendly",
+      "mobileFriendlyDesc": "Stores look great on all devices with responsive design.",
+      "analyticsDashboard": "Analytics Dashboard",
+      "analyticsDashboardDesc": "Comprehensive insights about your store performance."
+    },
+    "hero": {
+      "headline": "Grow your business with Storely",
+      "description": "Join thousands of vendors and customers on our platform."
+    },
+    "cta": {
+      "main": "Ready to start selling?",
+      "button": "Create Your Store",
+      "benefits": [
+        "No credit card required",
+        "Instant setup"
+      ]
+    },
+    "footer": {
+      "aboutUs": "About Us",
+      "features": "Features",
+      "pricing": "Pricing",
+      "contact": "Contact",
+      "privacyPolicy": "Privacy Policy",
+      "termsOfService": "Terms of Service",
+      "cookiePolicy": "Cookie Policy",
+      "instagram": "Instagram",
+      "facebook": "Facebook",
+      "followInstagram": "Follow us on Instagram",
+      "followFacebook": "Follow us on Facebook",
+      "location": "Cairo, Egypt",
+      "phone": "+20 103 599 9541",
+      "email": "johnemil21@yahoo.com"
+    },
+    "navbar": {
+      "home": "Home",
+      "pricing": "Pricing",
+      "contact": "Contact"
+    },
+    "forVendors": {
+      "noTechSkills": "No Technical Skills Required",
+      "noTechSkillsDesc": "Our intuitive interface makes store setup a breeze.",
+      "zeroCoding": "Zero coding",
+      "growBusiness": "Grow Your Business",
+      "growBusinessDesc": "Access powerful analytics to make data-driven decisions.",
+      "avgGrowth": "+150% avg growth",
+      "reachCustomers": "Reach More Customers",
+      "reachCustomersDesc": "Share your unique store link across social media and websites.",
+      "reachStat": "10k+ reach",
+      "easyOrderManagement": "Easy Order Management",
+      "easyOrderManagementDesc": "Track and fulfill orders from a single dashboard.",
+      "uptime": "99.9% uptime",
+      "fasterSetup": "Faster store setup",
+      "higherConversion": "Higher conversion",
+      "platformSupport": "Platform support",
+      "analytics": "Analytics",
+      "customization": "Customization",
+      "payments": "Payments"
+    },
+    "howItWorks": {
+      "signUp": "Sign Up",
+      "signUpDesc": "Create your vendor account in under 2 minutes",
+      "quickRegistration": "Quick registration with email or social media",
+      "createStore": "Create Store",
+      "createStoreDesc": "Set up your branded store with custom URL",
+      "customizeStore": "Customize colors, logo, and store information",
+      "addProducts": "Add Products",
+      "addProductsDesc": "Upload products with images, prices, and categories",
+      "bulkUpload": "Bulk upload or add products one by one",
+      "shareLink": "Share Link",
+      "shareLinkDesc": "Share your unique store link with customers",
+      "shareVia": "Share via social media, email, or QR code",
+      "receiveOrders": "Receive Orders",
+      "receiveOrdersDesc": "Start accepting orders and earning revenue",
+      "orderTracking": "Real-time notifications and order tracking"
+    },
+    "ramadanOffer": {
+      "eidSpecial": "Eid El-Fitr Special",
+      "offerEndsIn": "Offer ends in:",
+      "discount": "50% OFF",
+      "day": "Day",
+      "hour": "Hour",
+      "minute": "Minute",
+      "second": "Second"
+    },
+    "seo": {
+      "siteName": "Storely",
+      "metaTitle": "Storely - Vendor & Customer Platform",
+      "metaDescription": "Storely connects vendors and customers for seamless shopping."
+    }
+  }
+}

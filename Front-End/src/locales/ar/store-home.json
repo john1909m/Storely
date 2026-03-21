@@ -1,0 +1,139 @@
+{
+  "storeHome": {
+    "loading": {
+      "store": "جاري تحميل المتجر...",
+      "products": "جاري تحميل المنتجات..."
+    },
+    "header": {
+      "onlineStore": "متجر إلكتروني",
+      "verifiedStore": "متجر موثوق"
+    },
+    "cart": {
+      "yourCart": "سلة المشتريات",
+      "items": "منتج"
+    },
+    "menu": {
+      "searchProducts": "البحث عن منتجات",
+      "categories": "التصنيفات",
+      "backToHome": "العودة للرئيسية"
+    },
+    "search": {
+      "placeholder": "ابحث عن منتجات..."
+    },
+    "filters": {
+      "categories": "التصنيفات"
+    },
+    "sort": {
+      "sort": "ترتيب حسب",
+      "featured": "المميزة",
+      "priceLowToHigh": "السعر: من الأقل للأعلى",
+      "priceHighToLow": "السعر: من الأعلى للأقل",
+      "newest": "الأحدث",
+      "lowPrice": "السعر الأقل",
+      "highPrice": "السعر الأعلى"
+    },
+    "categories": {
+      "title": "التصنيفات",
+      "allProducts": "جميع المنتجات",
+      "allItems": "جميع العناصر",
+      "category": "التصنيف",
+      "applyFilter": "تطبيق التصفية",
+      "more": "المزيد"
+    },
+    "storeInfo": {
+      "title": "معلومات المتجر",
+      "location": "الموقع",
+      "contact": "اتصل بنا",
+      "descriptionFallback": "منتجات متميزة بجودة استثنائية"
+    },
+    "items": "عنصر",
+    "products": "منتج",
+    "showing": "عرض",
+    "noProducts": {
+      "title": "لا توجد منتجات",
+      "noMatch": "لا توجد منتجات تطابق \"{query}\"",
+      "noProductsInCategory": "لا توجد منتجات في هذا التصنيف",
+      "noProducts": "لا توجد منتجات متاحة"
+    },
+    "buttons": {
+      "goBackHome": "العودة للرئيسية",
+      "viewAllProducts": "عرض جميع المنتجات",
+      "refresh": "تحديث"
+    },
+    "variantModal": {
+      "title": "اختر الخيارات"
+    },
+    "errors": {
+      "failedToLoad": "فشل تحميل المتجر",
+      "failedToLoadProducts": "فشل تحميل المنتجات",
+      "storeNotFound": "المتجر غير موجود",
+      "storeNotFoundMessage": "هذا المتجر غير موجود أو تمت إزالته.",
+      "storeInactive": "المتجر غير نشط",
+      "storeInactiveMessage": "هذا المتجر غير نشط حالياً."
+    }
+  },
+
+  "cart": {
+    "title": "سلة المشتريات",
+    "shoppingAt": "تتسوق في",
+    "item": "منتج",
+    "items": "منتجات",
+    "total": "الإجمالي",
+    "empty": "سلتك فارغة",
+    "emptyMessage": "أضف بعض المنتجات الرائعة من {{storeName}} للبدء",
+    "continueShopping": "مواصلة التسوق",
+    "each": "للواحدة",
+    "removeItem": "إزالة المنتج",
+    "saveForLater": "احفظ لاحقاً",
+    "savedForLater": "محفوظ لاحقاً",
+    "moveToCart": "نقل إلى السلة",
+    "subtotal": "المجموع الفرعي",
+    "proceedToCheckout": "إتمام الشراء",
+    "processing": "جاري المعالجة..."
+  },
+  "productCard": {
+    "variantsAvailable": "متغير متاح",
+    "multipleOptions": "هذا المنتج له خيارات متعددة",
+    "selectOptionsOnProductPage": "اختر اللون والمقاس من صفحة المنتج",
+    "viewDetails": "عرض التفاصيل",
+    "startingFrom": "يبدأ من",
+    "variants": "متغير",
+    "onlyLeft": "{{count}} متبقي",
+    "onlyLeftInStock": "{{count}} متبقي في المخزون",
+    "added": "تمت الإضافة!",
+    "outOfStock": "نفد من المخزون",
+    "selectOptions": "اختر الخيارات",
+    "addToCart": "أضف إلى السلة",
+    "quickView": "معاينة سريعة",
+    "featured": "مميز",
+    "product": "منتج",
+    "available": "متاح",
+    "out": "نفد",
+    "defaultDescription": "منتج عالي الجودة بميزات استثنائية ومتانة فائقة.",
+    "save": "وفر",
+    "inStock": "في المخزون",
+    "details": "التفاصيل",
+    "select": "اختر",
+    "add": "أضف",
+    "warranty": "ضمان لمدة عام",
+    "freeShipping": "شحن مجاني",
+    "returns": "إرجاع خلال 30 يوم"
+  },
+  "variantSelector": {
+    "selectOptions": "يرجى اختيار جميع الخيارات",
+    "notEnoughStock": "{{count}} وحدة فقط متاحة",
+    "color": "اللون",
+    "size": "المقاس",
+    "left": "متبقي",
+    "outOfStock": "نفد من المخزون",
+    "out": "نفد",
+    "selected": "المختار",
+    "unitsAvailable": "وحدة متاحة",
+    "quantity": "الكمية",
+    "max": "الحد الأقصى",
+    "addToCart": "أضف إلى السلة",
+    "cancel": "إلغاء",
+    "total": "الإجمالي",
+    "onlyLeftOrderSoon": "{{count}} فقط متبقية في المخزون - اطلب الآن"
+  }
+}

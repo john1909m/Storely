@@ -1,0 +1,35 @@
+{
+  "productDetail": {
+    "loading": {
+      "product": "Loading product..."
+    },
+    "errors": {
+      "failedToLoad": "Failed to load product",
+      "productNotFound": "Product Not Found",
+      "productNotFoundMessage": "This product does not exist or has been removed."
+    },
+    "buttons": {
+      "backToStore": "Back to Store",
+      "backToStoreName": "Back to {{storeName}}"
+    },
+    "uncategorized": "Uncategorized",
+    "off": "OFF",
+    "color": "Color",
+    "size": "Size",
+    "select": "Select",
+    "out": "Out",
+    "selected": "Selected",
+    "unitsAvailable": "units available",
+    "description": "Description",
+    "noDescription": "No description available.",
+    "quantity": "Quantity",
+    "max": "Max",
+    "units": "units",
+    "selectOptions": "Select Options",
+    "outOfStock": "Out of Stock",
+    "addToCart": "Add to Cart",
+    "soldBy": "Sold by",
+    "verifiedSeller": "Verified seller",
+    "storeColors": "Store colors"
+  }
+}

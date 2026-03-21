@@ -1,0 +1,106 @@
+{
+  "vendor": {
+    "store": {
+      "loading": "Loading your store...",
+      "pleaseWait": "Please wait a moment",
+      "storeNotFoundTitle": "Store Not Found",
+      "storeNotFoundBodyFallback": "Please create a store first.",
+      "createYourStore": "Create Your Store",
+      "vendorFallbackName": "Vendor",
+      "nav": {
+        "pricing": "Pricing",
+        "settings": "Settings",
+        "dashboard": "Dashboard",
+        "logout": "Logout"
+      },
+      "mobile": {
+        "menu": "Menu"
+      },
+      "dashboard": {
+        "welcomeBackPrefix": "Welcome back, {{vendorName}}!",
+        "totalVisitsLabel": "Total visits:",
+        "yourStoreLiveAtLabel": "Your store is live at",
+        "copied": "Copied!",
+        "copyLink": "Copy Link",
+        "view": "View"
+      },
+      "statistics": {
+        "lowStockSuffix": "low",
+        "pending": "pending",
+        "totalProducts": "Total Products",
+        "totalOrders": "Total Orders",
+        "totalRevenue": "Total Revenue",
+        "totalCustomers": "Total Customers"
+      },
+      "quickActions": {
+        "title": "Quick Actions",
+        "manageProducts": "Manage Products",
+        "manageProductsDescription": "Edit or update stock",
+        "manageCategories": "Manage Categories",
+        "manageCategoriesDescription": "Organize your products",
+        "viewOrders": "View Orders",
+        "viewOrdersDescription": "Process & fulfill",
+        "analytics": "Analytics",
+        "analyticsDescription": "Track performance"
+      },
+      "storeOverview": {
+        "title": "Store Overview",
+        "edit": "Edit",
+        "descriptionFallback": "No description provided. Add one in settings.",
+        "addressLabel": "Address",
+        "contactLabel": "Contact",
+        "notSet": "Not set"
+      },
+      "recentProducts": {
+        "title": "Recent Products",
+        "viewAll": "View All",
+        "emptyCatalogTitle": "Your product catalog is empty",
+        "addFirstProduct": "Add Your First Product"
+      },
+      "recentOrders": {
+        "title": "Recent Orders",
+        "viewAll": "View All",
+        "emptyTitle": "No orders yet",
+        "emptySubtext": "Orders will appear here"
+      },
+      "productQuantityLeftSuffix": "left",
+      "storeStatus": {
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "orderStatus": {
+        "PENDING": "Pending",
+        "CONFIRMED": "Confirmed",
+        "SHIPPED": "Shipped",
+        "DELIVERED": "Delivered",
+        "CANCELLED": "Cancelled"
+      }
+    },
+    "createStore": {
+      "backToDashboard": "Back to Dashboard",
+      "title": "Create Your Store",
+      "subtitle": "Set up your store to start selling",
+      "errors": {
+        "vendorNotFound": "Vendor information not found. Please login again."
+      },
+      "form": {
+        "storeName": "Store Name",
+        "storeNameHint": "(store name must not contain spaces or special characters)",
+        "storeUrlWillBe": "Your store URL will be: {{url}}",
+        "storeAddress": "Store Address",
+        "storeDescription": "Store Description",
+        "storePhone": "Store Phone",
+        "brandingTitle": "Store Branding",
+        "primaryColor": "Primary Color",
+        "secondaryColor": "Secondary Color",
+        "infoMessage": "Your store will be created and set to Inactive status. You can start adding products and categories!",
+        "cancel": "Cancel",
+        "createButton": {
+          "creating": "Creating...",
+          "createStore": "Create Store"
+        }
+      }
+    }
+  }
+}
+

@@ -19,6 +19,7 @@ import { paymentAPI } from '../../api/payment.api';
 import StoreFooter from '../../components/StoreFooter';
 import { useErrorHandler } from '../../hooks/useErrorHandler';
 import useAuthStore from '../../store/authStore';
+import { useTranslation } from 'react-i18next';
 
 // Add styles for animations
 const styles = `
@@ -137,6 +138,7 @@ const styles = `
 `;
 
 const StoreDetails = () => {
+  const { t, i18n } = useTranslation();
   const { store, vendor, isLoading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -158,7 +160,7 @@ const StoreDetails = () => {
     createdAt: '',
     storeStatus: store?.storeStatus || 'Inactive',
     fontFamily: 'Poppins',
-    totalVisits:0
+    totalVisits: 0
   });
 
   // Branding state
@@ -200,28 +202,28 @@ const StoreDetails = () => {
     { 
       id: 1, 
       name: 'INSTAPAY', 
-      displayName: 'Instapay', 
+      displayName: t('vendorStoreDetails.paymentMethods.instapay'), 
       icon: SmartphoneIcon,
       color: 'emerald',
-      description: 'Fast and secure transfers via Instapay',
+      description: t('vendorStoreDetails.paymentMethods.instapayDescription'),
       requiresAccount: true
     },
     { 
       id: 2, 
       name: 'VODAFONE_CASH', 
-      displayName: 'Vodafone Cash', 
+      displayName: t('vendorStoreDetails.paymentMethods.vodafoneCash'), 
       icon: PhoneIcon,
       color: 'red',
-      description: 'Pay using Vodafone Cash wallet',
+      description: t('vendorStoreDetails.paymentMethods.vodafoneCashDescription'),
       requiresAccount: true
     },
     { 
       id: 3, 
       name: 'COD', 
-      displayName: 'Cash on Delivery', 
+      displayName: t('vendorStoreDetails.paymentMethods.cod'), 
       icon: DollarSign,
       color: 'blue',
-      description: 'Customer pays cash upon delivery',
+      description: t('vendorStoreDetails.paymentMethods.codDescription'),
       requiresAccount: false
     }
   ]);
@@ -234,16 +236,16 @@ const StoreDetails = () => {
     codEnabled: false
   });
 
-  // Tabs definition
+  // Tabs definition with translations
   const tabs = [
-    { id: 'basic', label: 'Basic Info', icon: Store, description: 'Store name & description' },
-    { id: 'shipping', label: 'Shipping', icon: Truck, description: 'Shipping costs by governorate' },
-    { id: 'deposit', label: 'Deposit', icon: Wallet, description: 'Payment deposit settings' },
-    { id: 'payment', label: 'Payment Methods', icon: CardIcon, description: 'Configure payment options' },
-    { id: 'branding', label: 'Branding', icon: Brush, description: 'Logo & colors' },
-    { id: 'contact', label: 'Contact', icon: MapPin, description: 'Phone & Location' },
-    { id: 'social', label: 'Social', icon: Facebook, description: 'Social media profiles' },
-    { id: 'domain', label: 'Domain & QR', icon: Globe, description: 'Store URL & QR code' },
+    { id: 'basic', label: t('vendorStoreDetails.tabs.basic.label'), icon: Store, description: t('vendorStoreDetails.tabs.basic.description') },
+    { id: 'shipping', label: t('vendorStoreDetails.tabs.shipping.label'), icon: Truck, description: t('vendorStoreDetails.tabs.shipping.description') },
+    { id: 'deposit', label: t('vendorStoreDetails.tabs.deposit.label'), icon: Wallet, description: t('vendorStoreDetails.tabs.deposit.description') },
+    { id: 'payment', label: t('vendorStoreDetails.tabs.payment.label'), icon: CardIcon, description: t('vendorStoreDetails.tabs.payment.description') },
+    { id: 'branding', label: t('vendorStoreDetails.tabs.branding.label'), icon: Brush, description: t('vendorStoreDetails.tabs.branding.description') },
+    { id: 'contact', label: t('vendorStoreDetails.tabs.contact.label'), icon: MapPin, description: t('vendorStoreDetails.tabs.contact.description') },
+    { id: 'social', label: t('vendorStoreDetails.tabs.social.label'), icon: Facebook, description: t('vendorStoreDetails.tabs.social.description') },
+    { id: 'domain', label: t('vendorStoreDetails.tabs.domain.label'), icon: Globe, description: t('vendorStoreDetails.tabs.domain.description') },
   ];
 
   useEffect(() => {
@@ -314,9 +316,9 @@ const StoreDetails = () => {
       setCategories(storeCategories || []);
 
     } catch (err) {
-      if(!depositSettings) {
-          handleError(err);
-      }else{
+      if (!depositSettings) {
+        handleError(err);
+      } else {
         console.error('Failed to fetch store data or deposit settings:', err);
       }
     }
@@ -453,20 +455,20 @@ const StoreDetails = () => {
 
     if (instapay?.isActive) {
       if (!instapay.accountNumber || !instapay.accountName) {
-        setError('Instapay requires account number and name');
+        setError(t('vendorStoreDetails.errors.instapayRequiresAccount'));
         return false;
       }
     }
 
     if (vodafone?.isActive) {
       if (!vodafone.accountNumber || !vodafone.accountName) {
-        setError('Vodafone Cash requires account number and name');
+        setError(t('vendorStoreDetails.errors.vodafoneRequiresAccount'));
         return false;
       }
     }
 
     if (paymentMethods.filter(m => m.isActive).length === 0) {
-      setError('At least one payment method must be active');
+      setError(t('vendorStoreDetails.errors.atLeastOneMethod'));
       return false;
     }
 
@@ -531,7 +533,7 @@ const StoreDetails = () => {
 
   const getGovernorateName = (id) => {
     const gov = governorates.find(g => g.id === id);
-    return gov ? gov.name : `Governorate ${id}`;
+    return gov ? gov.name : t('vendorStoreDetails.governoratePrefix') + id;
   };
 
   const getShippingCost = (governorateId) => {
@@ -558,14 +560,14 @@ const StoreDetails = () => {
       setSuccess(null);
 
       if (!store?.id) {
-        setError('Store not found. Please create a store first.');
+        setError(t('vendorStoreDetails.errors.storeNotFound'));
         return;
       }
 
       if (depositSettings.depositRequired && 
           !depositSettings.instapayNumber && 
           !depositSettings.vodafoneCashNumber) {
-        setError('At least one payment method (Instapay or Vodafone Cash) is required when deposit is enabled.');
+        setError(t('vendorStoreDetails.errors.depositPaymentRequired'));
         return;
       }
 
@@ -580,7 +582,7 @@ const StoreDetails = () => {
 
       await storeAPI.updateDepositSettings(depositData);
       
-      setSuccess('Deposit settings updated successfully!');
+      setSuccess(t('vendorStoreDetails.success.depositSaved'));
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
       handleError(err);
@@ -600,7 +602,7 @@ const StoreDetails = () => {
       setSuccess(null);
 
       if (!store?.id) {
-        setError('Store not found');
+        setError(t('vendorStoreDetails.errors.storeNotFound'));
         return;
       }
 
@@ -622,13 +624,12 @@ const StoreDetails = () => {
       await paymentAPI.addPaymentMethod(store.id, methodsToSend);
       await fetchPaymentMethods();
 
-      setSuccess('Payment methods updated successfully!');
+      setSuccess(t('vendorStoreDetails.success.paymentMethodsSaved'));
       setTimeout(() => setSuccess(null), 3000);
 
     } catch (err) {
       handleError(err);
-
-      setError(err.message || 'Failed to save payment methods');
+      setError(err.message || t('vendorStoreDetails.errors.savePaymentFailed'));
     } finally {
       savingRef.current = false;
       setSaving(false);
@@ -653,7 +654,7 @@ const StoreDetails = () => {
       }, []);
 
       if (!store?.id) {
-        setError('Store not found. Please create a store first.');
+        setError(t('vendorStoreDetails.errors.storeNotFound'));
         return;
       }
 
@@ -696,7 +697,7 @@ const StoreDetails = () => {
 
       await storeAPI.update(updateData);
       
-      setSuccess('Store details updated successfully!');
+      setSuccess(t('vendorStoreDetails.success.storeDetailsSaved'));
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
       handleError(err);
@@ -724,7 +725,7 @@ const StoreDetails = () => {
         }));
       }
 
-      setSuccess(`${type === "logo" ? "Logo" : "Image"} uploaded successfully`);
+      setSuccess(t('vendorStoreDetails.success.imageUploaded'));
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
       handleError(err);
@@ -735,7 +736,7 @@ const StoreDetails = () => {
 
   const handleRemoveImage = async (type) => {
     try {
-      if (!window.confirm(`Are you sure you want to remove the ${type}?`)) {
+      if (!window.confirm(t('vendorStoreDetails.confirm.removeImage', { type }))) {
         return;
       }
 
@@ -748,7 +749,7 @@ const StoreDetails = () => {
         });
       }
 
-      setSuccess(`${type === 'logo' ? 'Logo' : 'Image'} removed successfully!`);
+      setSuccess(t('vendorStoreDetails.success.imageRemoved'));
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
       handleError(err);
@@ -757,7 +758,7 @@ const StoreDetails = () => {
 
   const handleDownloadQR = () => {
     if (!getStoreUrl()) {
-      setError('Store URL is not set. Please set a store URL first.');
+      setError(t('vendorStoreDetails.errors.urlNotSet'));
       return;
     }
 
@@ -771,19 +772,19 @@ const StoreDetails = () => {
     link.click();
     document.body.removeChild(link);
 
-    setSuccess('QR Code downloaded successfully!');
+    setSuccess(t('vendorStoreDetails.success.qrDownloaded'));
     setTimeout(() => setSuccess(null), 3000);
   };
 
   const handleCopyStoreLink = async () => {
     if (!getStoreUrl()) {
-      setError('Store URL is not set. Please set a store URL first.');
+      setError(t('vendorStoreDetails.errors.urlNotSet'));
       return;
     }
 
     try {
       await navigator.clipboard.writeText(getStoreUrl());
-      setSuccess('Store link copied to clipboard!');
+      setSuccess(t('vendorStoreDetails.success.linkCopied'));
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
       handleError(err);
@@ -793,7 +794,8 @@ const StoreDetails = () => {
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
+    const localeCode = i18n.language === 'ar' ? 'ar-EG' : 'en-US';
+    return date.toLocaleDateString(localeCode, {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
@@ -801,7 +803,8 @@ const StoreDetails = () => {
   };
 
   const formatPrice = (price) => {
-    return new Intl.NumberFormat('en-EG', {
+    const localeCode = i18n.language === 'ar' ? 'ar-EG' : 'en-US';
+    return new Intl.NumberFormat(localeCode, {
       style: 'currency',
       currency: 'EGP',
       minimumFractionDigits: 0,
@@ -817,8 +820,8 @@ const StoreDetails = () => {
             <div className="animate-spin rounded-full h-16 w-16 border-4 border-indigo-200 border-t-indigo-600 mx-auto mb-4"></div>
             <Store className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-6 w-6 text-indigo-600" />
           </div>
-          <p className="text-gray-600 font-medium">Loading your store settings...</p>
-          <p className="text-sm text-gray-500 mt-2">Please wait a moment</p>
+          <p className="text-gray-600 font-medium">{t('vendorStoreDetails.loading.storeSettings')}</p>
+          <p className="text-sm text-gray-500 mt-2">{t('vendorStoreDetails.loading.pleaseWait')}</p>
         </div>
       </div>
     );
@@ -832,13 +835,13 @@ const StoreDetails = () => {
             <div className="bg-red-100 rounded-full h-20 w-20 flex items-center justify-center mx-auto mb-6">
               <AlertCircle className="h-10 w-10 text-red-600" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-3">Store Not Found</h2>
-            <p className="text-gray-600 mb-8">You need to create a store first.</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">{t('vendorStoreDetails.errors.storeNotFoundTitle')}</h2>
+            <p className="text-gray-600 mb-8">{t('vendorStoreDetails.errors.storeNotFoundBody')}</p>
             <a
               href="/vendor/store/create"
               className="block w-full px-6 py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl"
             >
-              Create Your Store
+              {t('vendorStoreDetails.buttons.createStore')}
             </a>
           </div>
         </div>
@@ -864,10 +867,10 @@ const StoreDetails = () => {
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center">
                   <Store className="h-6 w-6 mr-2 text-indigo-600" />
-                  Store Settings
+                  {t('vendorStoreDetails.title')}
                 </h1>
                 <p className="text-sm text-gray-600 hidden sm:block">
-                  Customize your store details and branding
+                  {t('vendorStoreDetails.subtitle')}
                 </p>
               </div>
             </div>
@@ -881,7 +884,7 @@ const StoreDetails = () => {
                   className="px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all flex items-center space-x-2"
                 >
                   <Eye className="h-4 w-4" />
-                  <span className="text-sm font-medium">Preview</span>
+                  <span className="text-sm font-medium">{t('vendorStoreDetails.buttons.preview')}</span>
                 </a>
                 <button
                   onClick={handleSave}
@@ -891,12 +894,12 @@ const StoreDetails = () => {
                   {saving ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      <span className="text-sm font-medium">Saving...</span>
+                      <span className="text-sm font-medium">{t('vendorStoreDetails.buttons.saving')}</span>
                     </>
                   ) : (
                     <>
                       <Save className="h-4 w-4" />
-                      <span className="text-sm font-medium">Save All</span>
+                      <span className="text-sm font-medium">{t('vendorStoreDetails.buttons.saveAll')}</span>
                     </>
                   )}
                 </button>
@@ -929,7 +932,7 @@ const StoreDetails = () => {
                       <Store className="h-5 w-5 text-indigo-600" />
                     </div>
                     <div>
-                      <div className="font-semibold text-gray-900">Store Settings</div>
+                      <div className="font-semibold text-gray-900">{t('vendorStoreDetails.menu.storeSettings')}</div>
                       <div className="text-xs text-gray-500">{storeInfo.storeName}</div>
                     </div>
                   </div>
@@ -950,7 +953,7 @@ const StoreDetails = () => {
                   >
                     <div className="flex items-center">
                       <Eye className="h-5 w-5 text-gray-600 mr-3" />
-                      <span className="text-sm font-medium text-gray-700">Preview Store</span>
+                      <span className="text-sm font-medium text-gray-700">{t('vendorStoreDetails.menu.previewStore')}</span>
                     </div>
                     <ChevronRight className="h-4 w-4 text-gray-400" />
                   </a>
@@ -969,7 +972,7 @@ const StoreDetails = () => {
                         <Save className="h-5 w-5 text-white mr-3" />
                       )}
                       <span className="text-sm font-medium text-white">
-                        {saving ? 'Saving...' : 'Save Changes'}
+                        {saving ? t('vendorStoreDetails.buttons.saving') : t('vendorStoreDetails.buttons.saveChanges')}
                       </span>
                     </div>
                     <ChevronRight className="h-4 w-4 text-white" />
@@ -979,7 +982,7 @@ const StoreDetails = () => {
               
               <div className="flex-1 p-6">
                 <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">
-                  Navigation
+                  {t('vendorStoreDetails.menu.navigation')}
                 </h3>
                 <div className="space-y-1">
                   {tabs.map((tab) => (
@@ -1020,7 +1023,7 @@ const StoreDetails = () => {
                     <Building2 className="h-5 w-5 text-indigo-600" />
                   </div>
                   <div className="flex-1">
-                    <div className="text-sm font-medium text-gray-900">{vendor?.name || 'Vendor'}</div>
+                    <div className="text-sm font-medium text-gray-900">{vendor?.name || t('vendorStoreDetails.vendor')}</div>
                     <div className="text-xs text-gray-500">{vendor?.email || ''}</div>
                   </div>
                 </div>
@@ -1067,7 +1070,7 @@ const StoreDetails = () => {
         <div className="lg:hidden mb-6">
           <div className="bg-white rounded-2xl p-2 border border-gray-200/80 shadow-sm">
             <label className="block text-xs font-medium text-gray-500 mb-2 px-2">
-              Active Section
+              {t('vendorStoreDetails.mobile.activeSection')}
             </label>
             <select
               value={activeTab}
@@ -1088,7 +1091,7 @@ const StoreDetails = () => {
           <div className="hidden lg:block lg:col-span-3">
             <div className="bg-white rounded-2xl p-6 border border-gray-200/80 shadow-sm sticky top-24">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="font-semibold text-gray-900">Store Status</h3>
+                <h3 className="font-semibold text-gray-900">{t('vendorStoreDetails.sidebar.storeStatus')}</h3>
                 <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium ${
                   storeInfo.storeStatus === 'Active'
                     ? 'bg-green-100 text-green-700'
@@ -1097,7 +1100,9 @@ const StoreDetails = () => {
                   <span className={`h-1.5 w-1.5 rounded-full mr-1.5 ${
                     storeInfo.storeStatus === 'Active' ? 'bg-green-600' : 'bg-yellow-600'
                   }`} />
-                  {storeInfo.storeStatus}
+                  {storeInfo.storeStatus === 'Active' 
+                    ? t('vendorStoreDetails.status.active') 
+                    : t('vendorStoreDetails.status.inactive')}
                 </span>
               </div>
 
@@ -1138,7 +1143,7 @@ const StoreDetails = () => {
               <div className="mt-8 pt-6 border-t border-gray-100">
                 <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center">
                   <Sparkles className="h-4 w-4 mr-2 text-indigo-600" />
-                  Store Preview
+                  {t('vendorStoreDetails.sidebar.storePreview')}
                 </h3>
                 <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6">
                   <div className="flex items-center space-x-4">
@@ -1155,7 +1160,7 @@ const StoreDetails = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-bold text-gray-900 truncate">
-                        {storeInfo.storeName || 'Your Store Name'}
+                        {storeInfo.storeName || t('vendorStoreDetails.sidebar.storeNamePlaceholder')}
                       </div>
                       <div className="text-xs text-gray-500 mt-1 flex items-center">
                         <Calendar className="h-3 w-3 mr-1" />
@@ -1178,17 +1183,17 @@ const StoreDetails = () => {
                     <div className="h-10 w-10 bg-indigo-100 rounded-xl flex items-center justify-center mr-3">
                       <Store className="h-5 w-5 text-indigo-600" />
                     </div>
-                    Basic Store Information
+                    {t('vendorStoreDetails.basic.title')}
                   </h2>
                   <span className="hidden sm:inline text-xs text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full">
-                    Required Fields *
+                    {t('vendorStoreDetails.basic.requiredFields')}
                   </span>
                 </div>
                 
                 <div className="space-y-6">
                   <div className="group">
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Store Name <span className="text-red-500">*</span>
+                      {t('vendorStoreDetails.basic.storeName')} <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
                       <Store className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-indigo-500 transition-colors" />
@@ -1197,14 +1202,14 @@ const StoreDetails = () => {
                         value={storeInfo.storeName?.slice(0, 50) || ''}
                         onChange={(e) => handleStoreInfoChange('storeName', e.target.value)}
                         className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all group-focus-within:bg-white"
-                        placeholder="Enter your store name"
+                        placeholder={t('vendorStoreDetails.basic.storeNamePlaceholder')}
                       />
                     </div>
                   </div>
 
                   <div className="group">
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Store Description
+                      {t('vendorStoreDetails.basic.storeDescription')}
                     </label>
                     <textarea
                       value={storeInfo.storeDescription}
@@ -1212,13 +1217,13 @@ const StoreDetails = () => {
                       rows={5}
                       maxLength={500}
                       className="w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all focus:bg-white resize-none"
-                      placeholder="Describe your store and what makes it unique..."
+                      placeholder={t('vendorStoreDetails.basic.storeDescriptionPlaceholder')}
                     />
                   </div>
 
                   <div className="group">
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Store Category
+                      {t('vendorStoreDetails.basic.storeCategory')}
                     </label>
                     <div className="relative">
                       <Tag className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -1227,7 +1232,7 @@ const StoreDetails = () => {
                         onChange={(e) => handleStoreInfoChange('categoryId', e.target.value)}
                         className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none appearance-none"
                       >
-                        <option value="">Select a category</option>
+                        <option value="">{t('vendorStoreDetails.basic.selectCategory')}</option>
                         {categories.map(cat => (
                           <option key={cat.id} value={cat.id}>{cat.name}</option>
                         ))}
@@ -1246,7 +1251,7 @@ const StoreDetails = () => {
                     <div className="h-10 w-10 bg-blue-100 rounded-xl flex items-center justify-center mr-3">
                       <Truck className="h-5 w-5 text-blue-600" />
                     </div>
-                    Shipping Costs by Governorate
+                    {t('vendorStoreDetails.shipping.title')}
                   </h2>
                 </div>
 
@@ -1262,9 +1267,9 @@ const StoreDetails = () => {
                           <Truck className="h-5 w-5 text-blue-600" />
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-semibold text-blue-900 mb-1">Shipping Settings</h3>
+                          <h3 className="font-semibold text-blue-900 mb-1">{t('vendorStoreDetails.shipping.settingsTitle')}</h3>
                           <p className="text-sm text-blue-700">
-                            Select governorates and set shipping prices. {shippingCosts.length} of {governorates.length} governorates configured.
+                            {t('vendorStoreDetails.shipping.settingsDescription', { configured: shippingCosts.length, total: governorates.length })}
                           </p>
                         </div>
                       </div>
@@ -1368,7 +1373,7 @@ const StoreDetails = () => {
                     <div className="h-10 w-10 bg-amber-100 rounded-xl flex items-center justify-center mr-3">
                       <Wallet className="h-5 w-5 text-amber-600" />
                     </div>
-                    Payment Deposit Settings
+                    {t('vendorStoreDetails.deposit.title')}
                   </h2>
                 </div>
 
@@ -1381,8 +1386,8 @@ const StoreDetails = () => {
                           <CreditCard className="h-5 w-5 text-amber-600" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-gray-900">Require Deposit for Orders</h3>
-                          <p className="text-sm text-gray-600">Customers must pay deposit before order confirmation</p>
+                          <h3 className="font-semibold text-gray-900">{t('vendorStoreDetails.deposit.requireDeposit')}</h3>
+                          <p className="text-sm text-gray-600">{t('vendorStoreDetails.deposit.requireDepositDescription')}</p>
                         </div>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
@@ -1400,7 +1405,7 @@ const StoreDetails = () => {
                   {/* Deposit Calculation Method */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-3">
-                      Deposit Calculation Method
+                      {t('vendorStoreDetails.deposit.calculationMethod')}
                     </label>
                     <div className="grid sm:grid-cols-2 gap-4">
                       <button
@@ -1417,8 +1422,8 @@ const StoreDetails = () => {
                         }`}>
                           <span className="text-xl font-bold">%</span>
                         </div>
-                        <span className="font-medium text-gray-900">Percentage (%)</span>
-                        <span className="text-xs text-gray-500 mt-1">Percentage of order total</span>
+                        <span className="font-medium text-gray-900">{t('vendorStoreDetails.deposit.percentage')}</span>
+                        <span className="text-xs text-gray-500 mt-1">{t('vendorStoreDetails.deposit.percentageDescription')}</span>
                       </button>
 
                       <button
@@ -1435,8 +1440,8 @@ const StoreDetails = () => {
                         }`}>
                           <Truck className="h-6 w-6" />
                         </div>
-                        <span className="font-medium text-gray-900">Shipping Cost</span>
-                        <span className="text-xs text-gray-500 mt-1">Use configured shipping cost</span>
+                        <span className="font-medium text-gray-900">{t('vendorStoreDetails.deposit.shippingCost')}</span>
+                        <span className="text-xs text-gray-500 mt-1">{t('vendorStoreDetails.deposit.shippingCostDescription')}</span>
                       </button>
                     </div>
                   </div>
@@ -1445,7 +1450,7 @@ const StoreDetails = () => {
                   {depositSettings.depositType === 'PERCENTAGE' && (
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Deposit Percentage (%)
+                        {t('vendorStoreDetails.deposit.percentageValue')}
                       </label>
                       <div className="relative">
                         <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">
@@ -1471,10 +1476,8 @@ const StoreDetails = () => {
                       <div className="flex items-start gap-3">
                         <Truck className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
                         <div>
-                          <p className="text-sm text-blue-800 font-medium">Deposit will be the shipping cost</p>
-                          <p className="text-xs text-blue-600 mt-1">
-                            The deposit amount will be calculated based on the customer's governorate shipping cost.
-                          </p>
+                          <p className="text-sm text-blue-800 font-medium">{t('vendorStoreDetails.deposit.shippingInfoTitle')}</p>
+                          <p className="text-xs text-blue-600 mt-1">{t('vendorStoreDetails.deposit.shippingInfoDescription')}</p>
                         </div>
                       </div>
                     </div>
@@ -1484,13 +1487,13 @@ const StoreDetails = () => {
                   <div className="pt-4 border-t border-gray-200">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                       <CreditCard className="h-5 w-5 mr-2 text-amber-600" />
-                      Payment Methods for Deposit
+                      {t('vendorStoreDetails.deposit.paymentMethods')}
                     </h3>
                     
                     {/* Instapay */}
                     <div className="mb-6">
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Instapay Number
+                        {t('vendorStoreDetails.deposit.instapayNumber')}
                       </label>
                       <div className="relative">
                         <img className="absolute left-4 top-1/2 transform -translate-y-1/2 scale-150 h-5 w-5 text-gray-400" src="/instapay.webp" alt="Instapay" />
@@ -1504,14 +1507,14 @@ const StoreDetails = () => {
                       </div>
                       <p className="mt-1 text-xs text-gray-500 flex items-center">
                         <Info className="h-3 w-3 mr-1 text-amber-500" />
-                        Customers will use this number to send deposits via Instapay
+                        {t('vendorStoreDetails.deposit.instapayHint')}
                       </p>
                     </div>
 
                     {/* Vodafone Cash */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Vodafone Cash Number
+                        {t('vendorStoreDetails.deposit.vodafoneCashNumber')}
                       </label>
                       <div className="relative">
                         <img className="absolute left-4 top-1/2 transform -translate-y-1/2 scale-125 h-5 w-7 text-gray-400" src="/vodafoneCash.webp" alt="Vodafone Cash" />
@@ -1525,7 +1528,7 @@ const StoreDetails = () => {
                       </div>
                       <p className="mt-1 text-xs text-gray-500 flex items-center">
                         <Info className="h-3 w-3 mr-1 text-amber-500" />
-                        Customers will use this number to send deposits via Vodafone Cash
+                        {t('vendorStoreDetails.deposit.vodafoneCashHint')}
                       </p>
                     </div>
 
@@ -1534,11 +1537,8 @@ const StoreDetails = () => {
                       <div className="flex items-start gap-3">
                         <Info className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
                         <div>
-                          <p className="text-sm text-amber-800 font-medium">Important</p>
-                          <p className="text-xs text-amber-700 mt-1">
-                            These numbers will be shown to customers when they need to pay deposits. 
-                            Make sure they are correct and active.
-                          </p>
+                          <p className="text-sm text-amber-800 font-medium">{t('vendorStoreDetails.deposit.important')}</p>
+                          <p className="text-xs text-amber-700 mt-1">{t('vendorStoreDetails.deposit.importantMessage')}</p>
                         </div>
                       </div>
                     </div>
@@ -1549,20 +1549,20 @@ const StoreDetails = () => {
                     <div className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl p-5 text-white">
                       <h3 className="font-semibold mb-3 flex items-center">
                         <Eye className="h-5 w-5 mr-2" />
-                        Deposit Preview
+                        {t('vendorStoreDetails.deposit.preview')}
                       </h3>
                       <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
                         <div className="flex justify-between items-center mb-2">
-                          <span>Order Total (example)</span>
+                          <span>{t('vendorStoreDetails.deposit.orderTotalExample')}</span>
                           <span className="font-bold">1,000 EGP</span>
                         </div>
                         <div className="flex justify-between items-center text-amber-100">
-                          <span>Deposit</span>
+                          <span>{t('vendorStoreDetails.deposit.deposit')}</span>
                           <span className="font-bold text-white">
                             {depositSettings.depositType === 'PERCENTAGE' 
                               ? `${(1000 * (depositSettings.depositValue / 100)).toFixed(0)} EGP`
                               : depositSettings.depositType === 'SHIPPING'
-                                ? 'Shipping cost (varies by governorate)'
+                                ? t('vendorStoreDetails.deposit.shippingCostExample')
                                 : `${depositSettings.depositValue} EGP`}
                           </span>
                         </div>
@@ -1580,12 +1580,12 @@ const StoreDetails = () => {
                       {saving ? (
                         <>
                           <Loader2 className="h-5 w-5 animate-spin" />
-                          <span>Saving...</span>
+                          <span>{t('vendorStoreDetails.buttons.saving')}</span>
                         </>
                       ) : (
                         <>
                           <Save className="h-5 w-5" />
-                          <span>Save Deposit Settings</span>
+                          <span>{t('vendorStoreDetails.buttons.saveDepositSettings')}</span>
                         </>
                       )}
                     </button>
@@ -1594,7 +1594,7 @@ const StoreDetails = () => {
               </div>
             )}
 
-            {/* Payment Methods Tab - NEW */}
+            {/* Payment Methods Tab */}
             {activeTab === 'payment' && (
               <div className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-200/80 shadow-sm">
                 <div className="flex items-center justify-between mb-6">
@@ -1602,10 +1602,10 @@ const StoreDetails = () => {
                     <div className="h-10 w-10 bg-green-100 rounded-xl flex items-center justify-center mr-3">
                       <CardIcon className="h-5 w-5 text-green-600" />
                     </div>
-                    Payment Methods
+                    {t('vendorStoreDetails.payment.title')}
                   </h2>
                   <span className="hidden sm:inline text-xs text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full">
-                    {paymentStats.totalActive} Active
+                    {paymentStats.totalActive} {t('vendorStoreDetails.payment.active')}
                   </span>
                 </div>
 
@@ -1615,11 +1615,8 @@ const StoreDetails = () => {
                       <Info className="h-5 w-5 text-green-600" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-semibold text-green-900 mb-1">Configure Payment Options</h3>
-                      <p className="text-sm text-green-700">
-                        Choose which payment methods are available to your customers. 
-                        For Instapay and Vodafone Cash, provide your account details.
-                      </p>
+                      <h3 className="font-semibold text-green-900 mb-1">{t('vendorStoreDetails.payment.configureTitle')}</h3>
+                      <p className="text-sm text-green-700">{t('vendorStoreDetails.payment.configureDescription')}</p>
                     </div>
                   </div>
                 </div>
@@ -1633,8 +1630,8 @@ const StoreDetails = () => {
                           <img src="/instapay.webp" alt="Instapay" className="scale-100" />
                         </div>
                         <div>
-                          <h3 className="text-lg font-bold text-gray-900">Instapay</h3>
-                          <p className="text-sm text-gray-500">Fast and secure transfers via Instapay</p>
+                          <h3 className="text-lg font-bold text-gray-900">{t('vendorStoreDetails.paymentMethods.instapay')}</h3>
+                          <p className="text-sm text-gray-500">{t('vendorStoreDetails.paymentMethods.instapayDescription')}</p>
                         </div>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
@@ -1652,19 +1649,19 @@ const StoreDetails = () => {
                       <div className="space-y-4 mt-4 pt-4 border-t border-gray-200 animate-slide-down">
                         <div>
                           <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Account Name
+                            {t('vendorStoreDetails.payment.accountName')}
                           </label>
                           <input
                             type="text"
                             value={getMethodAccount('INSTAPAY', 'accountName')}
                             onChange={(e) => updateMethod('INSTAPAY', 'accountName', e.target.value)}
                             className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
-                            placeholder="John Doe"
+                            placeholder={t('vendorStoreDetails.payment.accountNamePlaceholder')}
                           />
                         </div>
                         <div>
                           <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Account Number / Phone
+                            {t('vendorStoreDetails.payment.accountNumber')}
                           </label>
                           <input
                             type="text"
@@ -1683,11 +1680,11 @@ const StoreDetails = () => {
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center space-x-4">
                         <div className="h-14 w-14 bg-red-100 rounded-xl flex items-center justify-center">
-                          <img  src="/vodafoneCash.webp" alt="Vodafone Cash" />
+                          <img src="/vodafoneCash.webp" alt="Vodafone Cash" />
                         </div>
                         <div>
-                          <h3 className="text-lg font-bold text-gray-900">Vodafone Cash</h3>
-                          <p className="text-sm text-gray-500">Pay using Vodafone Cash wallet</p>
+                          <h3 className="text-lg font-bold text-gray-900">{t('vendorStoreDetails.paymentMethods.vodafoneCash')}</h3>
+                          <p className="text-sm text-gray-500">{t('vendorStoreDetails.paymentMethods.vodafoneCashDescription')}</p>
                         </div>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
@@ -1705,19 +1702,19 @@ const StoreDetails = () => {
                       <div className="space-y-4 mt-4 pt-4 border-t border-gray-200 animate-slide-down">
                         <div>
                           <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Account Name
+                            {t('vendorStoreDetails.payment.accountName')}
                           </label>
                           <input
                             type="text"
                             value={getMethodAccount('VODAFONE_CASH', 'accountName')}
                             onChange={(e) => updateMethod('VODAFONE_CASH', 'accountName', e.target.value)}
                             className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all"
-                            placeholder="John Doe"
+                            placeholder={t('vendorStoreDetails.payment.accountNamePlaceholder')}
                           />
                         </div>
                         <div>
                           <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Account Number / Phone
+                            {t('vendorStoreDetails.payment.accountNumber')}
                           </label>
                           <input
                             type="text"
@@ -1739,8 +1736,8 @@ const StoreDetails = () => {
                           <DollarSign className="h-7 w-7 text-blue-600" />
                         </div>
                         <div>
-                          <h3 className="text-lg font-bold text-gray-900">Cash on Delivery</h3>
-                          <p className="text-sm text-gray-500">Customer pays cash upon delivery</p>
+                          <h3 className="text-lg font-bold text-gray-900">{t('vendorStoreDetails.paymentMethods.cod')}</h3>
+                          <p className="text-sm text-gray-500">{t('vendorStoreDetails.paymentMethods.codDescription')}</p>
                         </div>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
@@ -1760,12 +1757,8 @@ const StoreDetails = () => {
                           <div className="flex items-start gap-3">
                             <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
                             <div>
-                              <p className="text-sm text-blue-800">
-                                COD is enabled. Customers can choose to pay cash when they receive their order.
-                              </p>
-                              <p className="text-xs text-blue-600 mt-1">
-                                Note: You can configure deposit requirements in the Deposit Settings tab.
-                              </p>
+                              <p className="text-sm text-blue-800">{t('vendorStoreDetails.payment.codEnabledMessage')}</p>
+                              <p className="text-xs text-blue-600 mt-1">{t('vendorStoreDetails.payment.codNote')}</p>
                             </div>
                           </div>
                         </div>
@@ -1779,25 +1772,25 @@ const StoreDetails = () => {
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     <div className="bg-gray-50 rounded-xl p-4 text-center">
                       <div className="text-2xl font-bold text-indigo-600">{paymentStats.totalActive}</div>
-                      <div className="text-xs text-gray-600">Active Methods</div>
+                      <div className="text-xs text-gray-600">{t('vendorStoreDetails.payment.activeMethods')}</div>
                     </div>
                     <div className="bg-gray-50 rounded-xl p-4 text-center">
                       <div className={`text-2xl font-bold ${paymentStats.instapayConfigured ? 'text-emerald-600' : 'text-gray-400'}`}>
                         {paymentStats.instapayConfigured ? '✓' : '✗'}
                       </div>
-                      <div className="text-xs text-gray-600">Instapay</div>
+                      <div className="text-xs text-gray-600">{t('vendorStoreDetails.paymentMethods.instapay')}</div>
                     </div>
                     <div className="bg-gray-50 rounded-xl p-4 text-center">
                       <div className={`text-2xl font-bold ${paymentStats.vodafoneConfigured ? 'text-red-600' : 'text-gray-400'}`}>
                         {paymentStats.vodafoneConfigured ? '✓' : '✗'}
                       </div>
-                      <div className="text-xs text-gray-600">Vodafone Cash</div>
+                      <div className="text-xs text-gray-600">{t('vendorStoreDetails.paymentMethods.vodafoneCash')}</div>
                     </div>
                     <div className="bg-gray-50 rounded-xl p-4 text-center">
                       <div className={`text-2xl font-bold ${paymentStats.codEnabled ? 'text-blue-600' : 'text-gray-400'}`}>
                         {paymentStats.codEnabled ? '✓' : '✗'}
                       </div>
-                      <div className="text-xs text-gray-600">Cash on Delivery</div>
+                      <div className="text-xs text-gray-600">{t('vendorStoreDetails.paymentMethods.cod')}</div>
                     </div>
                   </div>
                 </div>
@@ -1812,12 +1805,12 @@ const StoreDetails = () => {
                     {saving ? (
                       <>
                         <Loader2 className="h-5 w-5 animate-spin" />
-                        <span>Saving Payment Methods...</span>
+                        <span>{t('vendorStoreDetails.buttons.savingPaymentMethods')}</span>
                       </>
                     ) : (
                       <>
                         <Save className="h-5 w-5" />
-                        <span>Save Payment Methods</span>
+                        <span>{t('vendorStoreDetails.buttons.savePaymentMethods')}</span>
                       </>
                     )}
                   </button>
@@ -1833,14 +1826,14 @@ const StoreDetails = () => {
                     <div className="h-10 w-10 bg-purple-100 rounded-xl flex items-center justify-center mr-3">
                       <Brush className="h-5 w-5 text-purple-600" />
                     </div>
-                    Store Branding
+                    {t('vendorStoreDetails.branding.title')}
                   </h2>
                 </div>
                 
                 <div className="space-y-8">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-4">
-                      Store Logo
+                      {t('vendorStoreDetails.branding.storeLogo')}
                     </label>
                     <div className="flex flex-col sm:flex-row sm:items-center gap-6">
                       <div className="relative group">
@@ -1864,7 +1857,7 @@ const StoreDetails = () => {
                           ) : (
                             <div className="text-center">
                               <ImagePlus className="h-10 w-10 text-gray-400 mx-auto mb-2" />
-                              <span className="text-xs text-gray-500">No logo</span>
+                              <span className="text-xs text-gray-500">{t('vendorStoreDetails.branding.noLogo')}</span>
                             </div>
                           )}
                         </div>
@@ -1876,12 +1869,12 @@ const StoreDetails = () => {
                             {uploadingLogo ? (
                               <>
                                 <Loader2 className="h-5 w-5 animate-spin" />
-                                <span className="text-sm font-medium">Uploading...</span>
+                                <span className="text-sm font-medium">{t('vendorStoreDetails.buttons.uploading')}</span>
                               </>
                             ) : (
                               <>
                                 <Upload className="h-5 w-5" />
-                                <span className="text-sm font-medium">Upload Logo</span>
+                                <span className="text-sm font-medium">{t('vendorStoreDetails.buttons.uploadLogo')}</span>
                               </>
                             )}
                             <input
@@ -1901,13 +1894,13 @@ const StoreDetails = () => {
                               className="px-6 py-3.5 bg-red-50 text-red-700 rounded-xl hover:bg-red-100 flex items-center space-x-2 transition-all"
                             >
                               <Trash2 className="h-5 w-5" />
-                              <span className="text-sm font-medium">Remove</span>
+                              <span className="text-sm font-medium">{t('vendorStoreDetails.buttons.remove')}</span>
                             </button>
                           )}
                         </div>
                         <p className="text-sm text-gray-500 mt-4 flex items-center">
                           <Image className="h-4 w-4 mr-2 text-gray-400" />
-                          Recommended: 400x400px, PNG or JPG, max 2MB
+                          {t('vendorStoreDetails.branding.logoRecommendation')}
                         </p>
                       </div>
                     </div>
@@ -1916,13 +1909,13 @@ const StoreDetails = () => {
                   <div className="pt-6 border-t border-gray-100">
                     <h3 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
                       <Palette className="h-5 w-5 mr-2 text-indigo-600" />
-                      Color Scheme
+                      {t('vendorStoreDetails.branding.colorScheme')}
                     </h3>
                     
                     <div className="grid md:grid-cols-2 gap-6">
                       <div className="space-y-3">
                         <label className="block text-sm font-medium text-gray-700">
-                          Primary Color
+                          {t('vendorStoreDetails.branding.primaryColor')}
                         </label>
                         <div className="flex items-center space-x-4">
                           <div className="relative">
@@ -1949,7 +1942,7 @@ const StoreDetails = () => {
                       
                       <div className="space-y-3">
                         <label className="block text-sm font-medium text-gray-700">
-                          Secondary Color
+                          {t('vendorStoreDetails.branding.secondaryColor')}
                         </label>
                         <div className="flex items-center space-x-4">
                           <div className="relative">
@@ -1979,7 +1972,7 @@ const StoreDetails = () => {
                   <div className="mt-8 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-6">
                     <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
                       <Eye className="h-5 w-5 mr-2 text-indigo-400" />
-                      Live Preview
+                      {t('vendorStoreDetails.branding.livePreview')}
                     </h3>
                     <div className="bg-white rounded-xl p-6">
                       <div className="flex items-center space-x-4">
@@ -1998,20 +1991,20 @@ const StoreDetails = () => {
                         </div>
                         <div className="flex-1">
                           <div className="font-bold text-gray-900 mb-2">
-                            {storeInfo.storeName || 'Your Store'}
+                            {storeInfo.storeName || t('vendorStoreDetails.branding.storeNamePlaceholder')}
                           </div>
                           <div className="flex items-center space-x-3">
                             <span
                               className="px-4 py-2 text-white text-sm rounded-lg"
                               style={{ backgroundColor: branding.primaryColor }}
                             >
-                              Shop Now
+                              {t('vendorStoreDetails.branding.shopNow')}
                             </span>
                             <span
                               className="px-4 py-2 text-white text-sm rounded-lg"
                               style={{ backgroundColor: branding.secondaryColor }}
                             >
-                              Learn More
+                              {t('vendorStoreDetails.branding.learnMore')}
                             </span>
                           </div>
                         </div>
@@ -2029,13 +2022,13 @@ const StoreDetails = () => {
                   <div className="h-10 w-10 bg-green-100 rounded-xl flex items-center justify-center mr-3">
                     <MapPin className="h-5 w-5 text-green-600" />
                   </div>
-                  Contact Information
+                  {t('vendorStoreDetails.contact.title')}
                 </h2>
                 
                 <div className="space-y-6">
                   <div className="group">
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Phone Number
+                      {t('vendorStoreDetails.contact.phoneNumber')}
                     </label>
                     <div className="relative">
                       <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-green-500 transition-colors" />
@@ -2051,7 +2044,7 @@ const StoreDetails = () => {
 
                   <div className="group">
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Store Address
+                      {t('vendorStoreDetails.contact.storeAddress')}
                     </label>
                     <div className="relative">
                       <MapPin className="absolute left-4 top-4 h-5 w-5 text-gray-400 group-focus-within:text-green-500 transition-colors" />
@@ -2060,7 +2053,7 @@ const StoreDetails = () => {
                         onChange={(e) => handleStoreInfoChange('storeAddress', e.target.value)}
                         rows={3}
                         className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all focus:bg-white resize-none"
-                        placeholder="Enter your business address"
+                        placeholder={t('vendorStoreDetails.contact.addressPlaceholder')}
                       />
                     </div>
                   </div>
@@ -2075,7 +2068,7 @@ const StoreDetails = () => {
                   <div className="h-10 w-10 bg-pink-100 rounded-xl flex items-center justify-center mr-3">
                     <Instagram className="h-5 w-5 text-pink-600" />
                   </div>
-                  Social Media Profiles
+                  {t('vendorStoreDetails.social.title')}
                 </h2>
 
                 <div className="space-y-6 mt-8">
@@ -2084,7 +2077,7 @@ const StoreDetails = () => {
                       <div className="h-8 w-8 bg-blue-100 rounded-lg flex items-center justify-center">
                         <Facebook className="h-4 w-4 text-blue-600" />
                       </div>
-                      <label className="text-sm font-semibold text-gray-700">Facebook</label>
+                      <label className="text-sm font-semibold text-gray-700">{t('vendorStoreDetails.social.facebook')}</label>
                     </div>
                     <div className="flex flex-col sm:flex-row">
                       <span className="px-4 py-3.5 bg-gray-100 border border-gray-200 rounded-t-xl sm:rounded-l-xl sm:rounded-tr-none text-gray-600 text-sm sm:w-32 flex items-center">
@@ -2105,7 +2098,7 @@ const StoreDetails = () => {
                       <div className="h-8 w-8 bg-pink-100 rounded-lg flex items-center justify-center">
                         <Instagram className="h-4 w-4 text-pink-600" />
                       </div>
-                      <label className="text-sm font-semibold text-gray-700">Instagram</label>
+                      <label className="text-sm font-semibold text-gray-700">{t('vendorStoreDetails.social.instagram')}</label>
                     </div>
                     <div className="flex flex-col sm:flex-row">
                       <span className="px-4 py-3.5 bg-gray-100 border border-gray-200 rounded-t-xl sm:rounded-l-xl sm:rounded-tr-none text-gray-600 text-sm sm:w-32 flex items-center">
@@ -2131,17 +2124,17 @@ const StoreDetails = () => {
                   <div className="h-10 w-10 bg-blue-100 rounded-xl flex items-center justify-center mr-3">
                     <Globe className="h-5 w-5 text-blue-600" />
                   </div>
-                  Domain & Store URL
+                  {t('vendorStoreDetails.domain.title')}
                 </h2>
                 
                 <div className="mb-8">
                   <label className="block text-sm font-semibold text-gray-700 mb-3">
-                    Your Store URL
+                    {t('vendorStoreDetails.domain.yourStoreUrl')}
                   </label>
                   <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5">
                     <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                       <div className="flex-1 bg-white border border-gray-200 rounded-xl px-4 py-3.5 font-mono text-sm text-gray-700 truncate">
-                        {getStoreUrl() || 'store-name-not-set'}
+                        {getStoreUrl() || t('vendorStoreDetails.domain.urlNotSet')}
                       </div>
                       <div className="flex items-center space-x-2">
                         <button
@@ -2150,7 +2143,7 @@ const StoreDetails = () => {
                           className="flex-1 sm:flex-none px-4 py-3.5 bg-indigo-50 text-indigo-700 rounded-xl hover:bg-indigo-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 transition-all"
                         >
                           <Copy className="h-4 w-4" />
-                          <span className="text-sm font-medium">Copy</span>
+                          <span className="text-sm font-medium">{t('vendorStoreDetails.domain.copy')}</span>
                         </button>
                         <a
                           href={getStoreUrl()}
@@ -2159,7 +2152,7 @@ const StoreDetails = () => {
                           className="flex-1 sm:flex-none px-4 py-3.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 flex items-center justify-center space-x-2 transition-all"
                         >
                           <Eye className="h-4 w-4" />
-                          <span className="text-sm font-medium">Visit</span>
+                          <span className="text-sm font-medium">{t('vendorStoreDetails.domain.visit')}</span>
                         </a>
                       </div>
                     </div>
@@ -2168,7 +2161,7 @@ const StoreDetails = () => {
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-4">
-                    Store QR Code
+                    {t('vendorStoreDetails.domain.storeQrCode')}
                   </label>
                   <div className="flex flex-col lg:flex-row items-center gap-8">
                     <div className="relative group">
@@ -2182,14 +2175,14 @@ const StoreDetails = () => {
                             />
                             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl flex items-center justify-center">
                               <span className="text-white text-xs font-medium px-3 py-1.5 bg-black/50 rounded-full">
-                                Click to download
+                                {t('vendorStoreDetails.domain.clickToDownload')}
                               </span>
                             </div>
                           </div>
                         ) : (
                           <div className="text-center p-6">
                             <QrCode className="h-16 w-16 text-gray-300 mx-auto mb-3" />
-                            <div className="text-sm text-gray-500">Set store URL first</div>
+                            <div className="text-sm text-gray-500">{t('vendorStoreDetails.domain.setUrlFirst')}</div>
                           </div>
                         )}
                       </div>
@@ -2197,10 +2190,10 @@ const StoreDetails = () => {
                     
                     <div className="flex-1 text-center lg:text-left">
                       <h3 className="font-semibold text-gray-900 text-lg mb-2">
-                        Share Your Store
+                        {t('vendorStoreDetails.domain.shareYourStore')}
                       </h3>
                       <p className="text-gray-600 mb-6">
-                        Download this QR code to share with your customers. They can scan it with their phone camera to visit your store instantly.
+                        {t('vendorStoreDetails.domain.qrDescription')}
                       </p>
                       <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
                         <button 
@@ -2209,7 +2202,7 @@ const StoreDetails = () => {
                           className="px-6 py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl transition-all"
                         >
                           <Download className="h-5 w-5" />
-                          <span className="text-sm font-medium">Download QR Code</span>
+                          <span className="text-sm font-medium">{t('vendorStoreDetails.domain.downloadQr')}</span>
                         </button>
                         <button 
                           onClick={handleCopyStoreLink}
@@ -2217,7 +2210,7 @@ const StoreDetails = () => {
                           className="px-6 py-3.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 disabled:opacity-50 flex items-center justify-center space-x-2 transition-all"
                         >
                           <Copy className="h-5 w-5" />
-                          <span className="text-sm font-medium">Copy Link</span>
+                          <span className="text-sm font-medium">{t('vendorStoreDetails.domain.copyLink')}</span>
                         </button>
                       </div>
                     </div>
@@ -2240,12 +2233,12 @@ const StoreDetails = () => {
           {saving ? (
             <>
               <Loader2 className="h-5 w-5 animate-spin" />
-              <span className="font-medium">Saving Changes...</span>
+              <span className="font-medium">{t('vendorStoreDetails.buttons.savingChanges')}</span>
             </>
           ) : (
             <>
               <Save className="h-5 w-5" />
-              <span className="font-medium">Save All Changes</span>
+              <span className="font-medium">{t('vendorStoreDetails.buttons.saveAllChanges')}</span>
             </>
           )}
         </button>

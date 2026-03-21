@@ -1,6 +1,7 @@
 // src/pages/vendor/ManageCategories.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Search, Filter, Plus, Edit, Trash2, ArrowLeft,
   Loader2, AlertCircle, Check, X, FolderOpen,
@@ -13,6 +14,7 @@ import { productAPI } from '../../api/product.api';
 import { useErrorHandler } from '../../hooks/useErrorHandler';
 
 const ManageCategories = () => {
+  const { t } = useTranslation();
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -30,18 +32,12 @@ const ManageCategories = () => {
   // Form state for new category
   const [newCategory, setNewCategory] = useState({
     name: '',
-    
-    
-    
   });
 
   // Form state for edit category
   const [editForm, setEditForm] = useState({
     id: '',
     name: '',
-    
-    
-    
   });
 
   const { store } = useAuth();
@@ -59,17 +55,15 @@ const ManageCategories = () => {
       setLoading(true);
       setError(null);
       
-      // Fetch categories
       const categoriesData = await categoryAPI.getByStore(store.id);
       setCategories(Array.isArray(categoriesData) ? categoriesData : []);
       
-      // Fetch products to get counts per category
       const productsData = await productAPI.getAll(store.id);
       setProducts(Array.isArray(productsData) ? productsData : []);
       
     } catch (err) {
       handleError(err);
-      setError('Failed to load categories');
+      setError(t('vendorCategories.errors.failedToLoad'));
     } finally {
       setLoading(false);
     }
@@ -83,7 +77,7 @@ const ManageCategories = () => {
     e.preventDefault();
     
     if (!newCategory.name.trim()) {
-      setError('Category name is required');
+      setError(t('vendorCategories.errors.categoryNameRequired'));
       return;
     }
 
@@ -93,16 +87,13 @@ const ManageCategories = () => {
 
       const categoryData = {
         name: newCategory.name,
-        
-        
-        
         storeId: store.id
       };
 
       const created = await categoryAPI.add(categoryData);
       setCategories(prev => [...prev, created]);
       
-      setSuccess('Category added successfully!');
+      setSuccess(t('vendorCategories.success.categoryAdded'));
       setTimeout(() => setSuccess(null), 3000);
       
       resetAddForm();
@@ -110,7 +101,7 @@ const ManageCategories = () => {
       
     } catch (err) {
       handleError(err);
-      setError('Failed to add category');
+      setError(t('vendorCategories.errors.failedToAdd'));
     } finally {
       setSaving(false);
     }
@@ -120,7 +111,7 @@ const ManageCategories = () => {
     e.preventDefault();
     
     if (!editForm.name.trim()) {
-      setError('Category name is required');
+      setError(t('vendorCategories.errors.categoryNameRequired'));
       return;
     }
 
@@ -131,15 +122,12 @@ const ManageCategories = () => {
       const updated = await categoryAPI.update({
         id: editForm.id,
         name: editForm.name,
-        
-        
-        
         storeId: store.id
       });
 
       setCategories(prev => prev.map(c => c.id === editForm.id ? updated : c));
       
-      setSuccess('Category updated successfully!');
+      setSuccess(t('vendorCategories.success.categoryUpdated'));
       setTimeout(() => setSuccess(null), 3000);
       
       resetEditForm();
@@ -147,7 +135,7 @@ const ManageCategories = () => {
       
     } catch (err) {
       handleError(err);
-      setError('Failed to update category');
+      setError(t('vendorCategories.errors.failedToUpdate'));
     } finally {
       setSaving(false);
     }
@@ -157,11 +145,11 @@ const ManageCategories = () => {
     const productCount = getProductCountByCategory(categoryId);
     
     if (productCount > 0) {
-      setError("Cannot delete category with products. Please change the products of this category 'Uncategorized' or another category before deleting.")
+      setError(t('vendorCategories.errors.categoryHasProducts'));
       return;
     }
 
-    if (!window.confirm('Are you sure you want to delete this category?')) {
+    if (!window.confirm(t('vendorCategories.confirm.deleteCategory'))) {
       return;
     }
 
@@ -170,19 +158,19 @@ const ManageCategories = () => {
       setCategories(prev => prev.filter(c => c.id !== categoryId));
       setSelectedCategories(prev => prev.filter(id => id !== categoryId));
       
-      setSuccess('Category deleted successfully!');
+      setSuccess(t('vendorCategories.success.categoryDeleted'));
       setTimeout(() => setSuccess(null), 3000);
       
     } catch (err) {
       handleError(err);
-      setError('Failed to delete category');
+      setError(t('vendorCategories.errors.failedToDelete'));
     }
   };
 
   const handleBulkDelete = async () => {
     if (selectedCategories.length === 0) return;
     
-    if (!window.confirm(`Delete ${selectedCategories.length} category(s)? This action cannot be undone.`)) {
+    if (!window.confirm(t('vendorCategories.confirm.bulkDelete', { count: selectedCategories.length }))) {
       return;
     }
 
@@ -191,40 +179,18 @@ const ManageCategories = () => {
       setCategories(prev => prev.filter(c => !selectedCategories.includes(c.id)));
       setSelectedCategories([]);
       
-      setSuccess(`${selectedCategories.length} category(s) deleted successfully!`);
+      setSuccess(t('vendorCategories.success.categoriesDeleted', { count: selectedCategories.length }));
       setTimeout(() => setSuccess(null), 3000);
       
     } catch (err) {
       handleError(err);
-      setError('Failed to delete categories');
-    }
-  };
-
-  const handleToggleStatus = async (categoryId, currentStatus) => {
-    try {
-      const category = categories.find(c => c.id === categoryId);
-      const updated = await categoryAPI.update({
-        ...category
-        
-      });
-      
-      setCategories(prev => prev.map(c => c.id === categoryId ? updated : c));
-      
-      setSuccess(`Category ${!currentStatus ? 'activated' : 'deactivated'}!`);
-      setTimeout(() => setSuccess(null), 3000);
-      
-    } catch (err) {
-      handleError(err);
-      setError('Failed to update category status');
+      setError(t('vendorCategories.errors.failedToDeleteCategories'));
     }
   };
 
   const resetAddForm = () => {
     setNewCategory({
       name: '',
-      
-      
-      
     });
   };
 
@@ -232,9 +198,6 @@ const ManageCategories = () => {
     setEditForm({
       id: '',
       name: '',
-      
-      
-      
     });
     setEditingCategory(null);
   };
@@ -244,9 +207,6 @@ const ManageCategories = () => {
     setEditForm({
       id: category.id,
       name: category.name || '',
-      
-      
-      
     });
     setShowEditModal(true);
   };
@@ -286,9 +246,7 @@ const ManageCategories = () => {
 
   const filteredCategories = categories.filter(category => {
     const matchesSearch = !searchQuery || 
-      category.name?.toLowerCase().includes(searchQuery.toLowerCase())
-      
-    
+      category.name?.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesSearch;
   });
 
@@ -300,7 +258,7 @@ const ManageCategories = () => {
             <div className="animate-spin rounded-full h-16 w-16 border-4 border-indigo-200 border-t-indigo-600 mx-auto mb-4"></div>
             <Layers className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-6 w-6 text-indigo-600" />
           </div>
-          <p className="text-gray-600 font-medium">Loading categories...</p>
+          <p className="text-gray-600 font-medium">{t('vendorCategories.loading.categories')}</p>
         </div>
       </div>
     );
@@ -322,10 +280,10 @@ const ManageCategories = () => {
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center">
                   <Layers className="h-6 w-6 mr-2 text-indigo-600" />
-                  Categories
+                  {t('vendorCategories.title')}
                 </h1>
                 <p className="text-sm text-gray-600 hidden sm:block">
-                  {store?.storeName} • {stats.total} categories
+                  {store?.storeName} • {stats.total} {t('vendorCategories.categories')}
                 </p>
               </div>
             </div>
@@ -336,7 +294,7 @@ const ManageCategories = () => {
                 className="hidden sm:flex px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all items-center space-x-2"
               >
                 <Filter className="h-4 w-4" />
-                <span className="text-sm font-medium">Filters</span>
+                <span className="text-sm font-medium">{t('vendorCategories.filters')}</span>
               </button>
               
               <button
@@ -344,7 +302,7 @@ const ManageCategories = () => {
                 className="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all shadow-md flex items-center space-x-2"
               >
                 <Plus className="h-4 w-4" />
-                <span className="text-sm font-medium">Add Category</span>
+                <span className="text-sm font-medium">{t('vendorCategories.addCategory')}</span>
               </button>
             </div>
           </div>
@@ -386,10 +344,8 @@ const ManageCategories = () => {
               </div>
             </div>
             <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
-            <div className="text-sm text-gray-600">Total Categories</div>
+            <div className="text-sm text-gray-600">{t('vendorCategories.stats.totalCategories')}</div>
           </div>
-
-          
 
           <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
             <div className="flex items-center justify-between mb-2">
@@ -398,10 +354,8 @@ const ManageCategories = () => {
               </div>
             </div>
             <div className="text-2xl font-bold text-gray-900">{stats.withProducts}</div>
-            <div className="text-sm text-gray-600">With Products</div>
+            <div className="text-sm text-gray-600">{t('vendorCategories.stats.withProducts')}</div>
           </div>
-
-          
         </div>
 
         {/* Search Bar */}
@@ -412,7 +366,7 @@ const ManageCategories = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search categories by name"
+              placeholder={t('vendorCategories.search.placeholder')}
               className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
             />
           </div>
@@ -425,15 +379,15 @@ const ManageCategories = () => {
               <div className="h-20 w-20 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Layers className="h-10 w-10 text-indigo-600" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">No Categories Found</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">{t('vendorCategories.empty.title')}</h3>
               <p className="text-gray-600 mb-6">
-                {searchQuery ? 'Try adjusting your search' : 'Create your first category to organize products'}
+                {searchQuery ? t('vendorCategories.empty.adjustSearch') : t('vendorCategories.empty.createFirst')}
               </p>
               <button
                 onClick={() => setShowAddModal(true)}
                 className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all"
               >
-                Add Category
+                {t('vendorCategories.empty.addCategory')}
               </button>
             </div>
           </div>
@@ -444,7 +398,7 @@ const ManageCategories = () => {
               <div className="mb-4 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl p-4 text-white flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <span className="bg-white/20 px-3 py-1 rounded-lg text-sm">
-                    {selectedCategories.length} selected
+                    {selectedCategories.length} {t('vendorCategories.selected')}
                   </span>
                 </div>
                 <button
@@ -452,7 +406,7 @@ const ManageCategories = () => {
                   className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm flex items-center space-x-2"
                 >
                   <Trash2 className="h-4 w-4" />
-                  <span>Delete Selected</span>
+                  <span>{t('vendorCategories.deleteSelected')}</span>
                 </button>
               </div>
             )}
@@ -471,11 +425,9 @@ const ManageCategories = () => {
                           className="h-4 w-4 text-indigo-600 rounded"
                         />
                       </th>
-                      <th className="text-left p-6 font-semibold text-gray-900">Category</th>
-                      
-                      <th className="text-left p-6 font-semibold text-gray-900">Products</th>
-                      
-                      <th className="text-left p-6 font-semibold text-gray-900">Actions</th>
+                      <th className="text-left p-6 font-semibold text-gray-900">{t('vendorCategories.table.category')}</th>
+                      <th className="text-left p-6 font-semibold text-gray-900">{t('vendorCategories.table.products')}</th>
+                      <th className="text-left p-6 font-semibold text-gray-900">{t('vendorCategories.table.actions')}</th>
                       <th className="p-6 w-12"></th>
                     </tr>
                   </thead>
@@ -510,20 +462,18 @@ const ManageCategories = () => {
                                 </div>
                               </div>
                             </td>
-                           
                             <td className="p-6">
                               <div className="flex items-center space-x-2">
                                 <Package className="h-4 w-4 text-gray-400" />
                                 <span className="text-sm font-medium text-gray-900">{productCount}</span>
                               </div>
                             </td>
-                            
                             <td className="p-6">
                               <div className="flex items-center space-x-2">
                                 <button
                                   onClick={() => openEditModal(category)}
                                   className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                                  title="Edit"
+                                  title={t('vendorCategories.edit')}
                                 >
                                   <Edit className="h-4 w-4" />
                                 </button>
@@ -531,7 +481,7 @@ const ManageCategories = () => {
                                 <button
                                   onClick={() => handleDeleteCategory(category.id)}
                                   className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                  title="Delete"
+                                  title={t('vendorCategories.delete')}
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </button>
@@ -554,28 +504,26 @@ const ManageCategories = () => {
                           {/* Expanded Details */}
                           {isExpanded && (
                             <tr className="bg-gray-50">
-                              <td colSpan="7" className="p-6">
+                              <td colSpan="5" className="p-6">
                                 <div className="grid md:grid-cols-2 gap-6">
                                   <div>
-                                    <h4 className="text-sm font-semibold text-gray-900 mb-2">Category Details</h4>
+                                    <h4 className="text-sm font-semibold text-gray-900 mb-2">{t('vendorCategories.expanded.categoryDetails')}</h4>
                                     <div className="space-y-2 text-sm">
                                       <div>
-                                        <span className="text-gray-500">Name:</span>
+                                        <span className="text-gray-500">{t('vendorCategories.expanded.name')}:</span>
                                         <span className="ml-2 text-gray-900">{category.name}</span>
                                       </div>
-                                      
-                                      
                                     </div>
                                   </div>
                                   <div>
-                                    <h4 className="text-sm font-semibold text-gray-900 mb-2">Products in Category</h4>
+                                    <h4 className="text-sm font-semibold text-gray-900 mb-2">{t('vendorCategories.expanded.productsInCategory')}</h4>
                                     <div className="bg-white rounded-lg p-4 border border-gray-200">
                                       <div className="flex items-center justify-between">
-                                        <span className="text-gray-600">Total Products:</span>
+                                        <span className="text-gray-600">{t('vendorCategories.expanded.totalProducts')}:</span>
                                         <span className="font-bold text-indigo-600">{productCount}</span>
                                       </div>
                                       {productCount === 0 && (
-                                        <p className="text-xs text-gray-500 mt-2">No products in this category</p>
+                                        <p className="text-xs text-gray-500 mt-2">{t('vendorCategories.expanded.noProducts')}</p>
                                       )}
                                     </div>
                                   </div>
@@ -618,14 +566,12 @@ const ManageCategories = () => {
                           <div className="text-xs text-gray-500">ID: {category.id}</div>
                         </div>
                       </div>
-                      
                     </div>
 
                     <div className="space-y-2 mb-3">
-                      
                       <div className="flex items-center space-x-2 text-sm">
                         <Package className="h-4 w-4 text-gray-400" />
-                        <span>{productCount} products</span>
+                        <span>{productCount} {t('vendorCategories.products')}</span>
                       </div>
                     </div>
 
@@ -653,7 +599,7 @@ const ManageCategories = () => {
 
             {/* Results Summary */}
             <div className="mt-4 text-sm text-gray-500">
-              Showing {filteredCategories.length} of {categories.length} categories
+              {t('vendorCategories.showing', { count: filteredCategories.length, total: categories.length })}
             </div>
           </>
         )}
@@ -664,7 +610,7 @@ const ManageCategories = () => {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl p-6 max-w-md w-full">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-900">Add New Category</h2>
+              <h2 className="text-xl font-bold text-gray-900">{t('vendorCategories.modal.add.title')}</h2>
               <button
                 onClick={() => {
                   resetAddForm();
@@ -679,23 +625,17 @@ const ManageCategories = () => {
             <form onSubmit={handleAddCategory} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Category Name *
+                  {t('vendorCategories.modal.add.categoryName')} *
                 </label>
                 <input
                   type="text"
                   value={newCategory.name}
                   onChange={(e) => setNewCategory({...newCategory, name: e.target.value})}
                   className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
-                  placeholder="e.g., Electronics"
+                  placeholder={t('vendorCategories.modal.add.namePlaceholder')}
                   required
                 />
               </div>
-
-              
-
-              
-
-             
 
               <div className="flex space-x-3 pt-4">
                 <button
@@ -706,12 +646,12 @@ const ManageCategories = () => {
                   {saving ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Adding...</span>
+                      <span>{t('vendorCategories.modal.add.adding')}</span>
                     </>
                   ) : (
                     <>
                       <Save className="h-4 w-4" />
-                      <span>Add Category</span>
+                      <span>{t('vendorCategories.modal.add.addCategory')}</span>
                     </>
                   )}
                 </button>
@@ -723,7 +663,7 @@ const ManageCategories = () => {
                   }}
                   className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
                 >
-                  Cancel
+                  {t('vendorCategories.modal.add.cancel')}
                 </button>
               </div>
             </form>
@@ -736,7 +676,7 @@ const ManageCategories = () => {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl p-6 max-w-md w-full">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-900">Edit Category</h2>
+              <h2 className="text-xl font-bold text-gray-900">{t('vendorCategories.modal.edit.title')}</h2>
               <button
                 onClick={() => {
                   resetEditForm();
@@ -751,7 +691,7 @@ const ManageCategories = () => {
             <form onSubmit={handleEditCategory} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Category Name *
+                  {t('vendorCategories.modal.edit.categoryName')} *
                 </label>
                 <input
                   type="text"
@@ -762,12 +702,6 @@ const ManageCategories = () => {
                 />
               </div>
 
-              
-
-              
-
-              
-
               <div className="flex space-x-3 pt-4">
                 <button
                   type="submit"
@@ -777,12 +711,12 @@ const ManageCategories = () => {
                   {saving ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Saving...</span>
+                      <span>{t('vendorCategories.modal.edit.saving')}</span>
                     </>
                   ) : (
                     <>
                       <Save className="h-4 w-4" />
-                      <span>Save Changes</span>
+                      <span>{t('vendorCategories.modal.edit.saveChanges')}</span>
                     </>
                   )}
                 </button>
@@ -794,7 +728,7 @@ const ManageCategories = () => {
                   }}
                   className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
                 >
-                  Cancel
+                  {t('vendorCategories.modal.edit.cancel')}
                 </button>
               </div>
             </form>

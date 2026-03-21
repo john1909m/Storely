@@ -1,0 +1,103 @@
+{
+  "landingPage": {
+    "welcome": "مرحبًا بك في ستورلي",
+    "mainDescription": "منصة واحدة للبائعين والعملاء",
+    "getStartedButton": "ابدأ الآن",
+    "features": {
+      "customStoreLinks": "روابط المتجر المخصصة",
+      "customStoreLinksDesc": "يحصل كل بائع على رابط متجر فريد يحمل علامته التجارية لمشاركته مع العملاء.",
+      "productManagement": "إدارة المنتجات",
+      "productManagementDesc": "أضف وعدّل ونظم المنتجات بسهولة مع الفئات والتنوعات.",
+      "orderSystem": "نظام الطلبات",
+      "orderSystemDesc": "عملية شراء كاملة مع تتبع الطلبات وإدارة العملاء.",
+      "mobileFriendly": "متوافق مع الجوال",
+      "mobileFriendlyDesc": "تبدو المتاجر رائعة على جميع الأجهزة مع التصميم المتجاوب.",
+      "analyticsDashboard": "لوحة تحكم التحليلات",
+      "analyticsDashboardDesc": "رؤى شاملة حول أداء متجرك."
+    },
+    "hero": {
+      "headline": "نمِ أعمالك مع ستورلي",
+      "description": "انضم إلى آلاف البائعين والعملاء على منصتنا."
+    },
+    "cta": {
+      "main": "جاهز للبدء في البيع؟",
+      "button": "أنشئ متجرك",
+      "benefits": [
+        "لا حاجة لبطاقة ائتمان",
+        "إعداد فوري"
+      ]
+    },
+    "footer": {
+      "aboutUs": "من نحن",
+      "features": "المميزات",
+      "pricing": "الأسعار",
+      "contact": "تواصل معنا",
+      "privacyPolicy": "سياسة الخصوصية",
+      "termsOfService": "شروط الخدمة",
+      "cookiePolicy": "سياسة الكوكيز",
+      "instagram": "انستجرام",
+      "facebook": "فيسبوك",
+      "followInstagram": "تابعنا على انستجرام",
+      "followFacebook": "تابعنا على فيسبوك",
+      "location": "القاهرة، مصر",
+      "phone": "+20 103 599 9541",
+      "email": "johnemil21@yahoo.com"
+    },
+    "navbar": {
+      "home": "الرئيسية",
+      "pricing": "الأسعار",
+      "contact": "تواصل"
+    },
+    "forVendors": {
+      "noTechSkills": "لا تحتاج لمهارات تقنية",
+      "noTechSkillsDesc": "واجهة سهلة تجعل إعداد المتجر بسيطًا.",
+      "zeroCoding": "بدون برمجة",
+      "growBusiness": "نمِ أعمالك",
+      "growBusinessDesc": "احصل على تحليلات قوية لاتخاذ قرارات مبنية على البيانات.",
+      "avgGrowth": "+150% نمو متوسط",
+      "reachCustomers": "الوصول إلى المزيد من العملاء",
+      "reachCustomersDesc": "شارك رابط متجرك الفريد عبر وسائل التواصل والمواقع.",
+      "reachStat": "10 آلاف وصول",
+      "easyOrderManagement": "إدارة الطلبات بسهولة",
+      "easyOrderManagementDesc": "تتبع ونفذ الطلبات من لوحة واحدة.",
+      "uptime": "تشغيل 99.9%",
+      "fasterSetup": "إعداد المتجر أسرع",
+      "higherConversion": "تحويل أعلى",
+      "platformSupport": "دعم المنصة",
+      "analytics": "تحليلات",
+      "customization": "تخصيص",
+      "payments": "مدفوعات"
+    },
+    "howItWorks": {
+      "signUp": "سجل حسابك",
+      "signUpDesc": "أنشئ حساب البائع في أقل من دقيقتين",
+      "quickRegistration": "تسجيل سريع بالبريد أو وسائل التواصل",
+      "createStore": "أنشئ متجرك",
+      "createStoreDesc": "أنشئ متجرك بعلامة تجارية ورابط مخصص",
+      "customizeStore": "خصص الألوان والشعار ومعلومات المتجر",
+      "addProducts": "أضف المنتجات",
+      "addProductsDesc": "ارفع المنتجات مع الصور والأسعار والفئات",
+      "bulkUpload": "رفع جماعي أو إضافة منتج تلو الآخر",
+      "shareLink": "شارك الرابط",
+      "shareLinkDesc": "شارك رابط متجرك الفريد مع العملاء",
+      "shareVia": "شارك عبر وسائل التواصل أو البريد أو رمز QR",
+      "receiveOrders": "استقبل الطلبات",
+      "receiveOrdersDesc": "ابدأ في استقبال الطلبات وتحقيق الأرباح",
+      "orderTracking": "إشعارات وتتبع الطلبات في الوقت الحقيقي"
+    },
+    "ramadanOffer": {
+      "eidSpecial": "عرض عيد الفطر",
+      "offerEndsIn": "ينتهي العرض خلال:",
+      "discount": "خصم 50%",
+      "day": "يوم",
+      "hour": "ساعة",
+      "minute": "دقيقة",
+      "second": "ثانية"
+    },
+    "seo": {
+      "siteName": "ستورلي",
+      "metaTitle": "ستورلي - منصة البائعين والعملاء",
+      "metaDescription": "ستورلي تربط البائعين والعملاء لتسوق سلس."
+    }
+  }
+}

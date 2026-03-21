@@ -1,0 +1,38 @@
+{
+  "components": {
+    "navbar": {
+      "logoAlt": "Storely Logo",
+      "aria": {
+        "siteHome": "Storely homepage",
+        "mainNavigation": "Main navigation",
+        "mobileNavigationMenu": "Mobile navigation menu",
+        "openMenu": "Open menu",
+        "closeMenu": "Close menu",
+        "cartItems": "{{count}} items in cart"
+      },
+      "links": {
+        "home": {
+          "name": "Home",
+          "ariaLabel": "Go to homepage"
+        },
+        "pricing": {
+          "name": "Pricing",
+          "ariaLabel": "View pricing plans"
+        },
+        "contact": {
+          "name": "Contact",
+          "ariaLabel": "Contact us"
+        }
+      },
+      "actions": {
+        "dashboard": "Dashboard",
+        "logout": "Logout",
+        "login": "Login",
+        "signup": "Sign Up",
+        "cart": "Cart",
+        "cartCount": "Cart ({{count}})"
+      }
+    }
+  }
+}
+

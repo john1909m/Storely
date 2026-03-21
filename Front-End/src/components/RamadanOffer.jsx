@@ -1,8 +1,10 @@
 // src/components/RamadanOffer.jsx
 import React, { useState, useEffect } from 'react';
 import { Gift, Star, Calendar, Clock, X, Sparkles } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const RamadanOffer = () => {
+  const { t } = useTranslation();
   const [isVisible, setIsVisible] = useState(true);
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
@@ -47,7 +49,7 @@ const RamadanOffer = () => {
           <button
             onClick={() => setIsVisible(false)}
             className="absolute z-50 hover:scale-125 hover:text-white top-4 right-4 text-white/80 transition-colors"
-            aria-label="Close offer"
+            aria-label={t('landing.ramadanOffer.closeAriaLabel')}
           >
             <X className="h-5 w-5" />
           </button>
@@ -59,7 +61,7 @@ const RamadanOffer = () => {
             <div className="flex-1">
               <div className="flex items-center space-x-1">
                 <Star className="h-4 w-4 text-yellow-300 fill-current" />
-                <span className="text-white/90 text-sm font-medium">Eid El-Fitr Special</span>
+                <span className="text-white/90 text-sm font-medium">{t('landing.ramadanOffer.title')}</span>
                 <Star className="h-4 w-4 text-yellow-300 fill-current" />
               </div>
             </div>
@@ -67,11 +69,11 @@ const RamadanOffer = () => {
 
           <h3 className="text-2xl font-bold text-white mb-2 flex items-center">
             <Sparkles className="h-5 w-5 mr-2 text-yellow-300" />
-            عيد فطر مبارك
+            {t('landing.ramadanOffer.heading')}
           </h3>
 
           <p className="text-emerald-100 text-sm leading-relaxed">
-            بمناسبة عيد الفطر المبارك، استفيد من خصم 50% على أول شهر اشتراك لجميع الخطط!
+            {t('landing.ramadanOffer.description')}
           </p>
         </div>
 
@@ -80,27 +82,27 @@ const RamadanOffer = () => {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center space-x-2 text-emerald-100">
               <Clock className="h-4 w-4" />
-              <span className="text-sm font-medium">العرض ينتهي خلال:</span>
+              <span className="text-sm font-medium">{t('landing.ramadanOffer.timerLabel')}</span>
             </div>
-            <span className="text-xs text-emerald-200">50% خصم</span>
+            <span className="text-xs text-emerald-200">{t('landing.ramadanOffer.discount')}</span>
           </div>
 
           <div className="grid grid-cols-4 gap-2 text-center">
             <div className="bg-emerald-900/50 rounded-lg p-2">
               <div className="text-xl font-bold text-white">{timeLeft.days}</div>
-              <div className="text-xs text-emerald-200">يوم</div>
+              <div className="text-xs text-emerald-200">{t('landing.ramadanOffer.days')}</div>
             </div>
             <div className="bg-emerald-900/50 rounded-lg p-2">
               <div className="text-xl font-bold text-white">{timeLeft.hours}</div>
-              <div className="text-xs text-emerald-200">ساعة</div>
+              <div className="text-xs text-emerald-200">{t('landing.ramadanOffer.hours')}</div>
             </div>
             <div className="bg-emerald-900/50 rounded-lg p-2">
               <div className="text-xl font-bold text-white">{timeLeft.minutes}</div>
-              <div className="text-xs text-emerald-200">دقيقة</div>
+              <div className="text-xs text-emerald-200">{t('landing.ramadanOffer.minutes')}</div>
             </div>
             <div className="bg-emerald-900/50 rounded-lg p-2">
               <div className="text-xl font-bold text-white">{timeLeft.seconds}</div>
-              <div className="text-xs text-emerald-200">ثانية</div>
+              <div className="text-xs text-emerald-200">{t('landing.ramadanOffer.seconds')}</div>
             </div>
           </div>
         </div>
@@ -111,10 +113,10 @@ const RamadanOffer = () => {
             href="/pricing"
             className="block w-full py-3 px-4 bg-white text-emerald-700 font-semibold rounded-xl hover:bg-emerald-50 transition-all text-center shadow-lg hover:shadow-xl transform hover:scale-105"
           >
-            استفد من العرض الآن
+            {t('landing.ramadanOffer.cta')}
           </a>
           <p className="text-xs text-emerald-200 text-center mt-3">
-            *العرض ساري على أول شهر فقط. لا يجمع مع عروض أخرى
+            {t('landing.ramadanOffer.footnote')}
           </p>
         </div>
 

@@ -13,6 +13,7 @@ import SEO from '../components/SEO';
 import RamadanOffer from '../components/RamadanOffer';
 import RamadanOfferBanner from '../components/RamadanOfferBanner';
 import { Sparkles, Compass, Zap, Shield, Star, ArrowDown } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 // إضافة أنماط CSS للـ 3D animations
 const scrollAnimationStyles = `
@@ -184,6 +185,7 @@ const LandingPage = () => {
   const { isAuthenticated, role, store } = useAuth();
   const navigate = useNavigate();
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const { t } = useTranslation();
   
   // Refs للأقسام المختلفة
   const heroRef = useRef(null);
@@ -301,16 +303,16 @@ const LandingPage = () => {
       </div>
       
       <SEO 
-        title="Storely - منصة المتاجر المستقلة"
-        description="أنشئ متجرك الإلكتروني وابدأ البيع في دقائق. Storely هي المنصة الأولى للمتاجر المستقلة في مصر والوطن العربي."
-        keywords="متجر إلكتروني, إنشاء متجر, تجارة إلكترونية, بيع اونلاين, منصة متاجر, Storely"
+        title={t('landing.seo.title')}
+        description={t('landing.seo.description')}
+        keywords={t('landing.seo.keywords')}
         image="https://storely-eg.com/og-image.jpg"
         url="https://storely-eg.com"
         schema={{
           "@context": "https://schema.org",
           "@type": "WebSite",
-          "name": "Storely",
-          "description": "منصة المتاجر المستقلة",
+          "name": t('landing.seo.schema.name'),
+          "description": t('landing.seo.schema.description'),
           "url": "https://storely.com",
           "potentialAction": {
             "@type": "SearchAction",

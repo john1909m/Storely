@@ -1,8 +1,9 @@
 // components/VariantSelector.jsx
 import React, { useState, useEffect } from 'react';
 import { X, Check, Package, AlertCircle, ShoppingCart, Palette, Ruler } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
-const VariantSelector = ({ product, onSelect, onClose, formatPrice }) => {
+const VariantSelector = ({ product, onSelect, onClose, formatPrice, t }) => {
   const [selectedColor, setSelectedColor] = useState(null);
   const [selectedSize, setSelectedSize] = useState(null);
   const [quantity, setQuantity] = useState(1);
@@ -13,13 +14,11 @@ const VariantSelector = ({ product, onSelect, onClose, formatPrice }) => {
 
   useEffect(() => {
     if (product && product.variants) {
-      // Extract unique colors
       const colors = [...new Set(product.variants
         .map(v => v.productColor)
         .filter(Boolean))];
       setUniqueColors(colors);
       
-      // Set first color as default if available
       if (colors.length > 0 && !selectedColor) {
         setSelectedColor(colors[0]);
       }
@@ -28,21 +27,18 @@ const VariantSelector = ({ product, onSelect, onClose, formatPrice }) => {
 
   useEffect(() => {
     if (selectedColor && product?.variants) {
-      // Get all sizes available for selected color
       const sizes = product.variants
         .filter(v => v.productColor === selectedColor && v.productSize)
         .map(v => v.productSize)
-        .filter((v, i, a) => a.indexOf(v) === i); // Unique sizes
+        .filter((v, i, a) => a.indexOf(v) === i);
       
       setAvailableSizes(sizes);
       
-      // Reset size selection if not available for this color
       if (selectedSize && !sizes.includes(selectedSize)) {
         setSelectedSize(null);
         setSelectedVariant(null);
       }
       
-      // Find variant if only colors (no sizes)
       if (!product.variants.some(v => v.productSize)) {
         const variant = product.variants.find(v => v.productColor === selectedColor);
         setSelectedVariant(variant);
@@ -52,7 +48,6 @@ const VariantSelector = ({ product, onSelect, onClose, formatPrice }) => {
 
   useEffect(() => {
     if (selectedColor && selectedSize && product?.variants) {
-      // Find variant with selected color and size
       const variant = product.variants.find(
         v => v.productColor === selectedColor && v.productSize === selectedSize
       );
@@ -62,20 +57,16 @@ const VariantSelector = ({ product, onSelect, onClose, formatPrice }) => {
 
   const handleAddToCart = () => {
     if (!selectedVariant) {
-      setError('Please select all options');
+      setError(t('variantSelector.selectOptions'));
       return;
     }
     
     if (quantity > selectedVariant.quantity) {
-      setError(`Only ${selectedVariant.quantity} units available`);
+      setError(t('variantSelector.notEnoughStock', { count: selectedVariant.quantity }));
       return;
     }
     
     onSelect(selectedVariant, quantity);
-  };
-
-  const getAvailableStock = () => {
-    return selectedVariant?.quantity || 0;
   };
 
   const defaultFormatPrice = (price) => {
@@ -94,7 +85,6 @@ const VariantSelector = ({ product, onSelect, onClose, formatPrice }) => {
 
   return (
     <div className="space-y-6">
-      {/* Product Info */}
       <div className="flex items-center gap-4 pb-6 border-b border-gray-100">
         <div className="h-20 w-20 rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
           {product.imageUrls && product.imageUrls[0] ? (
@@ -119,13 +109,12 @@ const VariantSelector = ({ product, onSelect, onClose, formatPrice }) => {
         </div>
       </div>
 
-      {/* Color Selection */}
       {hasColors && (
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <Palette className="h-5 w-5 text-gray-600" />
             <label className="text-sm font-medium text-gray-700">
-              Color <span className="text-red-500">*</span>
+              {t('variantSelector.color')} <span className="text-red-500">*</span>
             </label>
           </div>
           <div className="flex flex-wrap gap-3">
@@ -155,7 +144,7 @@ const VariantSelector = ({ product, onSelect, onClose, formatPrice }) => {
                   <div className="text-center">
                     <div className="font-medium">{color}</div>
                     <div className="text-xs mt-1">
-                      {isAvailable ? `${stockCount} left` : 'Out of stock'}
+                      {isAvailable ? `${stockCount} ${t('variantSelector.left')}` : t('variantSelector.outOfStock')}
                     </div>
                   </div>
                   {selectedColor === color && (
@@ -170,13 +159,12 @@ const VariantSelector = ({ product, onSelect, onClose, formatPrice }) => {
         </div>
       )}
 
-      {/* Size Selection */}
       {hasSizes && (
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <Ruler className="h-5 w-5 text-gray-600" />
             <label className="text-sm font-medium text-gray-700">
-              Size <span className="text-red-500">*</span>
+              {t('variantSelector.size')} <span className="text-red-500">*</span>
             </label>
           </div>
           <div className="flex flex-wrap gap-3">
@@ -204,7 +192,7 @@ const VariantSelector = ({ product, onSelect, onClose, formatPrice }) => {
                   <div className="text-center">
                     <div className="font-medium">{size}</div>
                     <div className="text-xs mt-1">
-                      {isAvailable ? `${variant?.quantity} left` : 'Out'}
+                      {isAvailable ? `${variant?.quantity} ${t('variantSelector.left')}` : t('variantSelector.out')}
                     </div>
                   </div>
                   {selectedSize === size && (
@@ -219,24 +207,22 @@ const VariantSelector = ({ product, onSelect, onClose, formatPrice }) => {
         </div>
       )}
 
-      {/* Selected Variant Info */}
       {selectedVariant && (
         <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
           <div className="flex items-start gap-3">
             <Package className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
             <div>
               <p className="text-sm font-medium text-blue-900">
-                Selected: {selectedColor} {selectedSize && `/ ${selectedSize}`}
+                {t('variantSelector.selected')}: {selectedColor} {selectedSize && `/ ${selectedSize}`}
               </p>
               <p className="text-sm text-blue-700 mt-1">
-                {selectedVariant.quantity} units available
+                {selectedVariant.quantity} {t('variantSelector.unitsAvailable')}
               </p>
             </div>
           </div>
         </div>
       )}
 
-      {/* Error Message */}
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-xl p-4">
           <div className="flex items-center gap-3">
@@ -246,11 +232,10 @@ const VariantSelector = ({ product, onSelect, onClose, formatPrice }) => {
         </div>
       )}
 
-      {/* Quantity Selector */}
       {selectedVariant && (
         <div className="space-y-3">
           <label className="block text-sm font-medium text-gray-700">
-            Quantity
+            {t('variantSelector.quantity')}
           </label>
           <div className="flex items-center gap-4">
             <div className="flex items-center border border-gray-200 rounded-lg">
@@ -273,13 +258,12 @@ const VariantSelector = ({ product, onSelect, onClose, formatPrice }) => {
               </button>
             </div>
             <span className="text-sm text-gray-600">
-              Max: {selectedVariant.quantity}
+              {t('variantSelector.max')}: {selectedVariant.quantity}
             </span>
           </div>
         </div>
       )}
 
-      {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-gray-200">
         <button
           onClick={handleAddToCart}
@@ -296,8 +280,8 @@ const VariantSelector = ({ product, onSelect, onClose, formatPrice }) => {
           <ShoppingCart className="h-5 w-5" />
           <span>
             {!selectedVariant 
-              ? 'Select Options' 
-              : `Add to Cart - ${priceFormatter(product.price * quantity)}`
+              ? t('variantSelector.selectOptions') 
+              : `${t('variantSelector.addToCart')} - ${priceFormatter(product.price * quantity)}`
             }
           </span>
         </button>
@@ -306,17 +290,16 @@ const VariantSelector = ({ product, onSelect, onClose, formatPrice }) => {
           onClick={onClose}
           className="flex-1 sm:flex-none px-8 py-4 border border-gray-200 text-gray-700 rounded-xl hover:border-gray-300 hover:bg-gray-50 transition-colors font-medium"
         >
-          Cancel
+          {t('variantSelector.cancel')}
         </button>
       </div>
 
-      {/* Stock Summary */}
       {selectedVariant && (
         <div className="text-center text-sm text-gray-500">
-          <p>Total: {priceFormatter(product.price * quantity)}</p>
+          <p>{t('variantSelector.total')}: {priceFormatter(product.price * quantity)}</p>
           {selectedVariant.quantity <= 5 && (
             <p className="text-amber-600 mt-2">
-              Only {selectedVariant.quantity} left in stock - order soon
+              {t('variantSelector.onlyLeftOrderSoon', { count: selectedVariant.quantity })}
             </p>
           )}
         </div>

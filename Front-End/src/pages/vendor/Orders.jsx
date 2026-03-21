@@ -1,6 +1,7 @@
-// src/pages/vendor/VendorOrders.jsx - النسخة النهائية المتزامنة بالكامل
+// src/pages/vendor/VendorOrders.jsx - النسخة النهائية مع الترجمة
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Search, Filter, Eye, Package, Truck,
   CheckCircle, XCircle, Clock, AlertCircle,
@@ -26,6 +27,7 @@ import { useErrorHandler } from '../../hooks/useErrorHandler';
 import useAuthStore from '../../store/authStore';
 
 const VendorOrders = () => {
+  const { t, i18n } = useTranslation();
   const [orders, setOrders] = useState([]);
   const [customers, setCustomers] = useState({});
   const [governorates, setGovernorates] = useState([]);
@@ -59,10 +61,10 @@ const VendorOrders = () => {
       fetchOrders();
       fetchGovernorates();
     } else {
-      setError('Store not found. Please create a store first.');
+      setError(t('vendorOrders.errors.storeNotFound'));
       setIsLoading(false);
     }
-  }, [store, authInialized]);
+  }, [store, authInialized, t]);
 
   const fetchStoreData = async () => {
     try {
@@ -92,13 +94,11 @@ const VendorOrders = () => {
       const storeOrders = await orderAPI.getByStore(store.id);
       const ordersList = Array.isArray(storeOrders) ? storeOrders : [];
       
-      // معالجة البيانات من API مع تحديد نوع الدفع
       const processedOrders = ordersList.map(order => {
         const method = getPaymentMethodName(order);
         const hasDeposit = order.depositValue && order.depositValue > 0;
         const remainingAmount = (order.totalPrice || 0) - (order.depositValue || 0);
         
-        // تحديد نوع الدفع
         let paymentType = 'UNKNOWN';
         if (method === 'COD') {
           paymentType = hasDeposit ? 'COD_DEPOSIT' : 'COD_FULL';
@@ -125,7 +125,6 @@ const VendorOrders = () => {
       
       setOrders(processedOrders);
 
-      // جلب بيانات العملاء
       const customerMap = {};
       
       for (const order of processedOrders) {
@@ -153,7 +152,6 @@ const VendorOrders = () => {
     }
   };
 
-  // الحصول على اسم طريقة الدفع
   const getPaymentMethodName = (order) => {
     if (order.paymentMethodName) return order.paymentMethodName;
     
@@ -165,7 +163,6 @@ const VendorOrders = () => {
     return order.paymentMethod || 'COD';
   };
 
-  // الحصول على أيقونة طريقة الدفع
   const getPaymentMethodIcon = (methodName) => {
     const name = methodName?.toUpperCase();
     switch (name) {
@@ -180,7 +177,6 @@ const VendorOrders = () => {
     }
   };
 
-  // الحصول على لون طريقة الدفع
   const getPaymentMethodColor = (methodName) => {
     const name = methodName?.toUpperCase();
     switch (name) {
@@ -195,22 +191,20 @@ const VendorOrders = () => {
     }
   };
 
-  // الحصول على اسم عرض طريقة الدفع
   const getPaymentMethodDisplayName = (methodName) => {
     const name = methodName?.toUpperCase();
     switch (name) {
       case 'INSTAPAY':
-        return 'Instapay';
+        return t('vendorOrders.paymentMethods.instapay');
       case 'VODAFONE_CASH':
-        return 'Vodafone Cash';
+        return t('vendorOrders.paymentMethods.vodafoneCash');
       case 'COD':
-        return 'Cash on Delivery';
+        return t('vendorOrders.paymentMethods.cod');
       default:
         return methodName || 'COD';
     }
   };
 
-  // الحصول على معلومات نوع الدفع
   const getPaymentTypeInfo = (order) => {
     const method = getPaymentMethodName(order);
     const paymentType = order.paymentType;
@@ -218,119 +212,112 @@ const VendorOrders = () => {
     if (method === 'COD') {
       if (paymentType === 'COD_DEPOSIT') {
         return {
-          label: 'COD + Deposit',
+          label: t('vendorOrders.paymentTypes.codWithDeposit'),
           color: 'bg-purple-100 text-purple-800 border-purple-200',
           icon: Wallet,
-          description: `Deposit: ${formatCurrency(order.depositValue)} • Remaining: ${formatCurrency(order.remainingAmount)}`
+          description: t('vendorOrders.paymentTypes.depositDescription', { deposit: formatCurrency(order.depositValue), remaining: formatCurrency(order.remainingAmount) })
         };
       } else {
         return {
-          label: 'COD (Full)',
+          label: t('vendorOrders.paymentTypes.codFull'),
           color: 'bg-blue-100 text-blue-800 border-blue-200',
           icon: Banknote,
-          description: 'Pay full amount on delivery'
+          description: t('vendorOrders.paymentTypes.codFullDescription')
         };
       }
     } else {
       return {
-        label: 'Online Payment',
+        label: t('vendorOrders.paymentTypes.onlinePayment'),
         color: 'bg-green-100 text-green-800 border-green-200',
         icon: CreditCard,
-        description: 'Paid in full online'
+        description: t('vendorOrders.paymentTypes.onlineDescription')
       };
     }
   };
 
-  // الحصول على حالة الدفع
   const getPaymentStatusInfo = (order) => {
     const method = getPaymentMethodName(order);
     const paymentType = order.paymentType;
     
-    // Online payment (Instapay/Vodafone Cash)
     if (method !== 'COD') {
       if (order.paymentStatus === 'PAID') {
         return {
-          label: 'Paid',
+          label: t('vendorOrders.paymentStatus.paid'),
           color: 'bg-green-100 text-green-800',
           icon: CheckCircle,
-          description: 'Payment received'
+          description: t('vendorOrders.paymentStatus.paidDescription')
         };
       } else if (order.paymentStatus === 'FAILED') {
         return {
-          label: 'Failed',
+          label: t('vendorOrders.paymentStatus.failed'),
           color: 'bg-red-100 text-red-800',
           icon: XCircle,
-          description: 'Payment failed'
+          description: t('vendorOrders.paymentStatus.failedDescription')
         };
       } else {
         return {
-          label: 'Pending',
+          label: t('vendorOrders.paymentStatus.pending'),
           color: 'bg-yellow-100 text-yellow-800',
           icon: Clock,
-          description: 'Waiting for payment'
+          description: t('vendorOrders.paymentStatus.pendingDescription')
         };
       }
     }
     
-    // COD with deposit
     if (paymentType === 'COD_DEPOSIT') {
       if (order.depositStatus === 'CONFIRMED') {
         return {
-          label: 'Deposit Confirmed',
+          label: t('vendorOrders.paymentStatus.depositConfirmed'),
           color: 'bg-green-100 text-green-800',
           icon: CheckCircle,
-          description: `Deposit paid: ${formatCurrency(order.depositValue)} • Remaining: ${formatCurrency(order.remainingAmount)}`
+          description: t('vendorOrders.paymentStatus.depositConfirmedDescription', { deposit: formatCurrency(order.depositValue), remaining: formatCurrency(order.remainingAmount) })
         };
       } else if (order.depositStatus === 'UNDER_REVIEW') {
         return {
-          label: 'Deposit Under Review',
+          label: t('vendorOrders.paymentStatus.depositUnderReview'),
           color: 'bg-yellow-100 text-yellow-800',
           icon: Clock,
-          description: 'Deposit proof uploaded'
+          description: t('vendorOrders.paymentStatus.depositUnderReviewDescription')
         };
       } else if (order.depositStatus === 'REJECTED') {
         return {
-          label: 'Deposit Rejected',
+          label: t('vendorOrders.paymentStatus.depositRejected'),
           color: 'bg-red-100 text-red-800',
           icon: XCircle,
-          description: 'Deposit was rejected'
+          description: t('vendorOrders.paymentStatus.depositRejectedDescription')
         };
       } else if (order.depositStatus === 'PENDING') {
         return {
-          label: 'Deposit Pending',
+          label: t('vendorOrders.paymentStatus.depositPending'),
           color: 'bg-yellow-100 text-yellow-800',
           icon: AlertTriangle,
-          description: `Deposit required: ${formatCurrency(order.depositValue)}`
+          description: t('vendorOrders.paymentStatus.depositPendingDescription', { deposit: formatCurrency(order.depositValue) })
         };
       } else {
         return {
-          label: 'No Deposit',
+          label: t('vendorOrders.paymentStatus.noDeposit'),
           color: 'bg-gray-100 text-gray-800',
           icon: AlertCircle,
-          description: 'Deposit not required'
+          description: t('vendorOrders.paymentStatus.noDepositDescription')
         };
       }
     }
     
-    // COD without deposit
     return {
-      label: 'Pay on Delivery',
+      label: t('vendorOrders.paymentStatus.payOnDelivery'),
       color: 'bg-blue-100 text-blue-800',
       icon: Truck,
-      description: `Will be paid upon delivery: ${formatCurrency(order.totalPrice)}`
+      description: t('vendorOrders.paymentStatus.payOnDeliveryDescription', { amount: formatCurrency(order.totalPrice) })
     };
   };
 
-  // الحصول على صورة الدفع (سواء إيداع أو دفع كامل)
   const getPaymentScreenshotUrl = (order) => {
     const method = getPaymentMethodName(order);
     
-    // Online payment
     if (method !== 'COD') {
       return order.depositScreenShotUrl || null;
     }
     
-    // COD with deposit
     if (order.paymentType === 'COD_DEPOSIT') {
       return order.depositScreenShotUrl || null;
     }
@@ -338,7 +325,6 @@ const VendorOrders = () => {
     return null;
   };
 
-  // تحديث حالة الدفع الكامل
   const handlePaymentStatusUpdate = async (orderId, newPaymentStatus, newOrderStatus, newDepositStatus) => {
     if (isUpdating) return;
     
@@ -359,13 +345,10 @@ const VendorOrders = () => {
 
       console.log('📤 Updating payment status:', updatedOrder);
       
-      // تحديث في الباكند
       const response = await orderAPI.update(updatedOrder);
       console.log('✅ Update response:', response);
       
-      // تحديث في الـ state المحلي باستخدام البيانات من الـ response
       if (response && response.id) {
-        // دمج البيانات القديمة مع الجديدة
         const updatedFromServer = {
           ...order,
           ...response,
@@ -381,7 +364,6 @@ const VendorOrders = () => {
           prevOrders.map(o => o.id === orderId ? updatedFromServer : o)
         );
       } else {
-        // لو مفيش response، استخدم updatedOrder
         setOrders(prevOrders => 
           prevOrders.map(o => o.id === orderId ? { ...o, ...updatedOrder } : o)
         );
@@ -396,7 +378,6 @@ const VendorOrders = () => {
     }
   };
 
-  // تحديث حالة الإيداع
   const handleDepositStatusUpdate = async (orderId, newDepositStatus, depositPaid, newOrderStatus, newPaymentStatus) => {
     if (isUpdating) return;
     
@@ -416,13 +397,10 @@ const VendorOrders = () => {
 
       console.log('📤 Updating deposit status:', updatedOrder);
       
-      // تحديث في الباكند
       const response = await orderAPI.update(updatedOrder);
       console.log('✅ Update response:', response);
       
-      // تحديث في الـ state المحلي باستخدام البيانات من الـ response
       if (response && response.id) {
-        // دمج البيانات القديمة مع الجديدة
         const updatedFromServer = {
           ...order,
           ...response,
@@ -436,7 +414,6 @@ const VendorOrders = () => {
           prevOrders.map(o => o.id === orderId ? updatedFromServer : o)
         );
       } else {
-        // لو مفيش response، استخدم updatedOrder
         setOrders(prevOrders => 
           prevOrders.map(o => o.id === orderId ? { ...o, ...updatedOrder } : o)
         );
@@ -451,7 +428,6 @@ const VendorOrders = () => {
     }
   };
 
-  // تحديث حالة الطلب
   const handleStatusUpdate = async (orderId, newStatus) => {
     if (isUpdating) return;
     
@@ -468,11 +444,9 @@ const VendorOrders = () => {
 
       console.log('📤 Updating order status:', updatedOrder);
       
-      // تحديث في الباكند
       const response = await orderAPI.update(updatedOrder);
       console.log('✅ Update response:', response);
       
-      // تحديث في الـ state المحلي باستخدام البيانات من الـ response
       if (response && response.id) {
         setOrders(prevOrders => 
           prevOrders.map(o => o.id === orderId ? { ...o, ...response } : o)
@@ -490,9 +464,8 @@ const VendorOrders = () => {
     }
   };
 
-  // إلغاء الطلب
   const handleCancelOrder = async (orderId) => {
-    if (!window.confirm('Are you sure you want to cancel this order?')) return;
+    if (!window.confirm(t('vendorOrders.confirm.cancelOrder'))) return;
     if (isUpdating) return;
 
     try {
@@ -507,7 +480,6 @@ const VendorOrders = () => {
       const response = await orderAPI.update(updatedOrder);
       console.log('✅ Cancel response:', response);
       
-      // تحديث في الـ state المحلي باستخدام البيانات من الـ response
       if (response && response.id) {
         setOrders(prevOrders => 
           prevOrders.map(o => o.id === orderId ? { ...o, ...response } : o)
@@ -525,7 +497,6 @@ const VendorOrders = () => {
     }
   };
 
-  // حذف الطلب
   const handleDeleteOrder = async (orderId) => {
     try {
       setIsDeleting(true);
@@ -549,25 +520,21 @@ const VendorOrders = () => {
     }
   };
 
-  // تأكيد الدفع الكامل
   const handleConfirmFullPayment = (order) => {
     console.log('💰 Confirming full payment for order:', order.id);
     handlePaymentStatusUpdate(order.id, 'PAID', 'CONFIRMED', 'CONFIRMED');
   };
 
-  // رفض الدفع الكامل
   const handleRejectFullPayment = (order) => {
     console.log('❌ Rejecting full payment for order:', order.id);
     handlePaymentStatusUpdate(order.id, 'FAILED', 'CANCELLED', 'REJECTED');
   };
 
-  // تأكيد الإيداع
   const handleConfirmDeposit = (order) => {
     console.log('💰 Confirming deposit for order:', order.id);
     handleDepositStatusUpdate(order.id, 'CONFIRMED', true, 'CONFIRMED', 'PAID');
   };
 
-  // رفض الإيداع
   const handleRejectDeposit = (order) => {
     console.log('❌ Rejecting deposit for order:', order.id);
     handleDepositStatusUpdate(order.id, 'REJECTED', false, 'CANCELLED', 'FAILED');
@@ -638,16 +605,15 @@ const VendorOrders = () => {
     const paymentStatus = order.paymentStatus || 'PENDING';
     const method = getPaymentMethodName(order);
     
-    // تحديد نوع الدفع بالعربية للطباعة
     let paymentTypeLabel = '';
     if (method === 'COD') {
-      paymentTypeLabel = paymentType === 'COD_DEPOSIT' ? 'COD مع إيداع' : 'COD (كاش)';
+      paymentTypeLabel = paymentType === 'COD_DEPOSIT' ? t('vendorOrders.receipt.paymentType.codWithDeposit') : t('vendorOrders.receipt.paymentType.codFull');
     } else {
-      paymentTypeLabel = 'دفع إلكتروني (كامل)';
+      paymentTypeLabel = t('vendorOrders.receipt.paymentType.onlineFull');
     }
     
     const formattedDate = orderDate 
-      ? new Date(orderDate).toLocaleString('en-US', {
+      ? new Date(orderDate).toLocaleString(i18n.language === 'ar' ? 'ar-EG' : 'en-US', {
           weekday: 'long',
           year: 'numeric',
           month: 'long',
@@ -661,19 +627,19 @@ const VendorOrders = () => {
       <tr>
         <td style="padding: 12px; border-bottom: 1px solid #eee;">
           <div style="font-weight: 600; color: #333;">${item.productName || item.name}</div>
-          ${item.variant ? `<div style="font-size: 12px; color: #666;">Variant: ${item.variant}</div>` : ''}
-        </td>
+          ${item.variant ? `<div style="font-size: 12px; color: #666;">${t('vendorOrders.receipt.variant')}: ${item.variant}</div>` : ''}
+         </td>
         <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity || 1}</td>
         <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: right;">${formatCurrency(item.price || 0)}</td>
         <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: right;">${formatCurrency((item.price || 0) * (item.quantity || 1))}</td>
-      </tr>
+       </tr>
     `).join('');
 
     return `
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Receipt - Order #${orderNumber}</title>
+        <title>${t('vendorOrders.receipt.title')} #${orderNumber}</title>
         <style>
           @media print {
             body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
@@ -874,111 +840,111 @@ const VendorOrders = () => {
         <div class="receipt">
           <div class="header">
             <h1 class="store-name">${storeName}</h1>
-            <p class="receipt-title">Order Receipt</p>
+            <p class="receipt-title">${t('vendorOrders.receipt.title')}</p>
           </div>
           
           <div class="order-info">
             <div class="info-group">
-              <div class="info-label">Order Number</div>
+              <div class="info-label">${t('vendorOrders.receipt.orderNumber')}</div>
               <div class="info-value">#${orderNumber}</div>
             </div>
             <div class="info-group">
-              <div class="info-label">Order Date</div>
+              <div class="info-label">${t('vendorOrders.receipt.orderDate')}</div>
               <div class="info-value">${formattedDate}</div>
             </div>
             <div class="info-group">
-              <div class="info-label">Payment Method</div>
+              <div class="info-label">${t('vendorOrders.receipt.paymentMethod')}</div>
               <div><span class="payment-type">${paymentMethod}</span></div>
             </div>
             <div class="info-group">
-              <div class="info-label">Payment Type</div>
+              <div class="info-label">${t('vendorOrders.receipt.paymentType')}</div>
               <div><span class="payment-type">${paymentTypeLabel}</span></div>
             </div>
             <div class="info-group">
-              <div class="info-label">Order Status</div>
+              <div class="info-label">${t('vendorOrders.receipt.orderStatus')}</div>
               <div><span class="status-badge">${orderStatus}</span></div>
             </div>
           </div>
           
           <div class="customer-section">
-            <h2 class="section-title">Customer Details</h2>
+            <h2 class="section-title">${t('vendorOrders.receipt.customerDetails')}</h2>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
               <div>
-                <div class="info-label">Name</div>
+                <div class="info-label">${t('vendorOrders.receipt.name')}</div>
                 <div class="info-value">${customer?.firstName || ''} ${customer?.lastName || ''}</div>
               </div>
               <div>
-                <div class="info-label">Contact</div>
+                <div class="info-label">${t('vendorOrders.receipt.contact')}</div>
                 <div class="info-value">${customer?.whatsappNumber || 'N/A'}</div>
                 <div style="color: #666;">${customer?.phoneNumber || ''}</div>
               </div>
             </div>
             <div style="margin-top: 15px;">
-              <div class="info-label">Shipping Address</div>
+              <div class="info-label">${t('vendorOrders.receipt.shippingAddress')}</div>
               <div class="info-value">${customer?.address || order.shippingAddress || ''}</div>
               <div class="info-value" style="margin-top: 5px; color: #4f46e5;">
-                <span style="font-weight: 600;">Governorate:</span> ${governorateName}
+                <span style="font-weight: 600;">${t('vendorOrders.receipt.governorate')}:</span> ${governorateName}
               </div>
             </div>
           </div>
           
-          <h2 class="section-title">Order Items</h2>
+          <h2 class="section-title">${t('vendorOrders.receipt.orderItems')}</h2>
           <table class="items-table">
             <thead>
               <tr>
-                <th style="text-align: left;">Product</th>
-                <th style="text-align: center;">Qty</th>
-                <th style="text-align: right;">Price</th>
-                <th style="text-align: right;">Total</th>
-              </tr>
+                <th style="text-align: left;">${t('vendorOrders.receipt.product')}</th>
+                <th style="text-align: center;">${t('vendorOrders.receipt.qty')}</th>
+                <th style="text-align: right;">${t('vendorOrders.receipt.price')}</th>
+                <th style="text-align: right;">${t('vendorOrders.receipt.total')}</th>
+               </tr>
             </thead>
             <tbody>
               ${itemsHTML}
             </tbody>
-          </table>
+           </table>
           
           <div class="summary">
             <div class="summary-row">
-              <span>Subtotal:</span>
+              <span>${t('vendorOrders.receipt.subtotal')}:</span>
               <span style="font-weight: 600;">${formatCurrency(totalPrice - shippingCost)}</span>
             </div>
             <div class="summary-row">
-              <span>Shipping:</span>
+              <span>${t('vendorOrders.receipt.shipping')}:</span>
               <span style="font-weight: 600;">${formatCurrency(shippingCost)}</span>
             </div>
             
             ${depositValue > 0 ? `
             <div class="deposit-row">
               <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                <span style="font-weight: 600;">Deposit Paid:</span>
-                <span style="font-weight: 600; color: ${order.depositPaid ? '#059669' : '#b45309'};">${order.depositPaid ? 'Yes' : 'No'}</span>
+                <span style="font-weight: 600;">${t('vendorOrders.receipt.depositPaid')}:</span>
+                <span style="font-weight: 600; color: ${order.depositPaid ? '#059669' : '#b45309'};">${order.depositPaid ? t('common.yes') : t('common.no')}</span>
               </div>
               <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                <span style="font-weight: 600;">Deposit Amount:</span>
+                <span style="font-weight: 600;">${t('vendorOrders.receipt.depositAmount')}:</span>
                 <span style="font-weight: 600; color: #b45309;">${formatCurrency(depositValue)}</span>
               </div>
               <div style="display: flex; justify-content: space-between;">
-                <span>Remaining on delivery:</span>
+                <span>${t('vendorOrders.receipt.remainingOnDelivery')}:</span>
                 <span style="font-weight: 600;">${formatCurrency(remainingAmount)}</span>
               </div>
               <div style="margin-top: 8px;">
-                <span class="deposit-badge">Deposit Status: ${depositStatus}</span>
+                <span class="deposit-badge">${t('vendorOrders.receipt.depositStatus')}: ${depositStatus}</span>
               </div>
             </div>
             ` : ''}
             
             <div class="summary-row total-row">
-              <span>Order Total:</span>
+              <span>${t('vendorOrders.receipt.orderTotal')}:</span>
               <span>${formatCurrency(totalPrice)}</span>
             </div>
           </div>
           
           <div class="no-print">
             <button onclick="window.print();" class="print-button">
-              🖨️ Print Receipt
+              🖨️ ${t('vendorOrders.receipt.print')}
             </button>
             <button onclick="window.close();" class="print-button secondary">
-              ✕ Close
+              ✕ ${t('vendorOrders.receipt.close')}
             </button>
           </div>
         </div>
@@ -1081,7 +1047,8 @@ const VendorOrders = () => {
   };
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
+    const localeCode = i18n.language === 'ar' ? 'ar-EG' : 'en-US';
+    return new Intl.NumberFormat(localeCode, {
       style: 'currency',
       currency: 'EGP',
       minimumFractionDigits: 2
@@ -1090,7 +1057,8 @@ const VendorOrders = () => {
 
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('en-US', {
+    const localeCode = i18n.language === 'ar' ? 'ar-EG' : 'en-US';
+    return new Date(dateString).toLocaleDateString(localeCode, {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -1098,13 +1066,13 @@ const VendorOrders = () => {
   };
 
   const statusConfig = {
-    all: { label: 'All Orders', color: 'indigo', count: stats.total, icon: Package },
-    pending: { label: 'Pending', color: 'yellow', count: stats.pending, icon: Clock },
-    confirmed: { label: 'Confirmed', color: 'green', count: stats.confirmed, icon: CheckCircle },
-    processing: { label: 'Processing', color: 'indigo', count: stats.processing, icon: RefreshCw },
-    shipped: { label: 'Shipped', color: 'yellow', count: stats.shipped, icon: Truck },
-    delivered: { label: 'Delivered', color: 'green', count: stats.delivered, icon: CheckCircle },
-    cancelled: { label: 'Cancelled', color: 'red', count: stats.cancelled, icon: XCircle }
+    all: { label: t('vendorOrders.statusTabs.all'), color: 'indigo', count: stats.total, icon: Package },
+    pending: { label: t('vendorOrders.statusTabs.pending'), color: 'yellow', count: stats.pending, icon: Clock },
+    confirmed: { label: t('vendorOrders.statusTabs.confirmed'), color: 'green', count: stats.confirmed, icon: CheckCircle },
+    processing: { label: t('vendorOrders.statusTabs.processing'), color: 'indigo', count: stats.processing, icon: RefreshCw },
+    shipped: { label: t('vendorOrders.statusTabs.shipped'), color: 'yellow', count: stats.shipped, icon: Truck },
+    delivered: { label: t('vendorOrders.statusTabs.delivered'), color: 'green', count: stats.delivered, icon: CheckCircle },
+    cancelled: { label: t('vendorOrders.statusTabs.cancelled'), color: 'red', count: stats.cancelled, icon: XCircle }
   };
 
   const filteredOrders = orders.filter(order => {
@@ -1147,8 +1115,8 @@ const VendorOrders = () => {
             <div className="animate-spin rounded-full h-16 w-16 border-4 border-indigo-200 border-t-indigo-600 mx-auto mb-4"></div>
             <Package className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-6 w-6 text-indigo-600" />
           </div>
-          <p className="text-gray-600 font-medium">Loading your orders...</p>
-          <p className="text-sm text-gray-500 mt-2">Please wait a moment</p>
+          <p className="text-gray-600 font-medium">{t('vendorOrders.loading.orders')}</p>
+          <p className="text-sm text-gray-500 mt-2">{t('vendorOrders.loading.pleaseWait')}</p>
         </div>
       </div>
     );
@@ -1198,24 +1166,21 @@ const VendorOrders = () => {
                 </div>
               </div>
               
-              <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
-                Delete Order
-              </h3>
+              <h3 className="text-xl font-bold text-gray-900 text-center mb-2">{t('vendorOrders.modal.delete.title')}</h3>
               
               <p className="text-gray-600 text-center mb-6">
-                Are you sure you want to delete order #{orderToDelete.id?.substring(0, 8)}?<br />
-                This action will permanently delete the order.<br />
-                <span className="text-red-500 font-medium mt-2 block">This cannot be undone!</span>
+                {t('vendorOrders.modal.delete.message', { orderId: orderToDelete.id?.substring(0, 8) })}
+                <span className="text-red-500 font-medium mt-2 block">{t('vendorOrders.modal.delete.warning')}</span>
               </p>
 
               <div className="bg-gray-50 rounded-xl p-4 mb-6">
                 <div className="flex justify-between text-sm mb-2">
-                  <span className="text-gray-600">Order Total:</span>
+                  <span className="text-gray-600">{t('vendorOrders.modal.delete.orderTotal')}:</span>
                   <span className="font-semibold text-gray-900">{formatCurrency(orderToDelete.totalPrice)}</span>
                 </div>
                 {orderToDelete.depositValue > 0 && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Deposit:</span>
+                    <span className="text-gray-600">{t('vendorOrders.modal.delete.deposit')}:</span>
                     <span className="font-semibold text-amber-600">{formatCurrency(orderToDelete.depositValue)}</span>
                   </div>
                 )}
@@ -1230,7 +1195,7 @@ const VendorOrders = () => {
                   disabled={isDeleting}
                   className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors disabled:opacity-50"
                 >
-                  Cancel
+                  {t('vendorOrders.modal.delete.cancel')}
                 </button>
                 <button
                   onClick={() => handleDeleteOrder(orderToDelete.id)}
@@ -1240,12 +1205,12 @@ const VendorOrders = () => {
                   {isDeleting ? (
                     <>
                       <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <span>Deleting...</span>
+                      <span>{t('vendorOrders.modal.delete.deleting')}</span>
                     </>
                   ) : (
                     <>
                       <Trash2 className="h-5 w-5" />
-                      <span>Delete Order</span>
+                      <span>{t('vendorOrders.modal.delete.confirm')}</span>
                     </>
                   )}
                 </button>
@@ -1270,9 +1235,9 @@ const VendorOrders = () => {
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-gray-900">
-                    {selectedPayment.isDeposit ? 'Deposit Details' : 'Payment Details'}
+                    {selectedPayment.isDeposit ? t('vendorOrders.modal.payment.depositTitle') : t('vendorOrders.modal.payment.paymentTitle')}
                   </h3>
-                  <p className="text-sm text-gray-500">Order #{selectedPayment.orderNumber}</p>
+                  <p className="text-sm text-gray-500">{t('vendorOrders.modal.payment.order')} #{selectedPayment.orderNumber}</p>
                 </div>
               </div>
               <button
@@ -1286,20 +1251,20 @@ const VendorOrders = () => {
             <div className="p-6 space-y-6">
               <div className={`bg-gradient-to-r ${selectedPayment.isDeposit ? 'from-amber-500 to-orange-500' : 'from-green-500 to-emerald-500'} rounded-xl p-5 text-white`}>
                 <h4 className="font-medium mb-2">
-                  {selectedPayment.isDeposit ? 'Deposit Amount' : 'Payment Amount'}
+                  {selectedPayment.isDeposit ? t('vendorOrders.modal.payment.depositAmount') : t('vendorOrders.modal.payment.paymentAmount')}
                 </h4>
                 <div className="text-3xl font-bold">{formatCurrency(selectedPayment.value)}</div>
                 <p className="text-sm text-white/80 mt-1">
-                  Method: {selectedPayment.methodName}
+                  {t('vendorOrders.modal.payment.method')}: {selectedPayment.methodName}
                 </p>
                 <p className="text-sm text-white/80">
-                  Status: {selectedPayment.status}
+                  {t('vendorOrders.modal.payment.status')}: {selectedPayment.status}
                 </p>
               </div>
 
               {selectedPayment.screenshotUrl && (
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-3">Payment Proof</h4>
+                  <h4 className="font-semibold text-gray-900 mb-3">{t('vendorOrders.modal.payment.paymentProof')}</h4>
                   <div className="border border-gray-200 rounded-xl overflow-hidden">
                     <img 
                       src={selectedPayment.screenshotUrl} 
@@ -1315,7 +1280,7 @@ const VendorOrders = () => {
                       className="text-sm text-indigo-600 hover:text-indigo-700 flex items-center space-x-1"
                     >
                       <DownloadIcon className="h-4 w-4" />
-                      <span>Download</span>
+                      <span>{t('vendorOrders.modal.payment.download')}</span>
                     </a>
                     <a 
                       href={selectedPayment.screenshotUrl} 
@@ -1324,27 +1289,27 @@ const VendorOrders = () => {
                       className="text-sm text-indigo-600 hover:text-indigo-700 flex items-center space-x-1"
                     >
                       <EyeIcon className="h-4 w-4" />
-                      <span>View Full Size</span>
+                      <span>{t('vendorOrders.modal.payment.viewFull')}</span>
                     </a>
                   </div>
                 </div>
               )}
 
               <div className="bg-gray-50 rounded-xl p-4">
-                <h4 className="font-semibold text-gray-900 mb-3">Payment Information</h4>
+                <h4 className="font-semibold text-gray-900 mb-3">{t('vendorOrders.modal.payment.paymentInformation')}</h4>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Method:</span>
+                    <span className="text-gray-600">{t('vendorOrders.modal.payment.method')}:</span>
                     <span className="font-medium text-gray-900">{selectedPayment.methodName}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Status:</span>
+                    <span className="text-gray-600">{t('vendorOrders.modal.payment.status')}:</span>
                     <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${selectedPayment.statusColor}`}>
                       {selectedPayment.status}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Date:</span>
+                    <span className="text-gray-600">{t('vendorOrders.modal.payment.date')}:</span>
                     <span className="font-medium text-gray-900">{formatDate(selectedPayment.createdAt)}</span>
                   </div>
                 </div>
@@ -1363,7 +1328,7 @@ const VendorOrders = () => {
                     disabled={isUpdating}
                     className="flex-1 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all disabled:opacity-50"
                   >
-                    {isUpdating ? 'Processing...' : 'Confirm Payment'}
+                    {isUpdating ? t('vendorOrders.modal.payment.processing') : t('vendorOrders.modal.payment.confirm')}
                   </button>
                   <button
                     onClick={() => {
@@ -1376,7 +1341,7 @@ const VendorOrders = () => {
                     disabled={isUpdating}
                     className="flex-1 py-3 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-xl hover:from-red-700 hover:to-pink-700 transition-all disabled:opacity-50"
                   >
-                    {isUpdating ? 'Processing...' : 'Reject Payment'}
+                    {isUpdating ? t('vendorOrders.modal.payment.processing') : t('vendorOrders.modal.payment.reject')}
                   </button>
                 </div>
               )}
@@ -1399,10 +1364,10 @@ const VendorOrders = () => {
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center">
                   <Package className="h-6 w-6 mr-2 text-indigo-600" />
-                  Orders
+                  {t('vendorOrders.title')}
                 </h1>
                 <p className="text-sm text-gray-600 hidden sm:block">
-                  {store?.storeName} • {stats.total} total orders
+                  {store?.storeName} • {stats.total} {t('vendorOrders.totalOrders')}
                 </p>
               </div>
             </div>
@@ -1418,12 +1383,12 @@ const VendorOrders = () => {
                   }`}
                 >
                   <Filter className="h-4 w-4" />
-                  <span className="text-sm font-medium">Filters</span>
+                  <span className="text-sm font-medium">{t('vendorOrders.filters')}</span>
                 </button>
                 <button
                   onClick={fetchOrders}
                   className="px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all flex items-center space-x-2"
-                  title="Refresh"
+                  title={t('vendorOrders.refresh')}
                 >
                   <RefreshCw className="h-4 w-4" />
                 </button>
@@ -1432,7 +1397,7 @@ const VendorOrders = () => {
                   className="px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all flex items-center space-x-2"
                 >
                   <Printer className="h-4 w-4" />
-                  <span className="text-sm font-medium">Print</span>
+                  <span className="text-sm font-medium">{t('vendorOrders.print')}</span>
                 </button>
               </div>
 
@@ -1463,8 +1428,8 @@ const VendorOrders = () => {
                       <Package className="h-5 w-5 text-indigo-600" />
                     </div>
                     <div>
-                      <div className="font-semibold text-gray-900">Orders Menu</div>
-                      <div className="text-xs text-gray-500">{filteredOrders.length} orders</div>
+                      <div className="font-semibold text-gray-900">{t('vendorOrders.menu.title')}</div>
+                      <div className="text-xs text-gray-500">{filteredOrders.length} {t('vendorOrders.menu.orders')}</div>
                     </div>
                   </div>
                   <button
@@ -1487,11 +1452,11 @@ const VendorOrders = () => {
                   >
                     <div className="flex items-center">
                       <Filter className="h-5 w-5 text-gray-600 mr-3" />
-                      <span className="font-medium text-gray-900">Filters</span>
+                      <span className="font-medium text-gray-900">{t('vendorOrders.filters')}</span>
                     </div>
                     {(searchQuery || selectedStatus !== 'all' || dateRange.start) && (
                       <span className="bg-indigo-100 text-indigo-700 text-xs px-2 py-1 rounded-full">
-                        Active
+                        {t('vendorOrders.menu.active')}
                       </span>
                     )}
                   </button>
@@ -1504,7 +1469,7 @@ const VendorOrders = () => {
                     className="w-full flex items-center p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
                   >
                     <RefreshCw className="h-5 w-5 text-gray-600 mr-3" />
-                    <span className="font-medium text-gray-900">Refresh</span>
+                    <span className="font-medium text-gray-900">{t('vendorOrders.refresh')}</span>
                   </button>
                   
                   <button
@@ -1515,7 +1480,7 @@ const VendorOrders = () => {
                     className="w-full flex items-center p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
                   >
                     <Printer className="h-5 w-5 text-gray-600 mr-3" />
-                    <span className="font-medium text-gray-900">Print Page</span>
+                    <span className="font-medium text-gray-900">{t('vendorOrders.print')}</span>
                   </button>
                 </div>
               </div>
@@ -1527,7 +1492,7 @@ const VendorOrders = () => {
                   </div>
                   <div className="flex-1">
                     <div className="text-sm font-medium text-gray-900">{store?.storeName}</div>
-                    <div className="text-xs text-gray-500">Order Management</div>
+                    <div className="text-xs text-gray-500">{t('vendorOrders.menu.orderManagement')}</div>
                   </div>
                 </div>
               </div>
@@ -1555,17 +1520,17 @@ const VendorOrders = () => {
           </div>
         )}
 
-        {/* Stats Cards - مع إحصائيات أنواع الدفع */}
+        {/* Stats Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <div className="bg-white rounded-2xl p-5 sm:p-6 border border-gray-200/80 shadow-sm hover:shadow-md transition-all group">
             <div className="flex items-center justify-between mb-3">
               <div className="h-10 w-10 sm:h-12 sm:w-12 bg-blue-50 rounded-xl flex items-center justify-center group-hover:bg-blue-100 transition-colors">
                 <Package className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
               </div>
-              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">Total</span>
+              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">{t('vendorOrders.stats.total')}</span>
             </div>
             <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">{stats.total}</div>
-            <div className="text-xs sm:text-sm text-gray-600">Total Orders</div>
+            <div className="text-xs sm:text-sm text-gray-600">{t('vendorOrders.stats.totalOrders')}</div>
           </div>
           
           <div className="bg-white rounded-2xl p-5 sm:p-6 border border-gray-200/80 shadow-sm hover:shadow-md transition-all group">
@@ -1575,7 +1540,7 @@ const VendorOrders = () => {
               </div>
             </div>
             <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">{stats.pending}</div>
-            <div className="text-xs sm:text-sm text-gray-600">Pending</div>
+            <div className="text-xs sm:text-sm text-gray-600">{t('vendorOrders.stats.pending')}</div>
           </div>
           
           <div className="bg-white rounded-2xl p-5 sm:p-6 border border-gray-200/80 shadow-sm hover:shadow-md transition-all group">
@@ -1585,7 +1550,7 @@ const VendorOrders = () => {
               </div>
             </div>
             <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">{stats.delivered}</div>
-            <div className="text-xs sm:text-sm text-gray-600">Delivered</div>
+            <div className="text-xs sm:text-sm text-gray-600">{t('vendorOrders.stats.delivered')}</div>
           </div>
 
           <div className="bg-white rounded-2xl p-5 sm:p-6 border border-gray-200/80 shadow-sm hover:shadow-md transition-all group">
@@ -1595,7 +1560,7 @@ const VendorOrders = () => {
               </div>
             </div>
             <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">{stats.codDeposit}</div>
-            <div className="text-xs sm:text-sm text-gray-600">COD+Deposit</div>
+            <div className="text-xs sm:text-sm text-gray-600">{t('vendorOrders.stats.codDeposit')}</div>
           </div>
 
           <div className="bg-white rounded-2xl p-5 sm:p-6 border border-gray-200/80 shadow-sm hover:shadow-md transition-all group">
@@ -1605,7 +1570,7 @@ const VendorOrders = () => {
               </div>
             </div>
             <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">{stats.codFull}</div>
-            <div className="text-xs sm:text-sm text-gray-600">COD Full</div>
+            <div className="text-xs sm:text-sm text-gray-600">{t('vendorOrders.stats.codFull')}</div>
           </div>
 
           <div className="bg-white rounded-2xl p-5 sm:p-6 border border-gray-200/80 shadow-sm hover:shadow-md transition-all group">
@@ -1615,7 +1580,7 @@ const VendorOrders = () => {
               </div>
             </div>
             <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">{stats.onlineFull}</div>
-            <div className="text-xs sm:text-sm text-gray-600">Online Full</div>
+            <div className="text-xs sm:text-sm text-gray-600">{t('vendorOrders.stats.onlineFull')}</div>
           </div>
 
           <div className="bg-white rounded-2xl p-5 sm:p-6 border border-gray-200/80 shadow-sm hover:shadow-md transition-all group">
@@ -1625,7 +1590,7 @@ const VendorOrders = () => {
               </div>
             </div>
             <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">{stats.pendingDeposits}</div>
-            <div className="text-xs sm:text-sm text-gray-600">Pending Deposits</div>
+            <div className="text-xs sm:text-sm text-gray-600">{t('vendorOrders.stats.pendingDeposits')}</div>
           </div>
           
           <div className="bg-white rounded-2xl p-5 sm:p-6 border border-gray-200/80 shadow-sm hover:shadow-md transition-all group">
@@ -1637,7 +1602,7 @@ const VendorOrders = () => {
             <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
               {formatCurrency(stats.revenue)}
             </div>
-            <div className="text-xs sm:text-sm text-gray-600">Total Revenue</div>
+            <div className="text-xs sm:text-sm text-gray-600">{t('vendorOrders.stats.totalRevenue')}</div>
           </div>
         </div>
 
@@ -1647,20 +1612,20 @@ const VendorOrders = () => {
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-gray-900 flex items-center">
                 <Filter className="h-5 w-5 mr-2 text-indigo-600" />
-                Filter Orders
+                {t('vendorOrders.filterOrders')}
               </h3>
               <button
                 onClick={clearFilters}
                 className="text-sm text-gray-500 hover:text-gray-700 flex items-center space-x-1"
               >
                 <FilterX className="h-4 w-4" />
-                <span>Clear all</span>
+                <span>{t('vendorOrders.clearAll')}</span>
               </button>
             </div>
             
             <div className="grid md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-2">Date Range</label>
+                <label className="block text-xs font-medium text-gray-500 mb-2">{t('vendorOrders.dateRange')}</label>
                 <div className="flex items-center space-x-2">
                   <input
                     type="date"
@@ -1679,33 +1644,33 @@ const VendorOrders = () => {
               </div>
               
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-2">Search</label>
+                <label className="block text-xs font-medium text-gray-500 mb-2">{t('vendorOrders.search')}</label>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Order ID, customer, city..."
+                    placeholder={t('vendorOrders.searchPlaceholder')}
                     className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
                   />
                 </div>
               </div>
               
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-2">Quick Filters</label>
+                <label className="block text-xs font-medium text-gray-500 mb-2">{t('vendorOrders.quickFilters')}</label>
                 <select
                   value={selectedStatus}
                   onChange={(e) => setSelectedStatus(e.target.value)}
                   className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
                 >
-                  <option value="all">All Status</option>
-                  <option value="PENDING">Pending</option>
-                  <option value="CONFIRMED">Confirmed</option>
-                  <option value="PROCESSING">Processing</option>
-                  <option value="SHIPPED">Shipped</option>
-                  <option value="DELIVERED">Delivered</option>
-                  <option value="CANCELLED">Cancelled</option>
+                  <option value="all">{t('vendorOrders.allStatus')}</option>
+                  <option value="PENDING">{t('vendorOrders.statusTabs.pending')}</option>
+                  <option value="CONFIRMED">{t('vendorOrders.statusTabs.confirmed')}</option>
+                  <option value="PROCESSING">{t('vendorOrders.statusTabs.processing')}</option>
+                  <option value="SHIPPED">{t('vendorOrders.statusTabs.shipped')}</option>
+                  <option value="DELIVERED">{t('vendorOrders.statusTabs.delivered')}</option>
+                  <option value="CANCELLED">{t('vendorOrders.statusTabs.cancelled')}</option>
                 </select>
               </div>
             </div>
@@ -1745,10 +1710,10 @@ const VendorOrders = () => {
         {/* Active Filters */}
         {(searchQuery || selectedStatus !== 'all' || dateRange.start) && (
           <div className="mb-4 flex flex-wrap items-center gap-2">
-            <span className="text-xs text-gray-500">Active filters:</span>
+            <span className="text-xs text-gray-500">{t('vendorOrders.activeFilters')}:</span>
             {searchQuery && (
               <span className="inline-flex items-center px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-full text-xs font-medium">
-                Search: {searchQuery}
+                {t('vendorOrders.search')}: {searchQuery}
                 <button onClick={() => setSearchQuery('')} className="ml-2 hover:text-indigo-900">
                   <X className="h-3 w-3" />
                 </button>
@@ -1756,7 +1721,7 @@ const VendorOrders = () => {
             )}
             {selectedStatus !== 'all' && (
               <span className="inline-flex items-center px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-full text-xs font-medium">
-                Status: {selectedStatus}
+                {t('vendorOrders.status')}: {selectedStatus}
                 <button onClick={() => setSelectedStatus('all')} className="ml-2 hover:text-indigo-900">
                   <X className="h-3 w-3" />
                 </button>
@@ -1764,7 +1729,7 @@ const VendorOrders = () => {
             )}
             {dateRange.start && (
               <span className="inline-flex items-center px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-full text-xs font-medium">
-                From: {formatDate(dateRange.start)}
+                {t('vendorOrders.from')}: {formatDate(dateRange.start)}
                 <button onClick={() => setDateRange({...dateRange, start: ''})} className="ml-2 hover:text-indigo-900">
                   <X className="h-3 w-3" />
                 </button>
@@ -1772,7 +1737,7 @@ const VendorOrders = () => {
             )}
             {dateRange.end && (
               <span className="inline-flex items-center px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-full text-xs font-medium">
-                To: {formatDate(dateRange.end)}
+                {t('vendorOrders.to')}: {formatDate(dateRange.end)}
                 <button onClick={() => setDateRange({...dateRange, end: ''})} className="ml-2 hover:text-indigo-900">
                   <X className="h-3 w-3" />
                 </button>
@@ -1788,17 +1753,17 @@ const VendorOrders = () => {
               <div className="h-24 w-24 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Package className="h-12 w-12 text-indigo-600" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">No Orders Found</h3>
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">{t('vendorOrders.noOrders.title')}</h3>
               <p className="text-gray-600 mb-8">
                 {searchQuery || selectedStatus !== 'all' || dateRange.start
-                  ? 'Try adjusting your search or filter criteria'
-                  : 'You haven\'t received any orders yet'}
+                  ? t('vendorOrders.noOrders.adjustFilters')
+                  : t('vendorOrders.noOrders.noOrdersYet')}
               </p>
               <button
                 onClick={clearFilters}
                 className="px-6 py-3.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all shadow-md"
               >
-                Clear Filters
+                {t('vendorOrders.noOrders.clearFilters')}
               </button>
             </div>
           </div>
@@ -1813,7 +1778,7 @@ const VendorOrders = () => {
                       <Check className="h-4 w-4 text-white" />
                     </div>
                     <span className="text-sm font-medium">
-                      {selectedOrders.length} order{selectedOrders.length > 1 ? 's' : ''} selected
+                      {selectedOrders.length} {selectedOrders.length > 1 ? t('vendorOrders.ordersSelected') : t('vendorOrders.orderSelected')}
                     </span>
                   </div>
                   <div className="flex items-center space-x-3">
@@ -1821,7 +1786,7 @@ const VendorOrders = () => {
                       onClick={() => setSelectedOrders([])}
                       className="px-4 py-2 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-colors text-sm font-medium"
                     >
-                      Clear
+                      {t('vendorOrders.clear')}
                     </button>
                     <select 
                       className="px-4 py-2 bg-white text-gray-900 rounded-lg text-sm font-medium focus:ring-2 focus:ring-white"
@@ -1835,13 +1800,13 @@ const VendorOrders = () => {
                         }
                       }}
                     >
-                      <option value="">Bulk Update</option>
-                      <option value="PENDING">Pending</option>
-                      <option value="CONFIRMED">Confirmed</option>
-                      <option value="PROCESSING">Processing</option>
-                      <option value="SHIPPED">Shipped</option>
-                      <option value="DELIVERED">Delivered</option>
-                      <option value="CANCELLED">Cancelled</option>
+                      <option value="">{t('vendorOrders.bulkUpdate')}</option>
+                      <option value="PENDING">{t('vendorOrders.statusTabs.pending')}</option>
+                      <option value="CONFIRMED">{t('vendorOrders.statusTabs.confirmed')}</option>
+                      <option value="PROCESSING">{t('vendorOrders.statusTabs.processing')}</option>
+                      <option value="SHIPPED">{t('vendorOrders.statusTabs.shipped')}</option>
+                      <option value="DELIVERED">{t('vendorOrders.statusTabs.delivered')}</option>
+                      <option value="CANCELLED">{t('vendorOrders.statusTabs.cancelled')}</option>
                     </select>
                   </div>
                 </div>
@@ -1863,16 +1828,16 @@ const VendorOrders = () => {
                         />
                       </th>
                       <th className="p-6 w-12"></th>
-                      <th className="text-left p-6 font-semibold text-gray-900">Order</th>
-                      <th className="text-left p-6 font-semibold text-gray-900">Customer</th>
-                      <th className="text-left p-6 font-semibold text-gray-900">City</th>
-                      <th className="text-left p-6 font-semibold text-gray-900">Payment Method</th>
-                      <th className="text-left p-6 font-semibold text-gray-900">Payment Type</th>
-                      <th className="text-left p-6 font-semibold text-gray-900">Payment Status</th>
-                      <th className="text-left p-6 font-semibold text-gray-900">Amount</th>
-                      <th className="text-left p-6 font-semibold text-gray-900">Date</th>
-                      <th className="text-left p-6 font-semibold text-gray-900">Order Status</th>
-                      <th className="text-left p-6 font-semibold text-gray-900">Actions</th>
+                      <th className="text-left p-6 font-semibold text-gray-900">{t('vendorOrders.table.order')}</th>
+                      <th className="text-left p-6 font-semibold text-gray-900">{t('vendorOrders.table.customer')}</th>
+                      <th className="text-left p-6 font-semibold text-gray-900">{t('vendorOrders.table.city')}</th>
+                      <th className="text-left p-6 font-semibold text-gray-900">{t('vendorOrders.table.paymentMethod')}</th>
+                      <th className="text-left p-6 font-semibold text-gray-900">{t('vendorOrders.table.paymentType')}</th>
+                      <th className="text-left p-6 font-semibold text-gray-900">{t('vendorOrders.table.paymentStatus')}</th>
+                      <th className="text-left p-6 font-semibold text-gray-900">{t('vendorOrders.table.amount')}</th>
+                      <th className="text-left p-6 font-semibold text-gray-900">{t('vendorOrders.table.date')}</th>
+                      <th className="text-left p-6 font-semibold text-gray-900">{t('vendorOrders.table.orderStatus')}</th>
+                      <th className="text-left p-6 font-semibold text-gray-900">{t('vendorOrders.table.actions')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1920,7 +1885,7 @@ const VendorOrders = () => {
                                 #{order.id?.substring(0, 8)}
                               </div>
                               <div className="text-xs text-gray-500 mt-1">
-                                {items.length} items
+                                {items.length} {t('vendorOrders.table.items')}
                               </div>
                             </td>
                             <td className="p-6">
@@ -1974,7 +1939,7 @@ const VendorOrders = () => {
                                       setShowPaymentModal(true);
                                     }}
                                     className="p-1 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                                    title="View Payment Proof"
+                                    title={t('vendorOrders.table.viewProof')}
                                   >
                                     <EyeIcon className="h-4 w-4" />
                                   </button>
@@ -1988,7 +1953,7 @@ const VendorOrders = () => {
                               </div>
                               {order.depositValue > 0 && (
                                 <div className="text-xs text-amber-600 mt-1">
-                                  Deposit: {formatCurrency(order.depositValue)}
+                                  {t('vendorOrders.table.deposit')}: {formatCurrency(order.depositValue)}
                                 </div>
                               )}
                             </td>
@@ -2002,12 +1967,12 @@ const VendorOrders = () => {
                                 className={`px-3 py-1.5 rounded-lg text-xs font-medium border-0 focus:ring-2 focus:ring-offset-2 ${getStatusColor(status)}`}
                                 disabled={isUpdating}
                               >
-                                <option value="PENDING">Pending</option>
-                                <option value="CONFIRMED">Confirmed</option>
-                                <option value="PROCESSING">Processing</option>
-                                <option value="SHIPPED">Shipped</option>
-                                <option value="DELIVERED">Delivered</option>
-                                <option value="CANCELLED">Cancelled</option>
+                                <option value="PENDING">{t('vendorOrders.statusTabs.pending')}</option>
+                                <option value="CONFIRMED">{t('vendorOrders.statusTabs.confirmed')}</option>
+                                <option value="PROCESSING">{t('vendorOrders.statusTabs.processing')}</option>
+                                <option value="SHIPPED">{t('vendorOrders.statusTabs.shipped')}</option>
+                                <option value="DELIVERED">{t('vendorOrders.statusTabs.delivered')}</option>
+                                <option value="CANCELLED">{t('vendorOrders.statusTabs.cancelled')}</option>
                               </select>
                             </td>
                             <td className="p-6">
@@ -2023,7 +1988,7 @@ const VendorOrders = () => {
                                         statusColor: getDepositStatusColor(order.depositStatus),
                                         screenshotUrl: order.depositScreenShotUrl,
                                         createdAt: order.createdAt,
-                                        methodName: 'Deposit',
+                                        methodName: t('vendorOrders.deposit'),
                                         methodColor: 'bg-amber-100 text-amber-800',
                                         isDeposit: true,
                                         order: order
@@ -2031,7 +1996,7 @@ const VendorOrders = () => {
                                       setShowPaymentModal(true);
                                     }}
                                     className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
-                                    title="Review Deposit"
+                                    title={t('vendorOrders.reviewDeposit')}
                                   >
                                     <Wallet className="h-5 w-5" />
                                   </button>
@@ -2055,7 +2020,7 @@ const VendorOrders = () => {
                                       setShowPaymentModal(true);
                                     }}
                                     className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors"
-                                    title="Review Payment"
+                                    title={t('vendorOrders.reviewPayment')}
                                   >
                                     <CreditCard className="h-5 w-5" />
                                   </button>
@@ -2063,7 +2028,7 @@ const VendorOrders = () => {
                                 <button 
                                   onClick={() => handlePrintReceipt(order)}
                                   className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                                  title="Print Receipt"
+                                  title={t('vendorOrders.printReceipt')}
                                 >
                                   <Printer className="h-5 w-5" />
                                 </button>
@@ -2071,7 +2036,7 @@ const VendorOrders = () => {
                                   <button 
                                     onClick={() => handleCancelOrder(order.id)}
                                     className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
-                                    title="Cancel Order"
+                                    title={t('vendorOrders.cancelOrder')}
                                   >
                                     <XCircle className="h-5 w-5" />
                                   </button>
@@ -2079,7 +2044,7 @@ const VendorOrders = () => {
                                 <button 
                                   onClick={() => handleDeleteClick(order)}
                                   className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                  title="Delete Order"
+                                  title={t('vendorOrders.deleteOrder')}
                                 >
                                   <Trash2 className="h-5 w-5" />
                                 </button>
@@ -2094,55 +2059,55 @@ const VendorOrders = () => {
                                   <div className="bg-white rounded-xl p-6 border border-gray-200">
                                     <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
                                       <FileText className="h-5 w-5 mr-2 text-indigo-600" />
-                                      Order Summary
+                                      {t('vendorOrders.expanded.orderSummary')}
                                     </h4>
                                     <div className="space-y-3 text-sm">
                                       <div className="flex justify-between">
-                                        <span className="text-gray-600">Order ID:</span>
+                                        <span className="text-gray-600">{t('vendorOrders.expanded.orderId')}:</span>
                                         <span className="font-medium text-gray-900">#{order.id}</span>
                                       </div>
                                       <div className="flex justify-between">
-                                        <span className="text-gray-600">Date:</span>
+                                        <span className="text-gray-600">{t('vendorOrders.expanded.date')}:</span>
                                         <span className="font-medium text-gray-900">
-                                          {new Date(orderDate).toLocaleString()}
+                                          {new Date(orderDate).toLocaleString(i18n.language === 'ar' ? 'ar-EG' : 'en-US')}
                                         </span>
                                       </div>
                                       <div className="flex justify-between">
-                                        <span className="text-gray-600">Payment Method:</span>
+                                        <span className="text-gray-600">{t('vendorOrders.expanded.paymentMethod')}:</span>
                                         <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium ${paymentMethodColor}`}>
                                           {getPaymentMethodIcon(paymentMethod)}
                                           <span className="ml-1">{paymentMethodDisplay}</span>
                                         </span>
                                       </div>
                                       <div className="flex justify-between">
-                                        <span className="text-gray-600">Payment Type:</span>
+                                        <span className="text-gray-600">{t('vendorOrders.expanded.paymentType')}:</span>
                                         <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium ${paymentTypeInfo.color}`}>
                                           <PaymentTypeIcon className="h-3 w-3 mr-1" />
                                           {paymentTypeInfo.label}
                                         </span>
                                       </div>
                                       <div className="flex justify-between">
-                                        <span className="text-gray-600">Total:</span>
+                                        <span className="text-gray-600">{t('vendorOrders.expanded.total')}:</span>
                                         <span className="font-medium text-indigo-600">{formatCurrency(totalPrice)}</span>
                                       </div>
                                       {order.depositValue > 0 && (
                                         <>
                                           <div className="flex justify-between pt-2 border-t border-gray-200">
-                                            <span className="font-semibold text-gray-900">Deposit:</span>
+                                            <span className="font-semibold text-gray-900">{t('vendorOrders.expanded.deposit')}:</span>
                                             <span className="font-bold text-amber-600">{formatCurrency(order.depositValue)}</span>
                                           </div>
                                           <div className="flex justify-between">
-                                            <span className="text-gray-600">Remaining:</span>
+                                            <span className="text-gray-600">{t('vendorOrders.expanded.remaining')}:</span>
                                             <span className="font-medium text-gray-900">{formatCurrency(order.remainingAmount)}</span>
                                           </div>
                                           <div className="flex justify-between">
-                                            <span className="text-gray-600">Deposit Paid:</span>
+                                            <span className="text-gray-600">{t('vendorOrders.expanded.depositPaid')}:</span>
                                             <span className={`font-medium ${order.depositPaid ? 'text-green-600' : 'text-gray-600'}`}>
-                                              {order.depositPaid ? 'Yes' : 'No'}
+                                              {order.depositPaid ? t('common.yes') : t('common.no')}
                                             </span>
                                           </div>
                                           <div className="flex justify-between">
-                                            <span className="text-gray-600">Deposit Status:</span>
+                                            <span className="text-gray-600">{t('vendorOrders.expanded.depositStatus')}:</span>
                                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDepositStatusColor(order.depositStatus)}`}>
                                               {order.depositStatus}
                                             </span>
@@ -2151,7 +2116,7 @@ const VendorOrders = () => {
                                       )}
                                       {paymentMethod !== 'COD' && (
                                         <div className="flex justify-between">
-                                          <span className="text-gray-600">Payment Status:</span>
+                                          <span className="text-gray-600">{t('vendorOrders.expanded.paymentStatus')}:</span>
                                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPaymentStatusColor(order.paymentStatus)}`}>
                                             {order.paymentStatus}
                                           </span>
@@ -2163,33 +2128,33 @@ const VendorOrders = () => {
                                   <div className="bg-white rounded-xl p-6 border border-gray-200">
                                     <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
                                       <User className="h-5 w-5 mr-2 text-indigo-600" />
-                                      Customer Info
+                                      {t('vendorOrders.expanded.customerInfo')}
                                     </h4>
                                     <div className="space-y-3 text-sm">
                                       <div className="flex justify-between">
-                                        <span className="text-gray-600">Name:</span>
+                                        <span className="text-gray-600">{t('vendorOrders.expanded.name')}:</span>
                                         <span className="font-medium text-gray-900">
                                           {customer?.firstName || ''} {customer?.lastName || ''}
                                         </span>
                                       </div>
                                       <div className="flex justify-between">
-                                        <span className="text-gray-600">Address:</span>
+                                        <span className="text-gray-600">{t('vendorOrders.expanded.address')}:</span>
                                         <span className="font-medium text-gray-900">
                                           {customer?.address || 'N/A'}
                                         </span>
                                       </div>
                                       <div className="flex justify-between">
-                                        <span className="text-gray-600">City:</span>
+                                        <span className="text-gray-600">{t('vendorOrders.expanded.city')}:</span>
                                         <span className="font-medium text-gray-900">{governorateName}</span>
                                       </div>
                                       <div className="flex justify-between">
-                                        <span className="text-gray-600">Phone:</span>
+                                        <span className="text-gray-600">{t('vendorOrders.expanded.phone')}:</span>
                                         <span className="font-medium text-gray-900">
                                           {customer?.phoneNumber || customer?.phone || 'N/A'}
                                         </span>
                                       </div>
                                       <div className="flex justify-between">
-                                        <span className="text-gray-600">WhatsApp:</span>
+                                        <span className="text-gray-600">{t('vendorOrders.expanded.whatsapp')}:</span>
                                         <span className="font-medium text-gray-900">
                                           {customer?.whatsappNumber || 'N/A'}
                                         </span>
@@ -2201,16 +2166,16 @@ const VendorOrders = () => {
                                 <div className="mt-6 bg-white rounded-xl p-6 border border-gray-200">
                                   <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
                                     <ShoppingBag className="h-5 w-5 mr-2 text-indigo-600" />
-                                    Order Items ({items.length})
+                                    {t('vendorOrders.expanded.orderItems')} ({items.length})
                                   </h4>
                                   <div className="overflow-x-auto">
                                     <table className="w-full text-sm">
                                       <thead className="bg-gray-50">
                                         <tr>
-                                          <th className="p-3 text-left text-gray-700">Product</th>
-                                          <th className="p-3 text-center text-gray-700">Qty</th>
-                                          <th className="p-3 text-right text-gray-700">Price</th>
-                                          <th className="p-3 text-right text-gray-700">Total</th>
+                                          <th className="p-3 text-left text-gray-700">{t('vendorOrders.expanded.product')}</th>
+                                          <th className="p-3 text-center text-gray-700">{t('vendorOrders.expanded.qty')}</th>
+                                          <th className="p-3 text-right text-gray-700">{t('vendorOrders.expanded.price')}</th>
+                                          <th className="p-3 text-right text-gray-700">{t('vendorOrders.expanded.total')}</th>
                                         </tr>
                                       </thead>
                                       <tbody>
@@ -2237,7 +2202,7 @@ const VendorOrders = () => {
                                   <div className="mt-6 bg-white rounded-xl p-6 border border-gray-200">
                                     <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
                                       <Camera className="h-5 w-5 mr-2 text-indigo-600" />
-                                      Payment Proof
+                                      {t('vendorOrders.expanded.paymentProof')}
                                     </h4>
                                     <div className="flex items-center space-x-4">
                                       <img 
@@ -2253,7 +2218,7 @@ const VendorOrders = () => {
                                           className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
                                         >
                                           <EyeIcon className="h-4 w-4 mr-2" />
-                                          View Full Image
+                                          {t('vendorOrders.expanded.viewFullImage')}
                                         </a>
                                       </div>
                                     </div>
@@ -2306,7 +2271,7 @@ const VendorOrders = () => {
                             </span>
                           </div>
                           <p className="text-xs text-gray-500 mt-1">
-                            {formatDate(orderDate)} • {items.length} items
+                            {formatDate(orderDate)} • {items.length} {t('vendorOrders.items')}
                           </p>
                         </div>
                         <select
@@ -2315,12 +2280,12 @@ const VendorOrders = () => {
                           className={`px-3 py-1.5 rounded-lg text-xs font-medium border-0 ${getStatusColor(status)}`}
                           disabled={isUpdating}
                         >
-                          <option value="PENDING">Pending</option>
-                          <option value="CONFIRMED">Confirmed</option>
-                          <option value="PROCESSING">Processing</option>
-                          <option value="SHIPPED">Shipped</option>
-                          <option value="DELIVERED">Delivered</option>
-                          <option value="CANCELLED">Cancelled</option>
+                          <option value="PENDING">{t('vendorOrders.statusTabs.pending')}</option>
+                          <option value="CONFIRMED">{t('vendorOrders.statusTabs.confirmed')}</option>
+                          <option value="PROCESSING">{t('vendorOrders.statusTabs.processing')}</option>
+                          <option value="SHIPPED">{t('vendorOrders.statusTabs.shipped')}</option>
+                          <option value="DELIVERED">{t('vendorOrders.statusTabs.delivered')}</option>
+                          <option value="CANCELLED">{t('vendorOrders.statusTabs.cancelled')}</option>
                         </select>
                       </div>
                       
@@ -2372,7 +2337,7 @@ const VendorOrders = () => {
                                 setShowPaymentModal(true);
                               }}
                               className="ml-2 p-1 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                              title="View Payment Proof"
+                              title={t('vendorOrders.viewProof')}
                             >
                               <EyeIcon className="h-4 w-4" />
                             </button>
@@ -2382,14 +2347,14 @@ const VendorOrders = () => {
                         <div className="flex items-center text-sm pt-1 border-t border-gray-100">
                           <Wallet className="h-4 w-4 text-green-600 mr-2" />
                           <span className="font-bold text-green-600">
-                            Total: {formatCurrency(totalPrice)}
+                            {t('vendorOrders.total')}: {formatCurrency(totalPrice)}
                           </span>
                         </div>
                         {order.depositValue > 0 && (
                           <div className="flex items-center text-sm">
                             <Wallet className="h-4 w-4 text-amber-600 mr-2" />
                             <span className="text-amber-600">
-                              Deposit: {formatCurrency(order.depositValue)}
+                              {t('vendorOrders.deposit')}: {formatCurrency(order.depositValue)}
                             </span>
                           </div>
                         )}
@@ -2408,7 +2373,7 @@ const VendorOrders = () => {
                                   statusColor: getDepositStatusColor(order.depositStatus),
                                   screenshotUrl: order.depositScreenShotUrl,
                                   createdAt: order.createdAt,
-                                  methodName: 'Deposit',
+                                  methodName: t('vendorOrders.deposit'),
                                   methodColor: 'bg-amber-100 text-amber-800',
                                   isDeposit: true,
                                   order: order
@@ -2416,7 +2381,7 @@ const VendorOrders = () => {
                                 setShowPaymentModal(true);
                               }}
                               className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
-                              title="Review Deposit"
+                              title={t('vendorOrders.reviewDeposit')}
                             >
                               <Wallet className="h-5 w-5" />
                             </button>
@@ -2440,7 +2405,7 @@ const VendorOrders = () => {
                                 setShowPaymentModal(true);
                               }}
                               className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors"
-                              title="Review Payment"
+                              title={t('vendorOrders.reviewPayment')}
                             >
                               <CreditCard className="h-5 w-5" />
                             </button>
@@ -2448,7 +2413,7 @@ const VendorOrders = () => {
                           <button 
                             onClick={() => handlePrintReceipt(order)}
                             className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                            title="Print Receipt"
+                            title={t('vendorOrders.printReceipt')}
                           >
                             <Printer className="h-5 w-5" />
                           </button>
@@ -2456,7 +2421,7 @@ const VendorOrders = () => {
                             <button 
                               onClick={() => handleCancelOrder(order.id)}
                               className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
-                              title="Cancel Order"
+                              title={t('vendorOrders.cancelOrder')}
                             >
                               <XCircle className="h-5 w-5" />
                             </button>
@@ -2464,7 +2429,7 @@ const VendorOrders = () => {
                           <button 
                             onClick={() => handleDeleteClick(order)}
                             className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Delete Order"
+                            title={t('vendorOrders.deleteOrder')}
                           >
                             <Trash2 className="h-5 w-5" />
                           </button>
@@ -2473,7 +2438,7 @@ const VendorOrders = () => {
                           onClick={() => toggleRowExpand(order.id)}
                           className="flex items-center space-x-1 text-sm text-indigo-600"
                         >
-                          <span>{isExpanded ? 'Hide' : 'Show'} details</span>
+                          <span>{isExpanded ? t('vendorOrders.hide') : t('vendorOrders.show')} {t('vendorOrders.details')}</span>
                           {isExpanded ? 
                             <ChevronUp className="h-4 w-4" /> : 
                             <ChevronDown className="h-4 w-4" />
@@ -2486,7 +2451,7 @@ const VendorOrders = () => {
                       <div className="border-t border-gray-100 bg-gray-50 p-5">
                         <div className="space-y-4">
                           <div>
-                            <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">Items</h4>
+                            <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">{t('vendorOrders.items')}</h4>
                             <div className="space-y-2">
                               {items.map((item, index) => (
                                 <div key={index} className="flex justify-between text-sm">
@@ -2502,38 +2467,38 @@ const VendorOrders = () => {
                           </div>
                           
                           <div>
-                            <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">Customer</h4>
+                            <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">{t('vendorOrders.customer')}</h4>
                             <div className="space-y-1 text-sm">
                               <p className="text-gray-600">
-                                <span className="font-medium">Address:</span> {customer?.address || 'No address'}
+                                <span className="font-medium">{t('vendorOrders.address')}:</span> {customer?.address || 'No address'}
                               </p>
                               <p className="text-gray-600">
-                                <span className="font-medium">City:</span> {governorateName}
+                                <span className="font-medium">{t('vendorOrders.city')}:</span> {governorateName}
                               </p>
                               <p className="text-gray-600">
-                                <span className="font-medium">Phone:</span> {customer?.phoneNumber || customer?.phone || 'No phone'}
+                                <span className="font-medium">{t('vendorOrders.phone')}:</span> {customer?.phoneNumber || customer?.phone || 'No phone'}
                               </p>
                               <p className="text-gray-600">
-                                <span className="font-medium">WhatsApp:</span> {customer?.whatsappNumber || 'No WhatsApp'}
+                                <span className="font-medium">{t('vendorOrders.whatsapp')}:</span> {customer?.whatsappNumber || 'No WhatsApp'}
                               </p>
                             </div>
                           </div>
 
                           {order.depositValue > 0 && (
                             <div>
-                              <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">Deposit Details</h4>
+                              <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">{t('vendorOrders.depositDetails')}</h4>
                               <div className="space-y-1 text-sm">
                                 <p className="text-gray-600">
-                                  <span className="font-medium">Amount:</span> {formatCurrency(order.depositValue)}
+                                  <span className="font-medium">{t('vendorOrders.amount')}:</span> {formatCurrency(order.depositValue)}
                                 </p>
                                 <p className="text-gray-600">
-                                  <span className="font-medium">Paid:</span> {order.depositPaid ? 'Yes' : 'No'}
+                                  <span className="font-medium">{t('vendorOrders.paid')}:</span> {order.depositPaid ? t('common.yes') : t('common.no')}
                                 </p>
                                 <p className="text-gray-600">
-                                  <span className="font-medium">Status:</span> {order.depositStatus}
+                                  <span className="font-medium">{t('vendorOrders.status')}:</span> {order.depositStatus}
                                 </p>
                                 <p className="text-gray-600">
-                                  <span className="font-medium">Remaining:</span> {formatCurrency(order.remainingAmount)}
+                                  <span className="font-medium">{t('vendorOrders.remaining')}:</span> {formatCurrency(order.remainingAmount)}
                                 </p>
                               </div>
                             </div>
@@ -2541,10 +2506,10 @@ const VendorOrders = () => {
 
                           {paymentMethod !== 'COD' && (
                             <div>
-                              <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">Payment Details</h4>
+                              <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">{t('vendorOrders.paymentDetails')}</h4>
                               <div className="space-y-1 text-sm">
                                 <p className="text-gray-600">
-                                  <span className="font-medium">Status:</span> {order.paymentStatus}
+                                  <span className="font-medium">{t('vendorOrders.status')}:</span> {order.paymentStatus}
                                 </p>
                               </div>
                             </div>
@@ -2552,7 +2517,7 @@ const VendorOrders = () => {
 
                           {screenshotUrl && (
                             <div>
-                              <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">Payment Proof</h4>
+                              <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">{t('vendorOrders.paymentProof')}</h4>
                               <a 
                                 href={screenshotUrl} 
                                 target="_blank" 
@@ -2560,7 +2525,7 @@ const VendorOrders = () => {
                                 className="inline-flex items-center px-3 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 transition-colors"
                               >
                                 <EyeIcon className="h-4 w-4 mr-2" />
-                                View Image
+                                {t('vendorOrders.viewImage')}
                               </a>
                             </div>
                           )}
@@ -2574,15 +2539,15 @@ const VendorOrders = () => {
 
             <div className="mt-6 flex items-center justify-between text-sm">
               <div className="text-gray-600">
-                Showing <span className="font-semibold text-gray-900">{filteredOrders.length}</span> of{' '}
-                <span className="font-semibold text-gray-900">{orders.length}</span> orders
+                {t('vendorOrders.showing')} <span className="font-semibold text-gray-900">{filteredOrders.length}</span> {t('vendorOrders.of')}{' '}
+                <span className="font-semibold text-gray-900">{orders.length}</span> {t('vendorOrders.orders')}
               </div>
               <button
                 onClick={fetchOrders}
                 className="flex items-center space-x-2 text-indigo-600 hover:text-indigo-700"
               >
                 <RefreshCw className="h-4 w-4" />
-                <span>Refresh</span>
+                <span>{t('vendorOrders.refresh')}</span>
               </button>
             </div>
             <StoreFooter />

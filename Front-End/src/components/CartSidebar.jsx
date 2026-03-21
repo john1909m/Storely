@@ -18,6 +18,7 @@ import {
   Tag,
   Gift
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 // ✨ إضافة أنماط CSS للـ animations
 const cartStyles = `
@@ -128,7 +129,8 @@ const CartSidebar = ({
   onUpdateQuantity, 
   onRemoveItem, 
   onCheckout,
-  colors = { primary: '#4f46e5', secondary: '#9333ea', primaryLight: '#e0e7ff' }
+  colors = { primary: '#4f46e5', secondary: '#9333ea', primaryLight: '#e0e7ff' },
+  t
 }) => {
   const [isExiting, setIsExiting] = useState(false);
   const [removingItemId, setRemovingItemId] = useState(null);
@@ -190,12 +192,9 @@ const CartSidebar = ({
   const handleRemoveItem = (itemId) => {
     setRemovingItemId(itemId);
     
-    // Add animation delay before actual removal
     setTimeout(() => {
-      // Remove from parent state
       onRemoveItem(itemId);
       
-      // Also remove from localStorage
       if (store?.storeName) {
         const cartKey = `cart_${store.storeName}`;
         const existingCart = JSON.parse(localStorage.getItem(cartKey) || '[]');
@@ -208,18 +207,12 @@ const CartSidebar = ({
   };
 
   const handleSaveForLater = (item) => {
-    // Remove from cart
     onRemoveItem(item.id);
-    
-    // Add to saved for later
     setSavedForLater(prev => [...prev, item]);
   };
 
   const handleMoveToCart = (item) => {
-    // Remove from saved for later
     setSavedForLater(prev => prev.filter(i => i.id !== item.id));
-    
-    // Add back to cart
     onUpdateQuantity(item.id, 1);
   };
 
@@ -229,10 +222,8 @@ const CartSidebar = ({
       return;
     }
     
-    // Update parent state
     onUpdateQuantity(itemId, newQuantity);
     
-    // Update localStorage
     if (store?.storeName) {
       const cartKey = `cart_${store.storeName}`;
       const existingCart = JSON.parse(localStorage.getItem(cartKey) || '[]');
@@ -246,7 +237,6 @@ const CartSidebar = ({
   const handleCheckout = () => {
     setShowCheckoutAnimation(true);
     
-    // Save cart data for checkout page with variant information
     const checkoutData = {
       storeId: store?.id,
       storeName: store?.storeName,
@@ -268,7 +258,6 @@ const CartSidebar = ({
     
     localStorage.setItem('checkout_cart', JSON.stringify(checkoutData));
     
-    // Small delay for animation
     setTimeout(() => {
       window.location.href = '/checkout';
       if (onCheckout) onCheckout();
@@ -323,10 +312,10 @@ const CartSidebar = ({
                     <ShoppingBag className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-white">Your Shopping Cart</h2>
+                    <h2 className="text-xl font-bold text-white">{t('cart.title')}</h2>
                     <p className="text-sm text-white/80 flex items-center gap-1">
                       <Tag className="h-3 w-3" />
-                      Shopping at {store?.storeName}
+                      {t('cart.shoppingAt')} {store?.storeName}
                     </p>
                   </div>
                 </div>
@@ -341,11 +330,11 @@ const CartSidebar = ({
               <div className="flex items-center justify-between text-sm text-white/90 bg-white/10 rounded-xl p-3 backdrop-blur-sm">
                 <span className="flex items-center gap-1">
                   <Package className="h-4 w-4" />
-                  {getItemCount()} {getItemCount() === 1 ? 'item' : 'items'}
+                  {getItemCount()} {getItemCount() === 1 ? t('cart.item') : t('cart.items')}
                 </span>
                 <span className="font-semibold flex items-center gap-1">
                   <CreditCard className="h-4 w-4" />
-                  Total: {formatPriceFunc(getTotal())}
+                  {t('cart.total')}: {formatPriceFunc(getTotal())}
                 </span>
               </div>
             </div>
@@ -358,16 +347,16 @@ const CartSidebar = ({
                 <div className="h-32 w-32 bg-gradient-to-br from-gray-50 to-gray-100 rounded-3xl flex items-center justify-center mb-6 float-animation">
                   <ShoppingBag className="h-16 w-16 text-gray-400" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">Your cart is empty</h3>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">{t('cart.empty')}</h3>
                 <p className="text-gray-600 mb-8 max-w-xs">
-                  Add some amazing products from {store?.storeName} to get started
+                  {t('cart.emptyMessage', { storeName: store?.storeName })}
                 </p>
                 <button
                   onClick={handleClose}
                   className="inline-flex items-center px-6 py-3 text-white rounded-xl hover:opacity-90 transition-all font-medium shadow-lg hover:shadow-xl hover-lift"
                   style={getGradientStyle(colors.primary, colors.secondary)}
                 >
-                  Continue Shopping
+                  {t('cart.continueShopping')}
                 </button>
               </div>
             ) : (
@@ -380,7 +369,7 @@ const CartSidebar = ({
                   >
                     <div className="group bg-gradient-to-br from-gray-50 to-white rounded-2xl p-4 hover:shadow-lg transition-all border border-gray-100 hover:border-indigo-200 hover-scale">
                       <div className="flex items-start gap-4">
-                        {/* Product Image with hover effect */}
+                        {/* Product Image */}
                         <div className="relative h-20 w-20 rounded-xl overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 flex-shrink-0 group">
                           {item.imageUrls && item.imageUrls[0] ? (
                             <img 
@@ -403,7 +392,6 @@ const CartSidebar = ({
                               <h4 className="font-semibold text-gray-900 mb-1 line-clamp-1 hover:text-indigo-600 transition-colors">
                                 {item.productName || item.name}
                               </h4>
-                              {/* Variant Display */}
                               {getVariantDisplay(item) && (
                                 <p className="text-xs text-indigo-600 mb-1 flex items-center gap-1">
                                   <Tag className="h-3 w-3" />
@@ -411,7 +399,7 @@ const CartSidebar = ({
                                 </p>
                               )}
                               <p className="text-sm text-gray-600">
-                                {formatPriceFunc(item.price)} each
+                                {formatPriceFunc(item.price)} {t('cart.each')}
                               </p>
                             </div>
                             <div className="text-right">
@@ -421,14 +409,14 @@ const CartSidebar = ({
                               <button
                                 onClick={() => handleRemoveItem(item.id)}
                                 className="text-sm text-gray-400 hover:text-red-600 transition-all opacity-0 group-hover:opacity-100 hover:scale-110"
-                                title="Remove item"
+                                title={t('cart.removeItem')}
                               >
                                 <Trash2 className="h-4 w-4" />
                               </button>
                             </div>
                           </div>
 
-                          {/* Quantity Controls with animations */}
+                          {/* Quantity Controls */}
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
                               <button
@@ -448,13 +436,12 @@ const CartSidebar = ({
                               </button>
                             </div>
                             
-                            {/* Save for later button */}
                             <button
                               onClick={() => handleSaveForLater(item)}
                               className="text-xs text-gray-500 hover:text-indigo-600 transition-colors flex items-center gap-1 opacity-0 group-hover:opacity-100"
                             >
                               <Heart className="h-3 w-3" />
-                              Save for later
+                              {t('cart.saveForLater')}
                             </button>
                           </div>
                         </div>
@@ -468,7 +455,7 @@ const CartSidebar = ({
                   <div className="mt-6 pt-6 border-t border-gray-200">
                     <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
                       <Clock className="h-4 w-4 text-indigo-600" />
-                      Saved for later ({savedForLater.length})
+                      {t('cart.savedForLater')} ({savedForLater.length})
                     </h3>
                     <div className="space-y-2">
                       {savedForLater.map((item) => (
@@ -490,7 +477,7 @@ const CartSidebar = ({
                             onClick={() => handleMoveToCart(item)}
                             className="px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 text-xs font-medium transition-colors"
                           >
-                            Move to cart
+                            {t('cart.moveToCart')}
                           </button>
                         </div>
                       ))}
@@ -504,25 +491,22 @@ const CartSidebar = ({
           {/* Footer with animations */}
           {cart.length > 0 && (
             <div className="border-t border-gray-100 bg-white p-6 shadow-lg">
-              {/* Order Summary with animations */}
+              {/* Order Summary */}
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                  <span className="text-gray-600">Subtotal</span>
+                  <span className="text-gray-600">{t('cart.subtotal')}</span>
                   <span className="font-semibold text-gray-900">{formatPriceFunc(getTotal())}</span>
                 </div>
                 
                 <div className="flex justify-between items-center text-lg font-bold pt-4">
-                  <span>Total</span>
+                  <span>{t('cart.total')}</span>
                   <span className="text-2xl gradient-text" style={{ color: colors.primary }}>
-                    {formatPriceFunc(getTotal()+(store?.shippingCost || 0))}
+                    {formatPriceFunc(getTotal() + (store?.shippingCost || 0))}
                   </span>
                 </div>
               </div>
 
-              {/* Promo code section */}
-              
-
-              {/* Action Buttons with animations */}
+              {/* Action Buttons */}
               <div className="space-y-3">
                 <button
                   onClick={handleCheckout}
@@ -532,11 +516,11 @@ const CartSidebar = ({
                   {showCheckoutAnimation ? (
                     <div className="flex items-center gap-2">
                       <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <span>Processing...</span>
+                      <span>{t('cart.processing')}</span>
                     </div>
                   ) : (
                     <>
-                      <span>Proceed to Checkout</span>
+                      <span>{t('cart.proceedToCheckout')}</span>
                       <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
                     </>
                   )}
@@ -547,13 +531,10 @@ const CartSidebar = ({
                   onClick={handleClose}
                   className="w-full py-3 border-2 border-gray-200 text-gray-700 rounded-xl hover:border-indigo-300 hover:bg-indigo-50 transition-all font-medium flex items-center justify-center gap-2 group"
                 >
-                  <span>Continue Shopping</span>
+                  <span>{t('cart.continueShopping')}</span>
                   <ShoppingBag className="h-4 w-4 group-hover:scale-110 transition-transform" />
                 </button>
               </div>
-
-              {/* Security Note with animation */}
-              
             </div>
           )}
         </div>

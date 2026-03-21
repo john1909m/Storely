@@ -15,8 +15,10 @@ import { orderAPI } from '../../api/order.api';
 import StoreFooter from '../../components/StoreFooter';
 import { useErrorHandler } from '../../hooks/useErrorHandler';
 import useAuthStore from '../../store/authStore';
+import { useTranslation } from 'react-i18next';
 
 const VendorStore = () => {
+  const { t, i18n } = useTranslation();
   const [store, setStore] = useState(null);
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -78,7 +80,7 @@ const VendorStore = () => {
       }
 
       if (!storeData) {
-        setError('Store not found. Please create a store first.');
+        setError(t('vendor.store.storeNotFoundBodyFallback'));
         setIsLoading(false);
         return;
       }
@@ -150,7 +152,8 @@ const VendorStore = () => {
   };
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
+    const localeCode = i18n.language === 'ar' ? 'ar-EG' : 'en-US';
+    return new Intl.NumberFormat(localeCode, {
       style: 'currency',
       currency: 'EGP',
       minimumFractionDigits: 0,
@@ -159,7 +162,8 @@ const VendorStore = () => {
   };
 
   const formatNumber = (num) => {
-    return new Intl.NumberFormat('en-US').format(num || 0);
+    const localeCode = i18n.language === 'ar' ? 'ar-EG' : 'en-US';
+    return new Intl.NumberFormat(localeCode).format(num || 0);
   };
 
   if (isLoading) {
@@ -170,8 +174,8 @@ const VendorStore = () => {
             <div className="animate-spin rounded-full h-16 w-16 border-4 border-indigo-200 border-t-indigo-600 mx-auto mb-4"></div>
             <Store className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-6 w-6 text-indigo-600" />
           </div>
-          <p className="text-gray-600 font-medium">Loading your store...</p>
-          <p className="text-sm text-gray-500 mt-2">Please wait a moment</p>
+          <p className="text-gray-600 font-medium">{t('vendor.store.loading')}</p>
+          <p className="text-sm text-gray-500 mt-2">{t('vendor.store.pleaseWait')}</p>
         </div>
       </div>
     );
@@ -184,14 +188,14 @@ const VendorStore = () => {
           <div className="bg-red-100 rounded-full h-24 w-24 flex items-center justify-center mx-auto mb-6">
             <AlertCircle className="h-12 w-12 text-red-600" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">Store Not Found</h2>
-          <p className="text-gray-600 mb-8">{error || 'Please create a store first'}</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-3">{t('vendor.store.storeNotFoundTitle')}</h2>
+          <p className="text-gray-600 mb-8">{error || t('vendor.store.storeNotFoundBodyFallback')}</p>
           <Link
             to="/vendor/create-store"
             className="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
           >
             <Plus className="h-5 w-5 mr-2" />
-            Create Your Store
+            {t('vendor.store.createYourStore')}
           </Link>
         </div>
       </div>
@@ -236,7 +240,9 @@ const VendorStore = () => {
                     <span className={`h-1.5 w-1.5 rounded-full mr-1 ${
                       store.storeStatus === 'Active' ? 'bg-green-600' : 'bg-yellow-600'
                     }`}></span>
-                    {store.storeStatus || 'Inactive'}
+                    {(store.storeStatus || 'Inactive') === 'Active'
+                      ? t('vendor.store.storeStatus.active')
+                      : t('vendor.store.storeStatus.inactive')}
                   </span>
                 </div>
               </div>
@@ -249,7 +255,7 @@ const VendorStore = () => {
                 className="px-4 py-2 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-lg transition-colors flex items-center space-x-2"
               >
                 <CreditCard className="h-5 w-5" />
-                <span className="font-medium">Pricing</span>
+                <span className="font-medium">{t('vendor.store.nav.pricing')}</span>
               </Link>
               
               <Link
@@ -257,7 +263,7 @@ const VendorStore = () => {
                 className="px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors flex items-center space-x-2"
               >
                 <Settings className="h-5 w-5" />
-                <span className="font-medium">Settings</span>
+                <span className="font-medium">{t('vendor.store.nav.settings')}</span>
               </Link>
               
               <Link
@@ -265,7 +271,7 @@ const VendorStore = () => {
                 className="px-5 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center space-x-2"
               >
                 <BarChart className="h-5 w-5" />
-                <span className="font-medium">Dashboard</span>
+                <span className="font-medium">{t('vendor.store.nav.dashboard')}</span>
               </Link>
               
               <button
@@ -273,7 +279,7 @@ const VendorStore = () => {
                 className="px-4 py-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors flex items-center space-x-2 border border-red-200"
               >
                 <LogOut className="h-5 w-5" />
-                <span className="font-medium">Logout</span>
+                <span className="font-medium">{t('vendor.store.nav.logout')}</span>
               </button>
             </div>
 
@@ -304,7 +310,7 @@ const VendorStore = () => {
           <div className="fixed right-0 top-0 h-full w-72 bg-white shadow-xl z-50 md:hidden">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <div className="font-semibold text-gray-900">Menu</div>
+                <div className="font-semibold text-gray-900">{t('vendor.store.mobile.menu')}</div>
                 <button
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="p-2 hover:bg-gray-100 rounded-lg"
@@ -323,7 +329,7 @@ const VendorStore = () => {
                 >
                   <div className="flex items-center">
                     <CreditCard className="h-5 w-5 text-indigo-600 mr-3" />
-                    <span>Pricing</span>
+                    <span>{t('vendor.store.nav.pricing')}</span>
                   </div>
                 </Link>
 
@@ -334,7 +340,7 @@ const VendorStore = () => {
                 >
                   <div className="flex items-center">
                     <Settings className="h-5 w-5 text-gray-600 mr-3" />
-                    <span>Settings</span>
+                    <span>{t('vendor.store.nav.settings')}</span>
                   </div>
                 </Link>
                 
@@ -345,7 +351,7 @@ const VendorStore = () => {
                 >
                   <div className="flex items-center">
                     <BarChart className="h-5 w-5 text-indigo-600 mr-3" />
-                    <span className="font-medium">Dashboard</span>
+                    <span className="font-medium">{t('vendor.store.nav.dashboard')}</span>
                   </div>
                 </Link>
                 
@@ -361,7 +367,7 @@ const VendorStore = () => {
                 >
                   <div className="flex items-center">
                     <LogOut className="h-5 w-5 mr-3" />
-                    <span>Logout</span>
+                    <span>{t('vendor.store.nav.logout')}</span>
                   </div>
                 </button>
               </div>
@@ -373,7 +379,7 @@ const VendorStore = () => {
                   <User className="h-4 w-4 text-indigo-600" />
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-gray-900">{vendor?.name || 'Vendor'}</div>
+                  <div className="text-sm font-medium text-gray-900">{vendor?.name || t('vendor.store.vendorFallbackName')}</div>
                   <div className="text-xs text-gray-500">{vendor?.email || ''}</div>
                 </div>
               </div>
@@ -387,7 +393,7 @@ const VendorStore = () => {
         
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-gray-900">
-            Welcome back, {store?.vendorName || 'Vendor'}!
+            {t('vendor.store.dashboard.welcomeBackPrefix', { vendorName: store?.vendorName || t('vendor.store.vendorFallbackName') })}
           </h1>
           
           {/* بار صغير لزيارات المتجر */}
@@ -396,7 +402,7 @@ const VendorStore = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
             </svg>
-            <span className="text-sm text-gray-600">Total visits:</span>
+            <span className="text-sm text-gray-600">{t('vendor.store.dashboard.totalVisitsLabel')}</span>
             <span className="font-semibold text-gray-900">
               {(() => {
                 const value = store.totalVisits / 2;
@@ -412,7 +418,7 @@ const VendorStore = () => {
               <ExternalLink className="h-4 w-4 text-indigo-600" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-xs text-gray-500 mb-1">Your store is live at</p>
+                <p className="text-xs text-gray-500 mb-1">{t('vendor.store.dashboard.yourStoreLiveAtLabel')}</p>
               <p className="text-sm font-medium text-gray-900 truncate">
                 {getStoreUrl()}
               </p>
@@ -426,12 +432,12 @@ const VendorStore = () => {
               {copied ? (
                 <>
                   <Check className="h-4 w-4" />
-                  <span className="text-sm">Copied!</span>
+                    <span className="text-sm">{t('vendor.store.dashboard.copied')}</span>
                 </>
               ) : (
                 <>
                   <Copy className="h-4 w-4" />
-                  <span className="text-sm">Copy Link</span>
+                    <span className="text-sm">{t('vendor.store.dashboard.copyLink')}</span>
                 </>
               )}
             </button>
@@ -442,7 +448,7 @@ const VendorStore = () => {
               className="flex-1 sm:flex-none px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2"
             >
               <Eye className="h-4 w-4" />
-              <span className="text-sm">View</span>
+              <span className="text-sm">{t('vendor.store.dashboard.view')}</span>
             </a>
           </div>
         </div>
@@ -456,14 +462,14 @@ const VendorStore = () => {
               </div>
               {stats.lowStock > 0 && (
                 <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-medium rounded-full">
-                  {stats.lowStock} low
+                  {stats.lowStock} {t('vendor.store.statistics.lowStockSuffix')}
                 </span>
               )}
             </div>
             <div className="text-xl font-bold text-gray-900 mb-1">
               {formatNumber(stats.totalProducts)}
             </div>
-            <div className="text-sm text-gray-600">Total Products</div>
+            <div className="text-sm text-gray-600">{t('vendor.store.statistics.totalProducts')}</div>
           </div>
 
           <div className="bg-white rounded-lg p-5 border border-gray-200">
@@ -473,14 +479,14 @@ const VendorStore = () => {
               </div>
               {stats.pendingOrders > 0 && (
                 <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-medium rounded-full">
-                  {stats.pendingOrders} pending
+                  {stats.pendingOrders} {t('vendor.store.statistics.pending')}
                 </span>
               )}
             </div>
             <div className="text-xl font-bold text-gray-900 mb-1">
               {formatNumber(stats.totalOrders)}
             </div>
-            <div className="text-sm text-gray-600">Total Orders</div>
+            <div className="text-sm text-gray-600">{t('vendor.store.statistics.totalOrders')}</div>
           </div>
 
           <div className="bg-white rounded-lg p-5 border border-gray-200">
@@ -492,25 +498,15 @@ const VendorStore = () => {
             <div className="text-xl font-bold text-gray-900 mb-1">
               {formatCurrency(stats.totalRevenue)}
             </div>
-            <div className="text-sm text-gray-600">Total Revenue</div>
+            <div className="text-sm text-gray-600">{t('vendor.store.statistics.totalRevenue')}</div>
           </div>
 
-          <div className="bg-white rounded-lg p-5 border border-gray-200">
-            <div className="flex items-center justify-between mb-3">
-              <div className="h-10 w-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                <Users className="h-5 w-5 text-purple-600" />
-              </div>
-            </div>
-            <div className="text-xl font-bold text-gray-900 mb-1">
-              {formatNumber(stats.totalCustomers)}
-            </div>
-            <div className="text-sm text-gray-600">Total Customers</div>
-          </div>
+          
         </div>
 
         {/* Simple Quick Actions */}
         <div className="mb-10">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">{t('vendor.store.quickActions.title')}</h2>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <Link
               to="/vendor/products"
@@ -519,8 +515,8 @@ const VendorStore = () => {
               <div className="h-12 w-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-3">
                 <Edit className="h-6 w-6 text-indigo-600" />
               </div>
-              <div className="font-medium text-gray-900 mb-1">Manage Products</div>
-              <div className="text-sm text-gray-500">Edit or update stock</div>
+              <div className="font-medium text-gray-900 mb-1">{t('vendor.store.quickActions.manageProducts')}</div>
+              <div className="text-sm text-gray-500">{t('vendor.store.quickActions.manageProductsDescription')}</div>
             </Link>
 
             <Link
@@ -530,8 +526,8 @@ const VendorStore = () => {
               <div className="h-12 w-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-3">
                 <Layers className="h-6 w-6 text-indigo-600" />
               </div>
-              <div className="font-medium text-gray-900 mb-1">Manage Categories</div>
-              <div className="text-sm text-gray-500">Organize your products</div>
+              <div className="font-medium text-gray-900 mb-1">{t('vendor.store.quickActions.manageCategories')}</div>
+              <div className="text-sm text-gray-500">{t('vendor.store.quickActions.manageCategoriesDescription')}</div>
             </Link>
 
             <Link
@@ -541,8 +537,8 @@ const VendorStore = () => {
               <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center mb-3">
                 <ShoppingBag className="h-6 w-6 text-green-600" />
               </div>
-              <div className="font-medium text-gray-900 mb-1">View Orders</div>
-              <div className="text-sm text-gray-500">Process & fulfill</div>
+              <div className="font-medium text-gray-900 mb-1">{t('vendor.store.quickActions.viewOrders')}</div>
+              <div className="text-sm text-gray-500">{t('vendor.store.quickActions.viewOrdersDescription')}</div>
             </Link>
 
             <Link
@@ -552,8 +548,8 @@ const VendorStore = () => {
               <div className="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center mb-3">
                 <BarChart className="h-6 w-6 text-purple-600" />
               </div>
-              <div className="font-medium text-gray-900 mb-1">Analytics</div>
-              <div className="text-sm text-gray-500">Track performance</div>
+              <div className="font-medium text-gray-900 mb-1">{t('vendor.store.quickActions.analytics')}</div>
+              <div className="text-sm text-gray-500">{t('vendor.store.quickActions.analyticsDescription')}</div>
             </Link>
           </div>
         </div>
@@ -567,20 +563,20 @@ const VendorStore = () => {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-bold text-gray-900 flex items-center">
                   <Store className="h-5 w-5 mr-2 text-indigo-600" />
-                  Store Overview
+                  {t('vendor.store.storeOverview.title')}
                 </h2>
                 <Link
                   to="/vendor/settings"
                   className="text-sm text-indigo-600 hover:text-indigo-700 font-medium flex items-center"
                 >
-                  Edit <ChevronRight className="h-4 w-4 ml-1" />
+                  {t('vendor.store.storeOverview.edit')} <ChevronRight className="h-4 w-4 ml-1" />
                 </Link>
               </div>
               
               <div className="space-y-4">
                 <p className="text-gray-600">
                   {store.storeDescription || (
-                    <span className="text-gray-400 italic">No description provided. Add one in settings.</span>
+                    <span className="text-gray-400 italic">{t('vendor.store.storeOverview.descriptionFallback')}</span>
                   )}
                 </p>
 
@@ -588,16 +584,16 @@ const VendorStore = () => {
                   <div className="bg-gray-50 rounded-lg p-3">
                     <div className="flex items-center text-gray-500 mb-1">
                       <MapPin className="h-4 w-4 mr-2" />
-                      <span className="text-xs">Address</span>
+                      <span className="text-xs">{t('vendor.store.storeOverview.addressLabel')}</span>
                     </div>
-                    <p className="text-gray-900 font-medium">{store.storeAddress || 'Not set'}</p>
+                    <p className="text-gray-900 font-medium">{store.storeAddress || t('vendor.store.storeOverview.notSet')}</p>
                   </div>
                   <div className="bg-gray-50 rounded-lg p-3">
                     <div className="flex items-center text-gray-500 mb-1">
                       <Phone className="h-4 w-4 mr-2" />
-                      <span className="text-xs">Contact</span>
+                      <span className="text-xs">{t('vendor.store.storeOverview.contactLabel')}</span>
                     </div>
-                    <p className="text-gray-900 font-medium">{store.storePhone || 'Not set'}</p>
+                    <p className="text-gray-900 font-medium">{store.storePhone || t('vendor.store.storeOverview.notSet')}</p>
                   </div>
                 </div>
               </div>
@@ -608,13 +604,13 @@ const VendorStore = () => {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-bold text-gray-900 flex items-center">
                   <Package className="h-5 w-5 mr-2 text-indigo-600" />
-                  Recent Products
+                  {t('vendor.store.recentProducts.title')}
                 </h2>
                 <Link
                   to="/vendor/products"
                   className="text-sm text-indigo-600 hover:text-indigo-700 font-medium flex items-center"
                 >
-                  View All ({stats.totalProducts})
+                  {t('vendor.store.recentProducts.viewAll')} ({stats.totalProducts})
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </Link>
               </div>
@@ -622,13 +618,13 @@ const VendorStore = () => {
               {products.length === 0 ? (
                 <div className="text-center py-8 bg-gray-50 rounded-lg">
                   <Package className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-gray-600 mb-3">Your product catalog is empty</p>
+                  <p className="text-gray-600 mb-3">{t('vendor.store.recentProducts.emptyCatalogTitle')}</p>
                   <Link
                     to="/vendor/products"
                     className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm"
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    Add Your First Product
+                    {t('vendor.store.recentProducts.addFirstProduct')}
                   </Link>
                 </div>
               ) : (
@@ -663,7 +659,7 @@ const VendorStore = () => {
                                 ? 'bg-green-100 text-green-700'
                                 : 'bg-red-100 text-red-700'
                             }`}>
-                              {(product.quantity || product.stock || 0)} left
+                              {(product.quantity || product.stock || 0)} {t('vendor.store.productQuantityLeftSuffix')}
                             </span>
                           </div>
                         </div>
@@ -682,13 +678,13 @@ const VendorStore = () => {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-bold text-gray-900 flex items-center">
                   <ShoppingBag className="h-5 w-5 mr-2 text-indigo-600" />
-                  Recent Orders
+                  {t('vendor.store.recentOrders.title')}
                 </h2>
                 <Link
                   to="/vendor/orders"
                   className="text-sm text-indigo-600 hover:text-indigo-700 font-medium flex items-center"
                 >
-                  View All
+                  {t('vendor.store.recentOrders.viewAll')}
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </Link>
               </div>
@@ -696,8 +692,8 @@ const VendorStore = () => {
               {orders.length === 0 ? (
                 <div className="text-center py-6">
                   <ShoppingBag className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-gray-600">No orders yet</p>
-                  <p className="text-sm text-gray-500 mt-1">Orders will appear here</p>
+                  <p className="text-gray-600">{t('vendor.store.recentOrders.emptyTitle')}</p>
+                  <p className="text-sm text-gray-500 mt-1">{t('vendor.store.recentOrders.emptySubtext')}</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -722,7 +718,7 @@ const VendorStore = () => {
                             #{order.orderNumber || order.id}
                           </span>
                           <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[status] || 'bg-gray-100 text-gray-700'}`}>
-                            {status}
+                              {t(`vendor.store.orderStatus.${status}`, { defaultValue: status })}
                           </span>
                         </div>
                         <div className="flex items-center justify-between">
@@ -732,7 +728,7 @@ const VendorStore = () => {
                             </p>
                             <p className="text-xs text-gray-500 mt-1 flex items-center">
                               <Clock className="h-3 w-3 mr-1" />
-                              {new Date(order.orderDate || order.createdAt || Date.now()).toLocaleDateString('en-US', {
+                              {new Date(order.orderDate || order.createdAt || Date.now()).toLocaleDateString(i18n.language === 'ar' ? 'ar-EG' : 'en-US', {
                                 month: 'short',
                                 day: 'numeric'
                               })}

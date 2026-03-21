@@ -1,6 +1,7 @@
 // src/pages/Checkout.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft, CreditCard, Lock, Truck,
   MapPin, User, Mail, Phone,
@@ -19,6 +20,7 @@ import { useErrorHandler } from '../../hooks/useErrorHandler';
 
 const Checkout = () => {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [cartData, setCartData] = useState(null);
@@ -28,9 +30,9 @@ const Checkout = () => {
   const [paymentMethods, setPaymentMethods] = useState([]);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
   
-  // Modal states - مودالين منفصلين
-  const [showPaymentModal, setShowPaymentModal] = useState(false); // للدفع الكامل
-  const [showDepositModal, setShowDepositModal] = useState(false); // للإيداع
+  // Modal states
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showDepositModal, setShowDepositModal] = useState(false);
   
   // Shared states
   const [paymentAmount, setPaymentAmount] = useState(0);
@@ -172,11 +174,11 @@ const Checkout = () => {
 
     if (step === 1) {
       if (!selectedShipping) {
-        setError('Please select a governorate for shipping.');
+        setError(t('checkout.errors.selectGovernorate'));
         return;
       }
       if (paymentMethods.length === 0) {
-        setError('No payment methods available for this store.');
+        setError(t('checkout.errors.noPaymentMethods'));
         return;
       }
       setStep(2);
@@ -190,11 +192,11 @@ const Checkout = () => {
         } else {
           const amount = calculateDepositAmount();
           setPaymentAmount(amount);
-          setShowDepositModal(true); // فتح مودال الإيداع
+          setShowDepositModal(true);
         }
       } else {
         setPaymentAmount(getTotal());
-        setShowPaymentModal(true); // فتح مودال الدفع الكامل
+        setShowPaymentModal(true);
       }
     }
   };
@@ -207,7 +209,7 @@ const Checkout = () => {
       const orderResponse = await createOrder();
 
       if (!orderResponse || !orderResponse.id) {
-        throw new Error('Failed to create order');
+        throw new Error(t('checkout.errors.createOrderFailed'));
       }
 
       setPaymentSuccess(true);
@@ -220,7 +222,7 @@ const Checkout = () => {
 
     } catch (err) {
       console.error('Order error:', err);
-      setError(err.message || 'Failed to place order');
+      setError(err.message || t('checkout.errors.orderFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -230,12 +232,12 @@ const Checkout = () => {
     const file = e.target.files[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        setPaymentError('File too large. Maximum size is 5MB');
+        setPaymentError(t('checkout.errors.fileTooLarge'));
         return;
       }
       
       if (!file.type.startsWith('image/')) {
-        setPaymentError('Please upload an image file');
+        setPaymentError(t('checkout.errors.notImageFile'));
         return;
       }
       
@@ -277,7 +279,7 @@ const Checkout = () => {
     };
 
     const customerResponse = await customerAPI.add(customerData);
-    if (!customerResponse || !customerResponse.id) throw new Error('Failed to create customer');
+    if (!customerResponse || !customerResponse.id) throw new Error(t('checkout.errors.createCustomerFailed'));
 
     const paymentMethodId = selectedPaymentMethod?.paymentMethodId || 
       (selectedPaymentMethod?.paymentMethodName === 'COD' ? 3 : 
@@ -317,7 +319,7 @@ const Checkout = () => {
     }
 
     if (!paymentProof) {
-      setPaymentError('Please upload proof of payment');
+      setPaymentError(t('checkout.errors.uploadProofRequired'));
       return;
     }
 
@@ -331,7 +333,7 @@ const Checkout = () => {
       const orderResponse = await createOrder();
       
       if (!orderResponse || !orderResponse.id) {
-        throw new Error('Failed to create order');
+        throw new Error(t('checkout.errors.createOrderFailed'));
       }
 
       createdOrderId = orderResponse.id;
@@ -358,7 +360,7 @@ const Checkout = () => {
           console.error('❌ Failed to delete order:', deleteError);
         }
         
-        throw new Error('فشل رفع صورة الدفع. تم إلغاء الطلب.');
+        throw new Error(t('checkout.errors.uploadFailedOrderCancelled'));
       }
 
       setPaymentSuccess(true);
@@ -371,7 +373,7 @@ const Checkout = () => {
 
     } catch (err) {
       console.error('❌ Transaction error:', err);
-      setPaymentError(err.message || 'فشلت العملية. الرجاء المحاولة مرة أخرى.');
+      setPaymentError(err.message || t('checkout.errors.transactionFailed'));
     } finally {
       setUploadingPayment(false);
     }
@@ -393,7 +395,8 @@ const Checkout = () => {
   };
 
   const formatPrice = (price) => {
-    return new Intl.NumberFormat('en-eg', {
+    const localeCode = i18n.language === 'ar' ? 'ar-EG' : 'en-US';
+    return new Intl.NumberFormat(localeCode, {
       style: 'currency',
       currency: 'EGP',
       minimumFractionDigits: 0,
@@ -447,11 +450,11 @@ const Checkout = () => {
   const getPaymentMethodDisplayName = (methodName) => {
     switch(methodName) {
       case 'INSTAPAY':
-        return 'Instapay';
+        return t('instapay');
       case 'VODAFONE_CASH':
-        return 'Vodafone Cash';
+        return t('vodafone Cash');
       case 'COD':
-        return 'Cash on Delivery';
+        return t("Cash on Delivery");
       default:
         return methodName;
     }
@@ -462,7 +465,7 @@ const Checkout = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-12 w-12 text-indigo-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Loading checkout...</p>
+          <p className="text-gray-600">{t('checkout.loading.checkout')}</p>
         </div>
       </div>
     );
@@ -473,7 +476,7 @@ const Checkout = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <ShoppingBag className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600">Loading cart...</p>
+          <p className="text-gray-600">{t('checkout.loading.cart')}</p>
         </div>
       </div>
     );
@@ -483,7 +486,7 @@ const Checkout = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* مودال الدفع الكامل (Instapay / Vodafone Cash) */}
+      {/* Payment Modal - Full Payment */}
       {showPaymentModal && (
         <div 
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
@@ -499,8 +502,8 @@ const Checkout = () => {
                   <CreditCard className="h-6 w-6 text-green-600" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900">Complete Payment</h3>
-                  <p className="text-sm text-gray-500">Pay total amount to confirm your order</p>
+                  <h3 className="text-xl font-bold text-gray-900">{t('checkout.modal.fullPayment.title')}</h3>
+                  <p className="text-sm text-gray-500">{t('checkout.modal.fullPayment.description')}</p>
                 </div>
               </div>
               {!uploadingPayment && !paymentSuccess && (
@@ -519,31 +522,26 @@ const Checkout = () => {
                   <div className="h-20 w-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <CheckCircle className="h-10 w-10 text-green-600" />
                   </div>
-                  <h4 className="text-xl font-bold text-gray-900 mb-2">Payment Confirmed!</h4>
-                  <p className="text-gray-600 mb-4">
-                    Your payment has been received. The vendor will process your order shortly.
-                  </p>
-                  <p className="text-sm text-gray-500">Redirecting to store...</p>
+                  <h4 className="text-xl font-bold text-gray-900 mb-2">{t('checkout.modal.fullPayment.successTitle')}</h4>
+                  <p className="text-gray-600 mb-4">{t('checkout.modal.fullPayment.successMessage')}</p>
+                  <p className="text-sm text-gray-500">{t('checkout.modal.redirecting')}</p>
                 </div>
               ) : (
                 <>
-                  {/* المبلغ كامل */}
                   <div 
                     className="rounded-xl p-5 text-white"
                     style={{
                       background: `linear-gradient(to right, ${cartData?.primaryColor || '#4f46e5'}, ${cartData?.secondaryColor || '#8b5cf6'})`
                     }}
                   >
-                    <h4 className="font-medium mb-2">Amount to Pay</h4>
+                    <h4 className="font-medium mb-2">{t('checkout.modal.amountToPay')}</h4>
                     <div className="text-3xl font-bold">{formatPrice(paymentAmount)}</div>
-                    <p className="text-sm opacity-80 mt-1">Total order amount</p>
+                    <p className="text-sm opacity-80 mt-1">{t('checkout.modal.totalOrderAmount')}</p>
                   </div>
 
-                  {/* Payment Details - منفصلة */}
                   <div className="space-y-4">
-                    <h4 className="font-semibold text-gray-900">Payment Details</h4>
+                    <h4 className="font-semibold text-gray-900">{t('checkout.modal.paymentDetails')}</h4>
                     
-                    {/* Instapay */}
                     {selectedPaymentMethod?.paymentMethodName === 'INSTAPAY' && (
                       <>
                         {depositSettings?.instapayNumber ? (
@@ -551,30 +549,29 @@ const Checkout = () => {
                             <div className="flex items-center justify-between mb-2">
                               <div className="flex items-center space-x-2">
                                 <Smartphone className="h-5 w-5 text-emerald-600" />
-                                <span className="font-medium">Instapay</span>
+                                <span className="font-medium">{t('instapay')}</span>
                               </div>
                               <button
                                 onClick={() => handleCopy(depositSettings.instapayNumber, 'instapay')}
                                 className="text-sm text-emerald-600 hover:text-emerald-700 flex items-center space-x-1"
                               >
                                 <Copy className="h-4 w-4" />
-                                <span>{copiedInstapay ? 'Copied!' : 'Copy'}</span>
+                                <span>{copiedInstapay ? t('checkout.modal.copied') : t('checkout.modal.copy')}</span>
                               </button>
                             </div>
                             <p className="text-lg font-mono text-gray-900">{depositSettings.instapayNumber}</p>
                             {selectedPaymentMethod?.accountName && (
-                              <p className="text-sm text-gray-500 mt-2">Account: {selectedPaymentMethod.accountName}</p>
+                              <p className="text-sm text-gray-500 mt-2">{t('checkout.modal.account')}: {selectedPaymentMethod.accountName}</p>
                             )}
                           </div>
                         ) : (
                           <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-                            <p className="text-sm text-yellow-700">Instapay number not configured by vendor.</p>
+                            <p className="text-sm text-yellow-700">{t('checkout.errors.instapayNotConfigured')}</p>
                           </div>
                         )}
                       </>
                     )}
 
-                    {/* Vodafone Cash */}
                     {selectedPaymentMethod?.paymentMethodName === 'VODAFONE_CASH' && (
                       <>
                         {depositSettings?.vodafoneCashNumber ? (
@@ -582,40 +579,39 @@ const Checkout = () => {
                             <div className="flex items-center justify-between mb-2">
                               <div className="flex items-center space-x-2">
                                 <img src="vodafoneCash.png" alt="Vodafone Cash" />
-                                <span className="font-medium">Vodafone Cash</span>
+                                <span className="font-medium">{t('vodafoneCash')}</span>
                               </div>
                               <button
                                 onClick={() => handleCopy(depositSettings.vodafoneCashNumber, 'vodafone')}
                                 className="text-sm text-red-600 hover:text-red-700 flex items-center space-x-1"
                               >
                                 <Copy className="h-4 w-4" />
-                                <span>{copiedVodafone ? 'Copied!' : 'Copy'}</span>
+                                <span>{copiedVodafone ? t('checkout.modal.copied') : t('checkout.modal.copy')}</span>
                               </button>
                             </div>
                             <p className="text-lg font-mono text-gray-900">{depositSettings.vodafoneCashNumber}</p>
                             {selectedPaymentMethod?.accountName && (
-                              <p className="text-sm text-gray-500 mt-2">Account: {selectedPaymentMethod.accountName}</p>
+                              <p className="text-sm text-gray-500 mt-2">{t('checkout.modal.account')}: {selectedPaymentMethod.accountName}</p>
                             )}
                           </div>
                         ) : (
                           <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-                            <p className="text-sm text-yellow-700">Vodafone Cash number not configured by vendor.</p>
+                            <p className="text-sm text-yellow-700">{t('checkout.errors.vodafoneNotConfigured')}</p>
                           </div>
                         )}
                       </>
                     )}
                   </div>
 
-                  {/* Upload Proof */}
                   <div className="space-y-4">
-                    <h4 className="font-semibold text-gray-900">Upload Payment Screenshot</h4>
+                    <h4 className="font-semibold text-gray-900">{t('checkout.modal.uploadScreenshot')}</h4>
                     
                     {!paymentProofPreview ? (
                       <label className="block cursor-pointer">
                         <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-amber-500 transition-colors">
                           <Camera className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                          <p className="text-gray-600 mb-1">Click to upload screenshot</p>
-                          <p className="text-xs text-gray-500">PNG, JPG up to 5MB</p>
+                          <p className="text-gray-600 mb-1">{t('checkout.modal.clickToUpload')}</p>
+                          <p className="text-xs text-gray-500">{t('checkout.modal.imageRequirements')}</p>
                           <input
                             type="file"
                             accept="image/*"
@@ -651,14 +647,13 @@ const Checkout = () => {
                     )}
                   </div>
 
-                  {/* Action Buttons */}
                   <div className="flex space-x-4 pt-4">
                     <button
                       onClick={handleModalClose}
                       disabled={uploadingPayment}
                       className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors disabled:opacity-50"
                     >
-                      Cancel
+                      {t('checkout.modal.cancel')}
                     </button>
                     <button
                       onClick={handlePaymentConfirm}
@@ -671,12 +666,12 @@ const Checkout = () => {
                       {uploadingPayment ? (
                         <>
                           <Loader2 className="h-5 w-5 animate-spin" />
-                          <span>Processing...</span>
+                          <span>{t('checkout.modal.processing')}</span>
                         </>
                       ) : (
                         <>
                           <CheckCircle className="h-5 w-5" />
-                          <span>Confirm Payment</span>
+                          <span>{t('checkout.modal.confirmPayment')}</span>
                         </>
                       )}
                     </button>
@@ -684,9 +679,7 @@ const Checkout = () => {
 
                   {uploadingPayment && (
                     <div className="text-center py-2">
-                      <p className="text-xs text-gray-500">
-                        Please don't close this window while we process your order...
-                      </p>
+                      <p className="text-xs text-gray-500">{t('checkout.modal.processingMessage')}</p>
                     </div>
                   )}
                 </>
@@ -696,7 +689,7 @@ const Checkout = () => {
         </div>
       )}
 
-      {/* مودال الإيداع (Deposit) - منفصل */}
+      {/* Deposit Modal */}
       {showDepositModal && (
         <div 
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
@@ -712,8 +705,8 @@ const Checkout = () => {
                   <Wallet className="h-6 w-6 text-amber-600" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900">Deposit Required</h3>
-                  <p className="text-sm text-gray-500">Pay deposit to confirm your order</p>
+                  <h3 className="text-xl font-bold text-gray-900">{t('checkout.modal.deposit.title')}</h3>
+                  <p className="text-sm text-gray-500">{t('checkout.modal.deposit.description')}</p>
                 </div>
               </div>
               {!uploadingPayment && !paymentSuccess && (
@@ -732,68 +725,62 @@ const Checkout = () => {
                   <div className="h-20 w-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <CheckCircle className="h-10 w-10 text-green-600" />
                   </div>
-                  <h4 className="text-xl font-bold text-gray-900 mb-2">Deposit Submitted!</h4>
-                  <p className="text-gray-600 mb-4">
-                    Your deposit proof has been uploaded. The vendor will confirm your payment shortly.
-                  </p>
-                  <p className="text-sm text-gray-500">Redirecting to store...</p>
+                  <h4 className="text-xl font-bold text-gray-900 mb-2">{t('checkout.modal.deposit.successTitle')}</h4>
+                  <p className="text-gray-600 mb-4">{t('checkout.modal.deposit.successMessage')}</p>
+                  <p className="text-sm text-gray-500">{t('checkout.modal.redirecting')}</p>
                 </div>
               ) : (
                 <>
-                  {/* مبلغ الإيداع */}
                   <div 
                     className="rounded-xl p-5 text-white"
                     style={{
                       background: `linear-gradient(to right, ${cartData?.primaryColor || '#4f46e5'}, ${cartData?.secondaryColor || '#8b5cf6'})`
                     }}
                   >
-                    <h4 className="font-medium mb-2">Deposit Amount</h4>
+                    <h4 className="font-medium mb-2">{t('checkout.modal.deposit.amount')}</h4>
                     <div className="text-3xl font-bold">{formatPrice(paymentAmount)}</div>
                     <p className="text-sm opacity-80 mt-1">
                       {depositSettings?.depositType === 'SHIPPING' 
-                        ? 'Deposit equals shipping cost'
-                        : `${depositSettings?.depositValue}% of order total`}
+                        ? t('checkout.modal.deposit.equalsShipping')
+                        : `${depositSettings?.depositValue}% ${t('checkout.modal.deposit.ofOrderTotal')}`}
                     </p>
                   </div>
 
-                  {/* Payment Details للإيداع - هنا الأرقام */}
                   <div className="space-y-4">
-                    <h4 className="font-semibold text-gray-900">Send deposit to</h4>
+                    <h4 className="font-semibold text-gray-900">{t('checkout.modal.deposit.sendTo')}</h4>
                     
-                    {/* Instapay - هنا يظهر الرقم */}
                     {depositSettings?.instapayNumber && (
                       <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center space-x-2">
                             <Smartphone className="h-5 w-5 text-emerald-600" />
-                            <span className="font-medium">Instapay</span>
+                            <span className="font-medium">{t('instapay')}</span>
                           </div>
                           <button
                             onClick={() => handleCopy(depositSettings.instapayNumber, 'instapay')}
                             className="text-sm text-emerald-600 hover:text-emerald-700 flex items-center space-x-1"
                           >
                             <Copy className="h-4 w-4" />
-                            <span>{copiedInstapay ? 'Copied!' : 'Copy'}</span>
+                            <span>{copiedInstapay ? t('checkout.modal.copied') : t('checkout.modal.copy')}</span>
                           </button>
                         </div>
                         <p className="text-lg font-mono text-gray-900">{depositSettings.instapayNumber}</p>
                       </div>
                     )}
 
-                    {/* Vodafone Cash - هنا يظهر الرقم */}
                     {depositSettings?.vodafoneCashNumber && (
                       <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center space-x-2">
                             <Phone className="h-5 w-5 text-red-600" />
-                            <span className="font-medium">Vodafone Cash</span>
+                            <span className="font-medium">{t('vodafoneCash')}</span>
                           </div>
                           <button
                             onClick={() => handleCopy(depositSettings.vodafoneCashNumber, 'vodafone')}
                             className="text-sm text-red-600 hover:text-red-700 flex items-center space-x-1"
                           >
                             <Copy className="h-4 w-4" />
-                            <span>{copiedVodafone ? 'Copied!' : 'Copy'}</span>
+                            <span>{copiedVodafone ? t('checkout.modal.copied') : t('checkout.modal.copy')}</span>
                           </button>
                         </div>
                         <p className="text-lg font-mono text-gray-900">{depositSettings.vodafoneCashNumber}</p>
@@ -801,38 +788,35 @@ const Checkout = () => {
                     )}
                   </div>
 
-                  {/* رسالة لو مفيش أرقام */}
                   {!depositSettings?.instapayNumber && !depositSettings?.vodafoneCashNumber && (
                     <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-                      <p className="text-sm text-yellow-700">No payment methods configured for deposit.</p>
+                      <p className="text-sm text-yellow-700">{t('checkout.errors.noPaymentMethodsConfigured')}</p>
                     </div>
                   )}
 
-                  {/* رسالة COD */}
                   <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
                     <div className="flex items-start gap-3">
                       <Banknote className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
                       <div>
                         <p className="text-sm text-blue-800 font-medium">
-                          Pay {formatPrice(paymentAmount)} as deposit
+                          {t('checkout.modal.deposit.payAmount', { amount: formatPrice(paymentAmount) })}
                         </p>
                         <p className="text-xs text-blue-600 mt-1">
-                          The remaining {formatPrice(getTotal() - paymentAmount)} will be paid upon delivery.
+                          {t('checkout.modal.deposit.remainingOnDelivery', { amount: formatPrice(getTotal() - paymentAmount) })}
                         </p>
                       </div>
                     </div>
                   </div>
 
-                  {/* Upload Proof */}
                   <div className="space-y-4">
-                    <h4 className="font-semibold text-gray-900">Upload Deposit Proof</h4>
+                    <h4 className="font-semibold text-gray-900">{t('checkout.modal.deposit.uploadProof')}</h4>
                     
                     {!paymentProofPreview ? (
                       <label className="block cursor-pointer">
                         <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-amber-500 transition-colors">
                           <Camera className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                          <p className="text-gray-600 mb-1">Click to upload screenshot</p>
-                          <p className="text-xs text-gray-500">PNG, JPG up to 5MB</p>
+                          <p className="text-gray-600 mb-1">{t('checkout.modal.clickToUpload')}</p>
+                          <p className="text-xs text-gray-500">{t('checkout.modal.imageRequirements')}</p>
                           <input
                             type="file"
                             accept="image/*"
@@ -868,14 +852,13 @@ const Checkout = () => {
                     )}
                   </div>
 
-                  {/* Action Buttons */}
                   <div className="flex space-x-4 pt-4">
                     <button
                       onClick={handleModalClose}
                       disabled={uploadingPayment}
                       className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors disabled:opacity-50"
                     >
-                      Cancel
+                      {t('checkout.modal.cancel')}
                     </button>
                     <button
                       onClick={handlePaymentConfirm}
@@ -888,12 +871,12 @@ const Checkout = () => {
                       {uploadingPayment ? (
                         <>
                           <Loader2 className="h-5 w-5 animate-spin" />
-                          <span>Processing...</span>
+                          <span>{t('checkout.modal.processing')}</span>
                         </>
                       ) : (
                         <>
                           <CheckCircle className="h-5 w-5" />
-                          <span>Confirm Deposit</span>
+                          <span>{t('checkout.modal.deposit.confirmDeposit')}</span>
                         </>
                       )}
                     </button>
@@ -901,9 +884,7 @@ const Checkout = () => {
 
                   {uploadingPayment && (
                     <div className="text-center py-2">
-                      <p className="text-xs text-gray-500">
-                        Please don't close this window while we process your order...
-                      </p>
+                      <p className="text-xs text-gray-500">{t('checkout.modal.processingMessage')}</p>
                     </div>
                   )}
                 </>
@@ -913,7 +894,7 @@ const Checkout = () => {
         </div>
       )}
 
-      {/* باقي الكود زي ما هو */}
+      {/* Header */}
       <div className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-between">
@@ -922,19 +903,19 @@ const Checkout = () => {
                 <ArrowLeft className="h-5 w-5" />
               </button>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Checkout</h1>
-                <p className="text-gray-600">Complete your purchase from {cartData.storeName}</p>
+                <h1 className="text-3xl font-bold text-gray-900">{t('checkout.title')}</h1>
+                <p className="text-gray-600">{t('checkout.subtitle', { storeName: cartData.storeName })}</p>
               </div>
             </div>
             <div className="flex items-center space-x-8">
               <div className={`flex items-center ${step >= 1 ? 'text-indigo-600' : 'text-gray-400'}`}>
                 <div className={`h-8 w-8 rounded-full flex items-center justify-center ${step >= 1 ? 'bg-indigo-100' : 'bg-gray-100'}`}>1</div>
-                <span className="ml-2 text-sm font-medium">Customer Info</span>
+                <span className="ml-2 text-sm font-medium">{t('checkout.steps.customerInfo')}</span>
               </div>
               <div className={`h-1 w-8 ${step >= 2 ? 'bg-indigo-600' : 'bg-gray-200'}`}></div>
               <div className={`flex items-center ${step >= 2 ? 'text-indigo-600' : 'text-gray-400'}`}>
                 <div className={`h-8 w-8 rounded-full flex items-center justify-center ${step >= 2 ? 'bg-indigo-100' : 'bg-gray-100'}`}>2</div>
-                <span className="ml-2 text-sm font-medium">Review & Confirm</span>
+                <span className="ml-2 text-sm font-medium">{t('checkout.steps.reviewConfirm')}</span>
               </div>
             </div>
           </div>
@@ -961,11 +942,11 @@ const Checkout = () => {
               <form onSubmit={handleSubmit}>
                 {step === 1 ? (
                   <>
-                    <h3 className="text-xl font-bold text-gray-900 mb-6">Customer Information</h3>
+                    <h3 className="text-xl font-bold text-gray-900 mb-6">{t('checkout.customerInformation.title')}</h3>
 
                     <div className="grid md:grid-cols-2 gap-6">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('checkout.customerInformation.firstName')} *</label>
                         <div className="relative">
                           <User className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                           <input
@@ -977,7 +958,7 @@ const Checkout = () => {
                         </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('checkout.customerInformation.lastName')} *</label>
                         <div className="relative">
                           <User className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                           <input
@@ -992,7 +973,7 @@ const Checkout = () => {
 
                     <div className="grid md:grid-cols-2 gap-6 mt-6">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('checkout.customerInformation.phoneNumber')} *</label>
                         <div className="relative">
                           <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                           <input
@@ -1004,7 +985,7 @@ const Checkout = () => {
                         </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Whatsapp Number *</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('checkout.customerInformation.whatsappNumber')} *</label>
                         <div className="relative">
                           <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                           <input
@@ -1018,7 +999,7 @@ const Checkout = () => {
                     </div>
 
                     <div className="mt-6">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Address *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">{t('checkout.customerInformation.address')} *</label>
                       <div className="relative">
                         <MapPin className="absolute left-4 top-4 h-5 w-5 text-gray-400" />
                         <textarea
@@ -1031,14 +1012,13 @@ const Checkout = () => {
                       </div>
                     </div>
 
-                    {/* Governorate Select */}
                     <div className="mt-6">
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Governorate * <span className="text-gray-400 text-xs">(Shipping cost will be calculated)</span>
+                        {t('checkout.customerInformation.governorate')} * <span className="text-gray-400 text-xs">({t('checkout.customerInformation.shippingHint')})</span>
                       </label>
                       {shippingOptions.length === 0 ? (
                         <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-xl text-yellow-700 text-sm">
-                          No shipping options available for this store.
+                          {t('checkout.errors.noShippingOptions')}
                         </div>
                       ) : (
                         <div className="relative">
@@ -1050,7 +1030,7 @@ const Checkout = () => {
                             value={selectedShipping?.governorateId || ''}
                             className="w-full pl-12 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none appearance-none"
                           >
-                            <option value="" disabled>Select your governorate</option>
+                            <option value="" disabled>{t('checkout.customerInformation.selectGovernorate')}</option>
                             {shippingOptions.map(option => (
                               <option key={option.governorateId} value={option.governorateId}>
                                 {option.governorateName} - {formatPrice(option.price)}
@@ -1065,7 +1045,7 @@ const Checkout = () => {
                           <div className="flex items-center space-x-2">
                             <Truck className="h-4 w-4 text-indigo-600" />
                             <span className="text-sm text-indigo-700">
-                              Shipping to {selectedShipping.governorateName}
+                              {t('checkout.customerInformation.shippingTo')} {selectedShipping.governorateName}
                             </span>
                           </div>
                           <span className="font-semibold text-indigo-700">{formatPrice(selectedShipping.price)}</span>
@@ -1073,14 +1053,13 @@ const Checkout = () => {
                       )}
                     </div>
 
-                    {/* Payment Method Selection */}
                     <div className="mt-6">
                       <label className="block text-sm font-medium text-gray-700 mb-4">
-                        Payment Method *
+                        {t('checkout.paymentMethod.title')} *
                       </label>
                       {paymentMethods.length === 0 ? (
                         <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-xl text-yellow-700 text-sm">
-                          No payment methods available for this store.
+                          {t('checkout.errors.noPaymentMethods')}
                         </div>
                       ) : (
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -1108,7 +1087,7 @@ const Checkout = () => {
                                     {getPaymentMethodDisplayName(method.paymentMethodName)}
                                   </span>
                                   {method.paymentMethodName === 'COD' && depositSettings?.depositRequired && (
-                                    <span className="text-xs text-amber-600 mt-1">Deposit required</span>
+                                    <span className="text-xs text-amber-600 mt-1">{t('checkout.paymentMethod.depositRequired')}</span>
                                   )}
                                 </div>
                               </div>
@@ -1119,7 +1098,7 @@ const Checkout = () => {
                     </div>
 
                     <div className="mt-6">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">{t('checkout.customerInformation.country')}</label>
                       <input
                         type="text" name="country"
                         value={customerInfo.country} readOnly
@@ -1132,12 +1111,12 @@ const Checkout = () => {
                       disabled={isLoading || shippingOptions.length === 0 || paymentMethods.length === 0 || !selectedPaymentMethod}
                       className="w-full mt-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Review Order
+                      {t('checkout.buttons.reviewOrder')}
                     </button>
                   </>
                 ) : (
                   <>
-                    <h3 className="text-xl font-bold text-gray-900 mb-6">Review Your Order</h3>
+                    <h3 className="text-xl font-bold text-gray-900 mb-6">{t('checkout.review.title')}</h3>
 
                     {/* Payment Method Summary */}
                     {selectedPaymentMethod && (
@@ -1153,8 +1132,8 @@ const Checkout = () => {
                               </div>
                               <div className={`text-xs text-${getPaymentMethodColor(selectedPaymentMethod.paymentMethodName)}-600`}>
                                 {selectedPaymentMethod.paymentMethodName === 'COD' 
-                                  ? depositSettings?.depositRequired ? 'Deposit required' : 'Pay on delivery'
-                                  : 'Online payment'}
+                                  ? depositSettings?.depositRequired ? t('checkout.paymentMethod.depositRequired') : t('checkout.paymentMethod.payOnDelivery')
+                                  : t('checkout.paymentMethod.onlinePayment')}
                               </div>
                             </div>
                           </div>
@@ -1163,7 +1142,7 @@ const Checkout = () => {
                             onClick={() => setStep(1)}
                             className="text-sm text-indigo-600 hover:text-indigo-700"
                           >
-                            Change
+                            {t('checkout.buttons.change')}
                           </button>
                         </div>
                       </div>
@@ -1171,7 +1150,7 @@ const Checkout = () => {
 
                     {/* Order Items */}
                     <div className="mb-8">
-                      <h4 className="font-semibold text-gray-900 mb-4">Order Items ({cartData.items.length})</h4>
+                      <h4 className="font-semibold text-gray-900 mb-4">{t('checkout.review.orderItems', { count: cartData.items.length })}</h4>
                       <div className="space-y-4">
                         {cartData.items.map((item, index) => {
                           const variantDisplay = getVariantDisplay(item);
@@ -1202,7 +1181,7 @@ const Checkout = () => {
                                     </div>
                                   )}
                                   <div className="text-sm text-gray-600 mt-1">
-                                    Qty: {item.quantity} × {formatPrice(item.price)}
+                                    {t('checkout.review.qty')}: {item.quantity} × {formatPrice(item.price)}
                                   </div>
                                 </div>
                               </div>
@@ -1219,8 +1198,8 @@ const Checkout = () => {
                         <div className="flex items-center space-x-3">
                           <Truck className="h-5 w-5 text-indigo-600" />
                           <div>
-                            <div className="font-medium text-indigo-900">Shipping to {selectedShipping.governorateName}</div>
-                            <div className="text-sm text-indigo-600">Standard delivery 2-4 business days</div>
+                            <div className="font-medium text-indigo-900">{t('checkout.review.shippingTo', { governorate: selectedShipping.governorateName })}</div>
+                            <div className="text-sm text-indigo-600">{t('checkout.review.deliveryTime')}</div>
                           </div>
                         </div>
                         <span className="font-semibold text-indigo-700">{formatPrice(selectedShipping.price)}</span>
@@ -1229,12 +1208,12 @@ const Checkout = () => {
 
                     {/* Customer Info Summary */}
                     <div className="mb-8">
-                      <h4 className="font-semibold text-gray-900 mb-4">Shipping Information</h4>
+                      <h4 className="font-semibold text-gray-900 mb-4">{t('checkout.review.shippingInformation')}</h4>
                       <div className="bg-gray-50 rounded-xl p-6">
                         <div className="text-gray-900 font-medium mb-2">{customerInfo.firstName} {customerInfo.lastName}</div>
                         <div className="text-gray-600 mb-1">{customerInfo.address}</div>
                         <div className="text-gray-600 mb-1">
-                          <span className="font-medium">City:</span> {selectedShipping?.governorateName || customerInfo.city}
+                          <span className="font-medium">{t('checkout.review.city')}:</span> {selectedShipping?.governorateName || customerInfo.city}
                         </div>
                         <div className="text-gray-600 mb-1">{customerInfo.country}</div>
                         <div className="text-gray-600 mb-1">{customerInfo.phoneNumber}</div>
@@ -1242,21 +1221,19 @@ const Checkout = () => {
                       </div>
                     </div>
 
-                    {/* Deposit Info - if required for COD */}
+                    {/* Deposit Info */}
                     {selectedPaymentMethod?.paymentMethodName === 'COD' && depositSettings?.depositRequired && (
                       <div className="mb-8 p-4 bg-amber-50 border border-amber-200 rounded-xl">
                         <div className="flex items-start space-x-3">
                           <Wallet className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
                           <div>
-                            <h4 className="font-semibold text-amber-900 mb-1">Deposit Required</h4>
+                            <h4 className="font-semibold text-amber-900 mb-1">{t('checkout.review.depositRequired')}</h4>
                             <p className="text-sm text-amber-700 mb-2">
                               {depositSettings.depositType === 'SHIPPING' 
-                                ? `Deposit equals shipping cost: ${formatPrice(selectedShipping?.price || 0)}`
-                                : `Deposit is ${depositSettings.depositValue}% of order total: ${formatPrice(calculateDepositAmount())}`}
+                                ? t('checkout.review.depositEqualsShipping', { amount: formatPrice(selectedShipping?.price || 0) })
+                                : t('checkout.review.depositPercentage', { percentage: depositSettings.depositValue, amount: formatPrice(calculateDepositAmount()) })}
                             </p>
-                            <p className="text-xs text-amber-600">
-                              You'll need to complete the deposit payment before confirming your order.
-                            </p>
+                            <p className="text-xs text-amber-600">{t('checkout.review.depositInstruction')}</p>
                           </div>
                         </div>
                       </div>
@@ -1264,19 +1241,19 @@ const Checkout = () => {
 
                     {/* Price Breakdown */}
                     <div className="mb-8 p-4 bg-gray-50 rounded-xl border border-gray-200">
-                      <h4 className="font-semibold text-gray-900 mb-3">Price Breakdown</h4>
+                      <h4 className="font-semibold text-gray-900 mb-3">{t('checkout.review.priceBreakdown')}</h4>
                       <div className="space-y-2">
                         <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Subtotal:</span>
+                          <span className="text-gray-600">{t('checkout.review.subtotal')}:</span>
                           <span className="font-medium text-gray-900">{formatPrice(getSubtotal())}</span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Shipping ({selectedShipping?.governorateName}):</span>
+                          <span className="text-gray-600">{t('checkout.review.shipping')} ({selectedShipping?.governorateName}):</span>
                           <span className="font-medium text-indigo-600">{formatPrice(selectedShipping?.price || 0)}</span>
                         </div>
                         {selectedPaymentMethod?.paymentMethodName === 'COD' && depositSettings?.depositRequired && (
                           <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">Deposit:</span>
+                            <span className="text-gray-600">{t('checkout.review.deposit')}:</span>
                             <span className="font-medium text-amber-600">{formatPrice(calculateDepositAmount())}</span>
                           </div>
                         )}
@@ -1284,8 +1261,8 @@ const Checkout = () => {
                           <div className="flex justify-between font-bold">
                             <span>
                               {selectedPaymentMethod?.paymentMethodName === 'COD' && depositSettings?.depositRequired
-                                ? 'Remaining (on delivery):'
-                                : 'Total:'}
+                                ? t('checkout.review.remainingOnDelivery')
+                                : t('checkout.review.total')}:
                             </span>
                             <span className="text-indigo-600">
                               {selectedPaymentMethod?.paymentMethodName === 'COD' && depositSettings?.depositRequired
@@ -1302,7 +1279,7 @@ const Checkout = () => {
                       <div className="flex items-start">
                         <input type="checkbox" id="terms" required className="h-5 w-5 text-indigo-600 focus:ring-indigo-500 mt-1" />
                         <label htmlFor="terms" className="ml-3 text-sm text-gray-700">
-                          I agree to the Terms of Service and Privacy Policy. I understand that this order is subject to vendor approval and shipping times.
+                          {t('checkout.review.termsAgreement')}
                         </label>
                       </div>
                     </div>
@@ -1312,7 +1289,7 @@ const Checkout = () => {
                         type="button" onClick={() => setStep(1)} disabled={isLoading}
                         className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors disabled:opacity-50"
                       >
-                        Back
+                        {t('checkout.buttons.back')}
                       </button>
                       <button
                         type="submit" 
@@ -1325,12 +1302,12 @@ const Checkout = () => {
                         {isLoading ? (
                           <>
                             <Loader2 className="h-5 w-5 animate-spin" />
-                            <span>Processing...</span>
+                            <span>{t('checkout.buttons.processing')}</span>
                           </>
                         ) : (
                           <>
                             <CheckCircle className="h-5 w-5" />
-                            <span>Place Order</span>
+                            <span>{t('checkout.buttons.placeOrder')}</span>
                           </>
                         )}
                       </button>
@@ -1357,18 +1334,18 @@ const Checkout = () => {
 
               <div className="space-y-4 mb-8">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Subtotal</span>
+                  <span className="text-gray-600">{t('checkout.summary.subtotal')}</span>
                   <span className="font-medium">{formatPrice(getSubtotal())}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Shipping Cost</span>
+                  <span className="text-gray-600">{t('checkout.summary.shippingCost')}</span>
                   <span className={`font-medium ${selectedShipping ? 'text-gray-900' : 'text-gray-400'}`}>
-                    {selectedShipping ? formatPrice(selectedShipping.price) : '— Select governorate'}
+                    {selectedShipping ? formatPrice(selectedShipping.price) : t('checkout.summary.selectGovernorate')}
                   </span>
                 </div>
                 {selectedPaymentMethod?.paymentMethodName === 'COD' && depositSettings?.depositRequired && (
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Deposit</span>
+                    <span className="text-gray-600">{t('checkout.summary.deposit')}</span>
                     <span className="font-medium text-amber-600">
                       {selectedShipping ? formatPrice(calculateDepositAmount()) : '—'}
                     </span>
@@ -1378,8 +1355,8 @@ const Checkout = () => {
                   <div className="flex justify-between text-xl font-bold">
                     <span>
                       {selectedPaymentMethod?.paymentMethodName === 'COD' && depositSettings?.depositRequired
-                        ? 'To Pay Now'
-                        : 'Total'}
+                        ? t('checkout.summary.toPayNow')
+                        : t('checkout.summary.total')}
                     </span>
                     <span className="text-indigo-600">
                       {selectedPaymentMethod?.paymentMethodName === 'COD' && depositSettings?.depositRequired
@@ -1389,7 +1366,7 @@ const Checkout = () => {
                   </div>
                   {selectedPaymentMethod?.paymentMethodName === 'COD' && depositSettings?.depositRequired && (
                     <p className="text-sm text-gray-500 mt-2">
-                      Remaining {formatPrice(getTotal() - calculateDepositAmount())} on delivery
+                      {t('checkout.summary.remainingOnDelivery', { amount: formatPrice(getTotal() - calculateDepositAmount()) })}
                     </p>
                   )}
                 </div>
@@ -1399,26 +1376,26 @@ const Checkout = () => {
                 <div className="flex items-center space-x-3">
                   <Truck className="h-5 w-5 text-blue-600" />
                   <div>
-                    <div className="font-medium text-blue-900">Estimated Delivery</div>
-                    <div className="text-sm text-blue-700">2-4 business days within Egypt</div>
+                    <div className="font-medium text-blue-900">{t('checkout.summary.estimatedDelivery')}</div>
+                    <div className="text-sm text-blue-700">{t('checkout.summary.deliveryTime')}</div>
                   </div>
                 </div>
               </div>
 
               <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
-                <h4 className="text-sm font-medium text-gray-900 mb-2">Order Process</h4>
+                <h4 className="text-sm font-medium text-gray-900 mb-2">{t('checkout.summary.orderProcess')}</h4>
                 <div className="space-y-2">
                   <div className="flex items-center text-sm text-gray-600">
                     <div className="h-6 w-6 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-xs font-bold mr-2">1</div>
-                    <span>Create Customer Account</span>
+                    <span>{t('checkout.summary.step1')}</span>
                   </div>
                   <div className="flex items-center text-sm text-gray-600">
                     <div className="h-6 w-6 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-xs font-bold mr-2">2</div>
-                    <span>Create Order with Items & Variants</span>
+                    <span>{t('checkout.summary.step2')}</span>
                   </div>
                   <div className="flex items-center text-sm text-gray-600">
                     <div className="h-6 w-6 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-xs font-bold mr-2">3</div>
-                    <span>Send Order Confirmation</span>
+                    <span>{t('checkout.summary.step3')}</span>
                   </div>
                 </div>
               </div>

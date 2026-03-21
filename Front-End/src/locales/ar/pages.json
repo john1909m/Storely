@@ -1,0 +1,96 @@
+{
+  "pages": {
+    "login": {
+      "backToHomeAria": "العودة للرئيسية",
+      "homeLabel": "الرئيسية",
+      "welcomeBack": "مرحبًا بعودتك",
+      "subtitle": "سجّل الدخول لمتابعة رحلتك",
+      "form": {
+        "emailLabel": "عنوان البريد الإلكتروني",
+        "passwordLabel": "كلمة المرور",
+        "emailPlaceholder": "hello@example.com",
+        "passwordPlaceholder": "••••••••"
+      },
+      "button": {
+        "signIn": "تسجيل الدخول",
+        "redirecting": "جارٍ إعادة التوجيه...",
+        "signingIn": "جارٍ تسجيل الدخول..."
+      },
+      "signupPrompt": "لا تملك حسابًا؟",
+      "createAccountLink": "إنشاء حساب",
+      "footer": {
+        "support": "الدعم",
+        "pricing": "الأسعار",
+        "privacy": "الخصوصية"
+      },
+      "trust": {
+        "securedBy": "محمي بواسطة Storely",
+        "copyright": "© {{year}}"
+      }
+    }
+    ,
+    "signup": {
+      "homeLabel": "الرئيسية",
+      "title": "أنشئ حساب بائعك",
+      "subtitle": "انضم إلى آلاف البائعين الذين يبيعون على Storely",
+      "success": "تم إنشاء الحساب بنجاح! جاري التحويل إلى تسجيل الدخول...",
+      "form": {
+        "fullNameLabel": "الاسم الكامل",
+        "emailLabel": "عنوان البريد الإلكتروني",
+        "phoneLabel": "رقم الهاتف",
+        "passwordLabel": "كلمة المرور",
+        "confirmPasswordLabel": "تأكيد كلمة المرور",
+        "placeholders": {
+          "fullName": "John Doe",
+          "email": "vendor@example.com",
+          "phone": "+1234567890",
+          "password": "أنشئ كلمة مرور قوية",
+          "confirmPassword": "أكد كلمة المرور الخاصة بك"
+        }
+      },
+      "passwordStrength": {
+        "label": "قوة كلمة المرور",
+        "labels": {
+          "weak": "ضعيف",
+          "fair": "متوسط",
+          "good": "جيد",
+          "strong": "قوي",
+          "veryStrong": "قوي جدًا"
+        }
+      },
+      "passwordRequirements": {
+        "atLeast8": "على الأقل 8 أحرف",
+        "oneUppercase": "حرف كبير واحد",
+        "oneLowercase": "حرف صغير واحد",
+        "oneNumber": "رقم واحد",
+        "oneSpecial": "حرف خاص واحد"
+      },
+      "submit": {
+        "creating": "جارٍ إنشاء الحساب...",
+        "redirecting": "جارٍ التحويل إلى تسجيل الدخول...",
+        "button": "إنشاء حساب بائع"
+      },
+      "benefits": {
+        "title": "لماذا الانضمام إلى Storely؟",
+        "items": [
+          "لا تحتاج لمهارات برمجة - أنشئ متجرك خلال دقائق",
+          "احصل على رابط متجر بعلامتك التجارية",
+          "لا يوجد دفع بالجملة - ادفع رسومًا شهرية صغيرة فقط",
+          "دعم عملاء 24/7"
+        ]
+      },
+      "loginPrompt": {
+        "text": "لديك حساب بالفعل؟",
+        "link": "سجّل الدخول هنا"
+      },
+      "trust": {
+        "securedBy": "محمي بواسطة Storely",
+        "joinVendors": "انضم إلى 10k+ من البائعين"
+      },
+      "errors": {
+        "passwordsDoNotMatch": "كلمات المرور غير متطابقة"
+      }
+    }
+  }
+}
+

@@ -1,0 +1,130 @@
+{
+  "checkout": {
+    "title": "إتمام الشراء",
+    "subtitle": "أكمل عملية الشراء من {{storeName}}",
+    "loading": {
+      "checkout": "جاري تحميل صفحة الدفع...",
+      "cart": "جاري تحميل السلة..."
+    },
+    "steps": {
+      "customerInfo": "معلومات العميل",
+      "reviewConfirm": "مراجعة وتأكيد"
+    },
+    "customerInformation": {
+      "title": "معلومات العميل",
+      "firstName": "الاسم الأول",
+      "lastName": "الاسم الأخير",
+      "phoneNumber": "رقم الهاتف",
+      "whatsappNumber": "رقم واتساب",
+      "address": "العنوان",
+      "governorate": "المحافظة",
+      "shippingHint": "سيتم حساب تكلفة الشحن",
+      "selectGovernorate": "اختر المحافظة",
+      "shippingTo": "الشحن إلى",
+      "country": "الدولة"
+    },
+    "paymentMethod": {
+      "title": "طريقة الدفع",
+      "depositRequired": "مطلوب إيداع",
+      "payOnDelivery": "الدفع عند الاستلام",
+      "onlinePayment": "دفع إلكتروني",
+      "instapay": "instapay",
+      "vodafoneCash": "فودافون كاش",
+      "cashOnDelivery": "الدفع عند الاستلام"
+    },
+    "review": {
+      "title": "مراجعة طلبك",
+      "orderItems": "عناصر الطلب ({{count}})",
+      "qty": "الكمية",
+      "shippingTo": "الشحن إلى {{governorate}}",
+      "deliveryTime": "توصيل قياسي 2-4 أيام عمل",
+      "shippingInformation": "معلومات الشحن",
+      "city": "المدينة",
+      "depositRequired": "مطلوب إيداع",
+      "depositEqualsShipping": "الإيداع يساوي تكلفة الشحن: {{amount}}",
+      "depositPercentage": "الإيداع {{percentage}}% من إجمالي الطلب: {{amount}}",
+      "depositInstruction": "ستحتاج إلى إكمال دفعة الإيداع قبل تأكيد طلبك.",
+      "priceBreakdown": "تفاصيل الأسعار",
+      "subtotal": "المجموع الفرعي",
+      "shipping": "الشحن",
+      "deposit": "الإيداع",
+      "remainingOnDelivery": "المتبقي عند الاستلام",
+      "total": "الإجمالي",
+      "termsAgreement": "أوافق على شروط الخدمة وسياسة الخصوصية. أتفهم أن هذا الطلب يخضع لموافقة البائع وأوقات الشحن."
+    },
+    "summary": {
+      "subtotal": "المجموع الفرعي",
+      "shippingCost": "تكلفة الشحن",
+      "selectGovernorate": "— اختر المحافظة",
+      "deposit": "الإيداع",
+      "toPayNow": "للدفع الآن",
+      "total": "الإجمالي",
+      "remainingOnDelivery": "المتبقي {{amount}} عند الاستلام",
+      "estimatedDelivery": "موعد التسليم المتوقع",
+      "deliveryTime": "2-4 أيام عمل داخل مصر",
+      "orderProcess": "عملية الطلب",
+      "step1": "إنشاء حساب العميل",
+      "step2": "إنشاء الطلب مع العناصر والمتغيرات",
+      "step3": "إرسال تأكيد الطلب"
+    },
+    "modal": {
+      "fullPayment": {
+        "title": "إتمام الدفع",
+        "description": "ادفع المبلغ الكامل لتأكيد طلبك",
+        "successTitle": "تم تأكيد الدفع!",
+        "successMessage": "تم استلام دفعتك. سيقوم البائع بمعالجة طلبك قريباً."
+      },
+      "deposit": {
+        "title": "مطلوب إيداع",
+        "description": "ادفع الإيداع لتأكيد طلبك",
+        "amount": "مبلغ الإيداع",
+        "equalsShipping": "الإيداع يساوي تكلفة الشحن",
+        "ofOrderTotal": "% من إجمالي الطلب",
+        "sendTo": "أرسل الإيداع إلى",
+        "payAmount": "ادفع {{amount}} كإيداع",
+        "remainingOnDelivery": "المبلغ المتبقي {{amount}} سيتم دفعه عند الاستلام.",
+        "uploadProof": "رفع إثبات الإيداع",
+        "confirmDeposit": "تأكيد الإيداع",
+        "successTitle": "تم إرسال الإيداع!",
+        "successMessage": "تم رفع إثبات الإيداع الخاص بك. سيقوم البائع بتأكيد دفعتك قريباً."
+      },
+      "amountToPay": "المبلغ المطلوب دفعه",
+      "totalOrderAmount": "إجمالي قيمة الطلب",
+      "paymentDetails": "تفاصيل الدفع",
+      "account": "الحساب",
+      "copied": "تم النسخ!",
+      "copy": "نسخ",
+      "uploadScreenshot": "رفع لقطة شاشة الدفع",
+      "clickToUpload": "انقر لرفع لقطة الشاشة",
+      "imageRequirements": "PNG, JPG حتى 5 ميجابايت",
+      "cancel": "إلغاء",
+      "confirmPayment": "تأكيد الدفع",
+      "processing": "جاري المعالجة...",
+      "processingMessage": "الرجاء عدم إغلاق هذه النافذة أثناء معالجة طلبك...",
+      "redirecting": "جاري التحويل إلى المتجر..."
+    },
+    "buttons": {
+      "reviewOrder": "مراجعة الطلب",
+      "change": "تغيير",
+      "back": "رجوع",
+      "processing": "جاري المعالجة...",
+      "placeOrder": "تقديم الطلب"
+    },
+    "errors": {
+      "selectGovernorate": "الرجاء اختيار المحافظة للشحن.",
+      "noPaymentMethods": "لا توجد طرق دفع متاحة لهذا المتجر.",
+      "createOrderFailed": "فشل إنشاء الطلب",
+      "orderFailed": "فشل تقديم الطلب",
+      "createCustomerFailed": "فشل إنشاء حساب العميل",
+      "uploadProofRequired": "الرجاء رفع إثبات الدفع",
+      "uploadFailedOrderCancelled": "فشل رفع صورة الدفع. تم إلغاء الطلب.",
+      "transactionFailed": "فشلت العملية. الرجاء المحاولة مرة أخرى.",
+      "fileTooLarge": "الملف كبير جداً. الحد الأقصى 5 ميجابايت",
+      "notImageFile": "الرجاء رفع ملف صورة",
+      "instapayNotConfigured": "رقم إنستا باي غير مُهيأ من قبل البائع.",
+      "vodafoneNotConfigured": "رقم فودافون كاش غير مُهيأ من قبل البائع.",
+      "noPaymentMethodsConfigured": "لا توجد طرق دفع مُهيأة للإيداع.",
+      "noShippingOptions": "لا توجد خيارات شحن متاحة لهذا المتجر."
+    }
+  }
+}

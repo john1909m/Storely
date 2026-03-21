@@ -1,0 +1,198 @@
+{
+  "vendorStoreDetails": {
+    "title": "إعدادات المتجر",
+    "subtitle": "تخصيص تفاصيل المتجر والعلامة التجارية",
+    "vendor": "البائع",
+    "loading": {
+      "storeSettings": "جاري تحميل إعدادات المتجر...",
+      "pleaseWait": "يرجى الانتظار لحظة"
+    },
+    "tabs": {
+      "basic": {
+        "label": "المعلومات الأساسية",
+        "description": "اسم المتجر والوصف"
+      },
+      "shipping": {
+        "label": "الشحن",
+        "description": "تكاليف الشحن حسب المحافظة"
+      },
+      "deposit": {
+        "label": "الإيداع",
+        "description": "إعدادات الإيداع للدفع"
+      },
+      "payment": {
+        "label": "طرق الدفع",
+        "description": "تكوين خيارات الدفع"
+      },
+      "branding": {
+        "label": "العلامة التجارية",
+        "description": "الشعار والألوان"
+      },
+      "contact": {
+        "label": "معلومات الاتصال",
+        "description": "الهاتف والموقع"
+      },
+      "social": {
+        "label": "وسائل التواصل",
+        "description": "حسابات التواصل الاجتماعي"
+      },
+      "domain": {
+        "label": "النطاق و QR",
+        "description": "رابط المتجر ورابط QR"
+      }
+    },
+    "menu": {
+      "storeSettings": "إعدادات المتجر",
+      "previewStore": "معاينة المتجر",
+      "navigation": "التنقل"
+    },
+    "mobile": {
+      "activeSection": "القسم النشط"
+    },
+    "sidebar": {
+      "storeStatus": "حالة المتجر",
+      "storePreview": "معاينة المتجر",
+      "storeNamePlaceholder": "اسم متجرك"
+    },
+    "status": {
+      "active": "نشط",
+      "inactive": "غير نشط"
+    },
+    "basic": {
+      "title": "معلومات المتجر الأساسية",
+      "requiredFields": "حقول مطلوبة *",
+      "storeName": "اسم المتجر",
+      "storeNamePlaceholder": "أدخل اسم متجرك",
+      "storeDescription": "وصف المتجر",
+      "storeDescriptionPlaceholder": "صف متجرك وما يميزه...",
+      "storeCategory": "تصنيف المتجر",
+      "selectCategory": "اختر تصنيفاً"
+    },
+    "shipping": {
+      "title": "تكاليف الشحن حسب المحافظة",
+      "settingsTitle": "إعدادات الشحن",
+      "settingsDescription": "اختر المحافظات وحدد أسعار الشحن. {configured} من {total} محافظة تم تكوينها."
+    },
+    "deposit": {
+      "title": "إعدادات الإيداع للدفع",
+      "requireDeposit": "طلب إيداع للطلبات",
+      "requireDepositDescription": "يجب على العملاء دفع إيداع قبل تأكيد الطلب",
+      "calculationMethod": "طريقة حساب الإيداع",
+      "percentage": "نسبة مئوية (%)",
+      "percentageDescription": "نسبة من إجمالي الطلب",
+      "shippingCost": "تكلفة الشحن",
+      "shippingCostDescription": "استخدام تكلفة الشحن المحددة",
+      "percentageValue": "نسبة الإيداع (%)",
+      "shippingInfoTitle": "الإيداع سيكون تكلفة الشحن",
+      "shippingInfoDescription": "سيتم حساب مبلغ الإيداع بناءً على تكلفة الشحن حسب محافظة العميل.",
+      "paymentMethods": "طرق الدفع للإيداع",
+      "instapayNumber": "رقم إنستا باي",
+      "instapayHint": "سيستخدم العملاء هذا الرقم لإرسال الإيداعات عبر إنستا باي",
+      "vodafoneCashNumber": "رقم فودافون كاش",
+      "vodafoneCashHint": "سيستخدم العملاء هذا الرقم لإرسال الإيداعات عبر فودافون كاش",
+      "important": "مهم",
+      "importantMessage": "سيتم عرض هذه الأرقام للعملاء عندما يحتاجون إلى دفع الإيداعات. تأكد من صحتها ونشاطها.",
+      "preview": "معاينة الإيداع",
+      "orderTotalExample": "إجمالي الطلب (مثال)",
+      "deposit": "الإيداع",
+      "shippingCostExample": "تكلفة الشحن (تختلف حسب المحافظة)"
+    },
+    "payment": {
+      "title": "طرق الدفع",
+      "active": "نشط",
+      "configureTitle": "تكوين خيارات الدفع",
+      "configureDescription": "اختر طرق الدفع المتاحة لعملائك. بالنسبة لإنستا باي وفودافون كاش، قدم تفاصيل حسابك.",
+      "accountName": "اسم الحساب",
+      "accountNamePlaceholder": "جون دو",
+      "accountNumber": "رقم الحساب / الهاتف",
+      "codEnabledMessage": "الدفع عند الاستلام مفعل. يمكن للعملاء اختيار الدفع نقداً عند استلام طلبهم.",
+      "codNote": "ملاحظة: يمكنك تكوين متطلبات الإيداع في علامة تبويب إعدادات الإيداع.",
+      "activeMethods": "طرق نشطة"
+    },
+    "paymentMethods": {
+      "instapay": "إنستا باي",
+      "instapayDescription": "تحويلات سريعة وآمنة عبر إنستا باي",
+      "vodafoneCash": "فودافون كاش",
+      "vodafoneCashDescription": "ادفع باستخدام محفظة فودافون كاش",
+      "cod": "الدفع عند الاستلام",
+      "codDescription": "يدفع العميل نقداً عند الاستلام"
+    },
+    "branding": {
+      "title": "العلامة التجارية للمتجر",
+      "storeLogo": "شعار المتجر",
+      "noLogo": "لا يوجد شعار",
+      "logoRecommendation": "مفضل: 400×400 بكسل، PNG أو JPG، بحد أقصى 2 ميجابايت",
+      "colorScheme": "نظام الألوان",
+      "primaryColor": "اللون الأساسي",
+      "secondaryColor": "اللون الثانوي",
+      "livePreview": "معاينة مباشرة",
+      "shopNow": "تسوق الآن",
+      "learnMore": "اعرف المزيد",
+      "storeNamePlaceholder": "متجرك"
+    },
+    "contact": {
+      "title": "معلومات الاتصال",
+      "phoneNumber": "رقم الهاتف",
+      "storeAddress": "عنوان المتجر",
+      "addressPlaceholder": "أدخل عنوان عملك"
+    },
+    "social": {
+      "title": "حسابات التواصل الاجتماعي",
+      "facebook": "فيسبوك",
+      "instagram": "انستغرام"
+    },
+    "domain": {
+      "title": "النطاق ورابط المتجر",
+      "yourStoreUrl": "رابط متجرك",
+      "urlNotSet": "اسم المتجر غير محدد",
+      "copy": "نسخ",
+      "visit": "زيارة",
+      "storeQrCode": "رمز QR للمتجر",
+      "clickToDownload": "انقر للتحميل",
+      "setUrlFirst": "حدد رابط المتجر أولاً",
+      "shareYourStore": "شارك متجرك",
+      "qrDescription": "قم بتنزيل رمز QR هذا لمشاركته مع عملائك. يمكنهم مسحه ضوئياً باستخدام كاميرا هواتفهم لزيارة متجرك فوراً.",
+      "downloadQr": "تحميل رمز QR",
+      "copyLink": "نسخ الرابط"
+    },
+    "buttons": {
+      "preview": "معاينة",
+      "saveAll": "حفظ الكل",
+      "saving": "جاري الحفظ...",
+      "saveChanges": "حفظ التغييرات",
+      "saveDepositSettings": "حفظ إعدادات الإيداع",
+      "savePaymentMethods": "حفظ طرق الدفع",
+      "savingPaymentMethods": "جاري حفظ طرق الدفع...",
+      "uploadLogo": "رفع الشعار",
+      "uploading": "جاري الرفع...",
+      "remove": "إزالة",
+      "savingChanges": "جاري حفظ التغييرات...",
+      "saveAllChanges": "حفظ جميع التغييرات",
+      "createStore": "إنشاء متجرك"
+    },
+    "errors": {
+      "storeNotFound": "لم يتم العثور على المتجر. يرجى إنشاء متجر أولاً.",
+      "storeNotFoundTitle": "المتجر غير موجود",
+      "storeNotFoundBody": "يجب إنشاء متجر أولاً.",
+      "urlNotSet": "رابط المتجر غير محدد. يرجى تعيين رابط المتجر أولاً.",
+      "instapayRequiresAccount": "إنستا باي يتطلب رقم حساب واسم",
+      "vodafoneRequiresAccount": "فودافون كاش يتطلب رقم حساب واسم",
+      "atLeastOneMethod": "يجب أن تكون طريقة دفع واحدة على الأقل نشطة",
+      "depositPaymentRequired": "طريقة دفع واحدة على الأقل (إنستا باي أو فودافون كاش) مطلوبة عند تفعيل الإيداع.",
+      "savePaymentFailed": "فشل حفظ طرق الدفع"
+    },
+    "success": {
+      "depositSaved": "تم تحديث إعدادات الإيداع بنجاح!",
+      "paymentMethodsSaved": "تم تحديث طرق الدفع بنجاح!",
+      "storeDetailsSaved": "تم تحديث تفاصيل المتجر بنجاح!",
+      "imageUploaded": "تم رفع الصورة بنجاح",
+      "imageRemoved": "تم إزالة الصورة بنجاح!",
+      "qrDownloaded": "تم تحميل رمز QR بنجاح!",
+      "linkCopied": "تم نسخ رابط المتجر إلى الحافظة!"
+    },
+    "confirm": {
+      "removeImage": "هل أنت متأكد من إزالة {type}؟"
+    },
+    "governoratePrefix": "محافظة "
+  }
+}

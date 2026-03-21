@@ -1,0 +1,106 @@
+{
+  "vendor": {
+    "store": {
+      "loading": "جارٍ تحميل المتجر...",
+      "pleaseWait": "يرجى الانتظار قليلًا",
+      "storeNotFoundTitle": "لم يتم العثور على المتجر",
+      "storeNotFoundBodyFallback": "يرجى إنشاء متجر أولًا",
+      "createYourStore": "أنشئ متجرك",
+      "vendorFallbackName": "بائع",
+      "nav": {
+        "pricing": "الأسعار",
+        "settings": "الإعدادات",
+        "dashboard": "لوحة التحكم",
+        "logout": "تسجيل الخروج"
+      },
+      "mobile": {
+        "menu": "القائمة"
+      },
+      "dashboard": {
+        "welcomeBackPrefix": "مرحبًا بعودتك، {{vendorName}}!",
+        "totalVisitsLabel": "إجمالي الزيارات:",
+        "yourStoreLiveAtLabel": "متجرك متاح الآن على",
+        "copied": "تم النسخ!",
+        "copyLink": "نسخ الرابط",
+        "view": "عرض"
+      },
+      "statistics": {
+        "lowStockSuffix": "منخفض",
+        "pending": "قيد الانتظار",
+        "totalProducts": "إجمالي المنتجات",
+        "totalOrders": "إجمالي الطلبات",
+        "totalRevenue": "إجمالي الإيرادات",
+        "totalCustomers": "إجمالي العملاء"
+      },
+      "quickActions": {
+        "title": "إجراءات سريعة",
+        "manageProducts": "إدارة المنتجات",
+        "manageProductsDescription": "تعديل أو تحديث المخزون",
+        "manageCategories": "إدارة التصنيفات",
+        "manageCategoriesDescription": "تنظيم منتجاتك",
+        "viewOrders": "عرض الطلبات",
+        "viewOrdersDescription": "معالجة الطلبات وتسليمها",
+        "analytics": "التحليلات",
+        "analyticsDescription": "تتبع الأداء"
+      },
+      "storeOverview": {
+        "title": "نظرة عامة على المتجر",
+        "edit": "تعديل",
+        "descriptionFallback": "لا توجد وصفة. أضف واحدة من الإعدادات.",
+        "addressLabel": "العنوان",
+        "contactLabel": "التواصل",
+        "notSet": "غير محدد"
+      },
+      "recentProducts": {
+        "title": "أحدث المنتجات",
+        "viewAll": "عرض الكل",
+        "emptyCatalogTitle": "كتالوج منتجاتك فارغ",
+        "addFirstProduct": "أضف أول منتج"
+      },
+      "recentOrders": {
+        "title": "آخر الطلبات",
+        "viewAll": "عرض الكل",
+        "emptyTitle": "لا توجد طلبات بعد",
+        "emptySubtext": "ستظهر الطلبات هنا"
+      },
+      "productQuantityLeftSuffix": "متبقي",
+      "storeStatus": {
+        "active": "نشط",
+        "inactive": "غير نشط"
+      },
+      "orderStatus": {
+        "PENDING": "قيد الانتظار",
+        "CONFIRMED": "مؤكد",
+        "SHIPPED": "تم الشحن",
+        "DELIVERED": "تم التوصيل",
+        "CANCELLED": "ملغي"
+      }
+    },
+    "createStore": {
+      "backToDashboard": "العودة إلى لوحة التحكم",
+      "title": "أنشئ متجرك الآن",
+      "subtitle": "جهّز متجرك لبدء البيع",
+      "errors": {
+        "vendorNotFound": "تعذر العثور على بيانات البائع. يرجى تسجيل الدخول مرة أخرى."
+      },
+      "form": {
+        "storeName": "اسم المتجر",
+        "storeNameHint": "(يجب ألا يحتوي اسم المتجر على مسافات أو أحرف خاصة)",
+        "storeUrlWillBe": "سيكون رابط متجرك: {{url}}",
+        "storeAddress": "عنوان المتجر",
+        "storeDescription": "وصف المتجر",
+        "storePhone": "هاتف المتجر",
+        "brandingTitle": "هوية المتجر",
+        "primaryColor": "اللون الأساسي",
+        "secondaryColor": "اللون الثانوي",
+        "infoMessage": "سيتم إنشاء متجرك وتعيينه على حالة غير نشط. يمكنك البدء بإضافة المنتجات والتصنيفات!",
+        "cancel": "إلغاء",
+        "createButton": {
+          "creating": "جارٍ الإنشاء...",
+          "createStore": "إنشاء المتجر"
+        }
+      }
+    }
+  }
+}
+

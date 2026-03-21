@@ -1,0 +1,78 @@
+{
+  "vendorCategories": {
+    "title": "التصنيفات",
+    "categories": "تصنيف",
+    "filters": "تصفية",
+    "addCategory": "إضافة تصنيف",
+    "selected": "محدد",
+    "deleteSelected": "حذف المحدد",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "products": "منتج",
+    "showing": "عرض {count} من {total} تصنيف",
+    "loading": {
+      "categories": "جاري تحميل التصنيفات..."
+    },
+    "stats": {
+      "totalCategories": "إجمالي التصنيفات",
+      "withProducts": "بها منتجات"
+    },
+    "search": {
+      "placeholder": "ابحث عن تصنيف بالاسم"
+    },
+    "table": {
+      "category": "التصنيف",
+      "products": "المنتجات",
+      "actions": "إجراءات"
+    },
+    "expanded": {
+      "categoryDetails": "تفاصيل التصنيف",
+      "name": "الاسم",
+      "productsInCategory": "المنتجات في هذا التصنيف",
+      "totalProducts": "إجمالي المنتجات:",
+      "noProducts": "لا توجد منتجات في هذا التصنيف"
+    },
+    "empty": {
+      "title": "لا توجد تصنيفات",
+      "adjustSearch": "حاول تعديل معايير البحث",
+      "createFirst": "أنشئ تصنيفك الأول لتنظيم المنتجات",
+      "addCategory": "إضافة تصنيف"
+    },
+    "modal": {
+      "add": {
+        "title": "إضافة تصنيف جديد",
+        "categoryName": "اسم التصنيف",
+        "namePlaceholder": "مثال: إلكترونيات",
+        "adding": "جاري الإضافة...",
+        "addCategory": "إضافة تصنيف",
+        "cancel": "إلغاء"
+      },
+      "edit": {
+        "title": "تعديل التصنيف",
+        "categoryName": "اسم التصنيف",
+        "saving": "جاري الحفظ...",
+        "saveChanges": "حفظ التغييرات",
+        "cancel": "إلغاء"
+      }
+    },
+    "confirm": {
+      "deleteCategory": "هل أنت متأكد من حذف هذا التصنيف؟",
+      "bulkDelete": "حذف {count} تصنيف؟ هذا الإجراء لا يمكن التراجع عنه."
+    },
+    "success": {
+      "categoryAdded": "تم إضافة التصنيف بنجاح!",
+      "categoryUpdated": "تم تحديث التصنيف بنجاح!",
+      "categoryDeleted": "تم حذف التصنيف بنجاح!",
+      "categoriesDeleted": "تم حذف {count} تصنيف بنجاح!"
+    },
+    "errors": {
+      "failedToLoad": "فشل تحميل التصنيفات",
+      "categoryNameRequired": "اسم التصنيف مطلوب",
+      "failedToAdd": "فشل إضافة التصنيف",
+      "failedToUpdate": "فشل تحديث التصنيف",
+      "failedToDelete": "فشل حذف التصنيف",
+      "failedToDeleteCategories": "فشل حذف التصنيفات",
+      "categoryHasProducts": "لا يمكن حذف التصنيف الذي يحتوي على منتجات. يرجى تغيير منتجات هذا التصنيف إلى 'غير مصنف' أو تصنيف آخر قبل الحذف."
+    }
+  }
+}

@@ -2,20 +2,22 @@
 import React, { useState } from 'react';
 import { ArrowRight, Star, Sparkles, Rocket, Zap, Shield, Globe, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const CTA = () => {
   const [hoveredCard, setHoveredCard] = useState(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const { t } = useTranslation();
 
   const benefits = [
-    { icon: Zap, text: 'No credit card required', color: 'blue' },
-    { icon: Globe, text: 'Instant setup', color: 'pink' },
+    { icon: Zap, text: t('landing.cta.benefitBadges.noCreditCardRequired'), color: 'blue' },
+    { icon: Globe, text: t('landing.cta.benefitBadges.instantSetup'), color: 'pink' },
   ];
 
   return (
     <section 
       className="py-24 relative overflow-hidden"
-      aria-label="Call to action"
+      aria-label={t('landing.cta.ariaLabel')}
       onMouseMove={(e) => {
         setMousePosition({
           x: (e.clientX / window.innerWidth - 0.5) * 20,
@@ -88,7 +90,7 @@ const CTA = () => {
             }}
           >
             <Sparkles className="h-4 w-4 animate-pulse" />
-            <span className="text-sm font-medium">Limited Time Offer</span>
+            <span className="text-sm font-medium">{t('landing.cta.badge')}</span>
           </div>
           
           {/* 3D Main Text */}
@@ -100,7 +102,7 @@ const CTA = () => {
               }}
             >
               <span className="bg-gradient-to-r from-white via-blue-200 to-purple-200 bg-clip-text text-transparent block">
-                Ready to Launch Your
+                {t('landing.cta.headlineLine1')}
               </span>
             </div>
             <div 
@@ -110,13 +112,13 @@ const CTA = () => {
               }}
             >
               <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent block">
-                Online Store?
+                {t('landing.cta.headlineLine2')}
               </span>
             </div>
           </h2>
           
           <p className="text-xl text-blue-100/70 mb-10 max-w-2xl mx-auto">
-            Join successful vendors in the next generation of e-commerce. Experience the future today.
+            {t('landing.cta.description')}
           </p>
           
           {/* 3D Benefits badges */}
@@ -162,7 +164,7 @@ const CTA = () => {
                 </div>
                 
                 <span className="relative z-10 flex items-center justify-center space-x-3 text-white font-bold text-lg">
-                  <span>Start Selling Today</span>
+                  <span>{t('landing.cta.buttons.startSellingToday')}</span>
                   <Rocket className="h-5 w-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                 </span>
               </button>
@@ -180,7 +182,7 @@ const CTA = () => {
                 <div className="absolute inset-0 bg-white/10 backdrop-blur-2xl border border-white/20"></div>
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:translate-x-full transition-transform duration-1000"></div>
                 
-                <span className="relative z-10 text-white font-bold text-lg">View Pricing</span>
+                <span className="relative z-10 text-white font-bold text-lg">{t('landing.cta.buttons.viewPricing')}</span>
               </button>
             </Link>
           </div>
@@ -188,9 +190,9 @@ const CTA = () => {
           {/* 3D Trust indicators */}
           <div className="flex flex-wrap items-center justify-center gap-6 text-sm">
             {[
-              { text: 'No hidden fees', color: 'blue' },
-              { text: 'Secure platform', color: 'purple' },
-              { text: '24/7 support', color: 'pink' },
+              { text: t('landing.cta.benefits.noHiddenFees'), color: 'blue' },
+              { text: t('landing.cta.benefits.securePlatform'), color: 'purple' },
+              { text: t('landing.cta.benefits.support'), color: 'pink' },
             ].map((item, index) => (
               <div
                 key={index}

@@ -1,0 +1,38 @@
+{
+  "components": {
+    "navbar": {
+      "logoAlt": "شعار Storely",
+      "aria": {
+        "siteHome": "الذهاب للصفحة الرئيسية",
+        "mainNavigation": "التنقل الرئيسي",
+        "mobileNavigationMenu": "قائمة التنقل في الهاتف",
+        "openMenu": "فتح القائمة",
+        "closeMenu": "إغلاق القائمة",
+        "cartItems": "{{count}} عناصر في السلة"
+      },
+      "links": {
+        "home": {
+          "name": "الرئيسية",
+          "ariaLabel": "الذهاب للصفحة الرئيسية"
+        },
+        "pricing": {
+          "name": "الأسعار",
+          "ariaLabel": "عرض خطط الأسعار"
+        },
+        "contact": {
+          "name": "تواصل",
+          "ariaLabel": "تواصل معنا"
+        }
+      },
+      "actions": {
+        "dashboard": "لوحة التحكم",
+        "logout": "تسجيل الخروج",
+        "login": "تسجيل الدخول",
+        "signup": "إنشاء حساب",
+        "cart": "السلة",
+        "cartCount": "السلة ({{count}})"
+      }
+    }
+  }
+}
+

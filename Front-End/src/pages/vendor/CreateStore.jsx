@@ -7,8 +7,10 @@ import { storeAPI } from '../../api/store.api';
 import { Link } from 'react-router-dom';
 import StoreFooter from '../../components/StoreFooter';
 import { useErrorHandler } from '../../hooks/useErrorHandler';
+import { useTranslation } from 'react-i18next';
 
 const CreateStore = () => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     storeName: '',
     storeAddress: '',
@@ -49,7 +51,7 @@ const CreateStore = () => {
     setError('');
 
     if (!vendor?.id) {
-      setError('Vendor information not found. Please login again.');
+      setError(t('vendor.createStore.errors.vendorNotFound'));
       return;
     }
 
@@ -98,10 +100,10 @@ const CreateStore = () => {
             className="inline-flex items-center text-gray-600 hover:text-indigo-600 mb-4"
           >
             <ArrowLeft className="h-5 w-5 mr-2" />
-            Back to Dashboard
+            {t('vendor.createStore.backToDashboard')}
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900">Create Your Store</h1>
-          <p className="text-gray-600 mt-2">Set up your store to start selling</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('vendor.createStore.title')}</h1>
+          <p className="text-gray-600 mt-2">{t('vendor.createStore.subtitle')}</p>
         </div>
       </div>
 
@@ -118,7 +120,7 @@ const CreateStore = () => {
             {/* Store Name */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Store Name * <span className='text-red-700'>(store name must not contain spaces or special characters)</span>
+                {t('vendor.createStore.form.storeName')} * <span className='text-red-700'>{t('vendor.createStore.form.storeNameHint')}</span>
               </label>
               <div className="relative">
                 <Store className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -133,14 +135,20 @@ const CreateStore = () => {
                 />
               </div>
               <p className="mt-2 text-sm text-gray-500">
-                Your store URL will be: storely.com/store/{formData.storeName.toLowerCase().replace(/\s+/g, '-') || 'your-store'}
+                {(() => {
+                  const slug =
+                    formData.storeName.toLowerCase().replace(/\s+/g, '-') || 'your-store';
+                  return t('vendor.createStore.form.storeUrlWillBe', {
+                    url: `storely.com/store/${slug}`,
+                  });
+                })()}
               </p>
             </div>
 
             {/* Store Address */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Store Address *
+                {t('vendor.createStore.form.storeAddress')} *
               </label>
               <div className="relative">
                 <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -159,7 +167,7 @@ const CreateStore = () => {
             {/* Store Description */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Store Description *
+                {t('vendor.createStore.form.storeDescription')} *
               </label>
               <div className="relative">
                 <FileText className="absolute left-4 top-4 h-5 w-5 text-gray-400" />
@@ -178,7 +186,7 @@ const CreateStore = () => {
             {/* Store Phone */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Store Phone *
+                {t('vendor.createStore.form.storePhone')} *
               </label>
               <div className="relative">
                 <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -199,13 +207,13 @@ const CreateStore = () => {
 
             {/* Branding Section */}
             <div className="border-t border-gray-200 pt-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Store Branding</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('vendor.createStore.form.brandingTitle')}</h3>
               
               <div className="grid md:grid-cols-2 gap-4">
                 {/* Primary Color */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Primary Color
+                    {t('vendor.createStore.form.primaryColor')}
                   </label>
                   <div className="relative">
                     <Palette className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -222,7 +230,7 @@ const CreateStore = () => {
                 {/* Secondary Color */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Secondary Color
+                    {t('vendor.createStore.form.secondaryColor')}
                   </label>
                   <div className="relative">
                     <Palette className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -263,8 +271,7 @@ const CreateStore = () => {
             <div className="bg-green-50 border border-green-200 rounded-xl p-4">
               <p className="text-sm text-green-800 flex items-center">
                 <Check className="h-4 w-4 mr-2" />
-                Your store will be created and set to Inctive status. 
-                You can start adding products and categories!
+                {t('vendor.createStore.form.infoMessage')}
 
               </p>
             </div>
@@ -277,7 +284,7 @@ const CreateStore = () => {
                 className="flex-1 py-3 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition-all"
                 disabled={isLoading}
               >
-                Cancel
+                {t('vendor.createStore.form.cancel')}
               </button>
               <button
                 type="submit"
@@ -287,12 +294,12 @@ const CreateStore = () => {
                 {isLoading ? (
                   <>
                     <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Creating...</span>
+                    <span>{t('vendor.createStore.form.createButton.creating')}</span>
                   </>
                 ) : (
                   <>
                     <Store className="h-5 w-5" />
-                    <span>Create Store</span>
+                    <span>{t('vendor.createStore.form.createButton.createStore')}</span>
                   </>
                 )}
               </button>

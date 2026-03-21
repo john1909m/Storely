@@ -1,0 +1,93 @@
+{
+  "vendor": {
+    "contactSupport": {
+      "contactTypes": {
+        "general": "General Inquiry",
+        "technical": "Technical Support",
+        "billing": "Billing Issue",
+        "account": "Account Help",
+        "feature": "Feature Request",
+        "other": "Other"
+      },
+      "faqs": {
+        "changePlan": {
+          "q": "How do I change my store subscription plan?",
+          "a": "You can upgrade or downgrade your plan at any time from the Pricing page in your vendor dashboard."
+        },
+        "commissionFees": {
+          "q": "When are commission fees charged?",
+          "a": "Commission fees are deducted automatically when a customer payment is processed."
+        },
+        "storeApproval": {
+          "q": "How long does store approval take?",
+          "a": "New stores are typically approved within 24 hours during business days."
+        },
+        "digitalProducts": {
+          "q": "Can I sell digital products?",
+          "a": "Yes! Storely supports both physical and digital products with automatic delivery."
+        }
+      },
+      "success": {
+        "title": "Message Sent!",
+        "thankYou": "Thank you for contacting Storely support. We've received your inquiry and will respond within 24 hours.",
+        "referenceLabel": "Reference #:",
+        "keepForRecords": "Keep this for your records",
+        "sendAnother": "Send Another Message"
+      },
+      "header": {
+        "title": "Support Center",
+        "subtitle": "Get help with your store or contact our team",
+        "responseTime": "Response time: 24 hours"
+      },
+      "form": {
+        "title": "Contact Support",
+        "helpNeeded": "What do you need help with?",
+        "nameLabel": "Your Name",
+        "emailLabel": "Email Address",
+        "subjectLabel": "Subject",
+        "priorityLabel": "Priority",
+        "orderIdLabel": "Order ID (Optional)",
+        "messageLabel": "Detailed Description",
+        "attachmentsLabel": "Attachments (Optional)",
+        "uploadHint": "Upload screenshots or files that might help us understand your issue better",
+        "chooseFiles": "Choose Files",
+        "maxFilesNote": "Maximum 3 files, 5MB each. Supported: PNG, JPG, PDF, DOC",
+        "remove": "Remove",
+        "sending": "Sending Message...",
+        "send": "Send Message"
+      },
+      "priorityOptions": {
+        "low": "Low - General Question",
+        "normal": "Normal - Need Assistance",
+        "high": "High - Urgent Issue",
+        "critical": "Critical - Store Down"
+      },
+      "sidebar": {
+        "contactInfoTitle": "Contact Information",
+        "emailSupport": "Email Support",
+        "emailValue": "support@storely.com",
+        "liveChat": "Live Chat",
+        "liveChatValue": "Available 9AM-6PM EST",
+        "phoneSupport": "Phone Support",
+        "phoneValue": "+1 (800) 123-4567",
+        "businessHours": "Business Hours",
+        "monFri": "Monday - Friday",
+        "monFriValue": "9:00 AM - 6:00 PM EST",
+        "sat": "Saturday",
+        "satValue": "10:00 AM - 4:00 PM EST",
+        "sun": "Sunday",
+        "closed": "Closed",
+        "faqTitle": "Frequently Asked Questions",
+        "viewAllFaqs": "View all FAQs \u2192",
+        "quickLinksTitle": "Quick Links",
+        "quickLinks": {
+          "docs": "Vendor Documentation \u2192",
+          "api": "API Reference \u2192",
+          "forum": "Community Forum \u2192",
+          "status": "Status Page \u2192"
+        }
+      }
+    }
+  }
+}
+

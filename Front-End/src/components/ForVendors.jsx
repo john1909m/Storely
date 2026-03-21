@@ -6,45 +6,47 @@ import {
   BarChart, Settings, Headphones, Wallet,  Eye
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const ForVendors = () => {
   const [hoveredBenefit, setHoveredBenefit] = useState(null);
   const [hoveredStat, setHoveredStat] = useState(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const { t } = useTranslation();
 
   const benefits = [
     {
       icon: <Zap className="h-6 w-6" />,
-      title: 'No Technical Skills Required',
-      description: 'Our intuitive interface makes store setup a breeze.',
-      stat: 'Zero coding',
+      title: t('landing.forVendors.benefits.noSkills.title'),
+      description: t('landing.forVendors.benefits.noSkills.description'),
+      stat: t('landing.forVendors.benefits.noSkills.stat'),
       color: 'blue',
       gradient: 'from-blue-400 to-cyan-400',
       depth: 20,
     },
     {
       icon: <TrendingUp className="h-6 w-6" />,
-      title: 'Grow Your Business',
-      description: 'Access powerful analytics to make data-driven decisions.',
-      stat: '+150% avg growth',
+      title: t('landing.forVendors.benefits.growBusiness.title'),
+      description: t('landing.forVendors.benefits.growBusiness.description'),
+      stat: t('landing.forVendors.benefits.growBusiness.stat'),
       color: 'green',
       gradient: 'from-green-400 to-emerald-400',
       depth: 30,
     },
     {
       icon: <Users className="h-6 w-6" />,
-      title: 'Reach More Customers',
-      description: 'Share your unique store link across social media and websites.',
-      stat: '10k+ reach',
+      title: t('landing.forVendors.benefits.reachCustomers.title'),
+      description: t('landing.forVendors.benefits.reachCustomers.description'),
+      stat: t('landing.forVendors.benefits.reachCustomers.stat'),
       color: 'purple',
       gradient: 'from-purple-400 to-pink-400',
       depth: 40,
     },
     {
       icon: <CheckCircle className="h-6 w-6" />,
-      title: 'Easy Order Management',
-      description: 'Track and fulfill orders from a single dashboard.',
-      stat: '99.9% uptime',
+      title: t('landing.forVendors.benefits.easyOrders.title'),
+      description: t('landing.forVendors.benefits.easyOrders.description'),
+      stat: t('landing.forVendors.benefits.easyOrders.stat'),
       color: 'indigo',
       gradient: 'from-indigo-400 to-blue-400',
       depth: 50,
@@ -52,16 +54,16 @@ const ForVendors = () => {
   ];
 
   const stats = [
-    { value: '85%', label: 'Faster store setup', icon: <Clock className="h-6 w-6" />, color: 'blue' },
-    { value: '2.5x', label: 'Higher conversion', icon: <TrendingUp className="h-6 w-6" />, color: 'green' },
-    { value: '24/7', label: 'Platform support', icon: <Headphones className="h-6 w-6" />, color: 'purple' },
+    { value: '85%', label: t('landing.forVendors.metrics.labels.fasterSetup'), icon: <Clock className="h-6 w-6" />, color: 'blue' },
+    { value: '2.5x', label: t('landing.forVendors.metrics.labels.higherConversion'), icon: <TrendingUp className="h-6 w-6" />, color: 'green' },
+    { value: '24/7', label: t('landing.forVendors.metrics.labels.support'), icon: <Headphones className="h-6 w-6" />, color: 'purple' },
   ];
 
   const vendorTools = [
-    { icon: <BarChart />, label: 'Analytics', color: 'blue' },
-    { icon: <Settings />, label: 'Customization', color: 'purple' },
-    { icon: <Wallet />, label: 'Payments', color: 'green' },
-    { icon: <Shield />, label: 'Security', color: 'orange' },
+    { icon: <BarChart />, label: t('landing.forVendors.vendorTools.analytics'), color: 'blue' },
+    { icon: <Settings />, label: t('landing.forVendors.vendorTools.customization'), color: 'purple' },
+    { icon: <Wallet />, label: t('landing.forVendors.vendorTools.payments'), color: 'green' },
+    { icon: <Shield />, label: t('landing.forVendors.vendorTools.security'), color: 'orange' },
   ];
 
   return (
@@ -118,7 +120,7 @@ const ForVendors = () => {
               }}
             >
               <Award className="h-4 w-4 animate-pulse" />
-              <span className="text-sm font-medium">Vendor Success Platform</span>
+              <span className="text-sm font-medium">{t('landing.forVendors.badge')}</span>
             </div>
             
             {/* 3D Heading */}
@@ -130,15 +132,15 @@ const ForVendors = () => {
               }}
             >
               <span className="bg-gradient-to-r from-white via-purple-200 to-indigo-200 bg-clip-text text-transparent block">
-                Built Specifically for
+                {t('landing.forVendors.headingLine1')}
               </span>
               <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-indigo-400 bg-clip-text text-transparent block mt-2">
-                Modern Vendors
+                {t('landing.forVendors.headingLine2')}
               </span>
             </h2>
             
             <p className="text-lg text-purple-100/70 leading-relaxed">
-              Storely empowers entrepreneurs, small businesses, and creators to launch their online stores in a fully immersive 3D environment.
+              {t('landing.forVendors.description')}
             </p>
             
             {/* 3D Benefits */}
@@ -233,7 +235,7 @@ const ForVendors = () => {
                     <Star key={i} className="h-4 w-4 fill-current" />
                   ))}
                 </div>
-                <span className="text-sm text-gray-400 ml-2">from 500+ reviews</span>
+                <span className="text-sm text-gray-400 ml-2">{t('landing.forVendors.testimonialsFrom')}</span>
               </div>
             </div>
           </div>
@@ -252,7 +254,7 @@ const ForVendors = () => {
               
               <h3 className="text-2xl font-bold text-white mb-8 flex items-center relative z-10">
                 <TrendingUp className="h-6 w-6 mr-2 text-purple-400" />
-                Vendor Success Metrics
+                {t('landing.forVendors.metrics.title')}
               </h3>
               
               <div className="space-y-6 relative z-10">
@@ -317,7 +319,7 @@ const ForVendors = () => {
                   </div>
                   
                   <span className="relative z-10 flex items-center justify-center space-x-2 text-white font-bold text-lg">
-                    <span>Join Successful Vendors</span>
+                    <span>{t('landing.forVendors.cta')}</span>
                     <Rocket className="h-5 w-5 group-hover:translate-x-2 transition-transform" />
                   </span>
                 </button>

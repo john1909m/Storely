@@ -1,0 +1,130 @@
+{
+  "checkout": {
+    "title": "Checkout",
+    "subtitle": "Complete your purchase from {{storeName}}",
+    "loading": {
+      "checkout": "Loading checkout...",
+      "cart": "Loading cart..."
+    },
+    "steps": {
+      "customerInfo": "Customer Info",
+      "reviewConfirm": "Review & Confirm"
+    },
+    "customerInformation": {
+      "title": "Customer Information",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "phoneNumber": "Phone Number",
+      "whatsappNumber": "Whatsapp Number",
+      "address": "Address",
+      "governorate": "Governorate",
+      "shippingHint": "Shipping cost will be calculated",
+      "selectGovernorate": "Select your governorate",
+      "shippingTo": "Shipping to",
+      "country": "Country"
+    },
+    "paymentMethod": {
+      "title": "Payment Method",
+      "depositRequired": "Deposit required",
+      "payOnDelivery": "Pay on delivery",
+      "onlinePayment": "Online payment",
+      "instapay": "Instapay",
+      "vodafoneCash": "Vodafone Cash",
+      "cashOnDelivery": "Cash on Delivery"
+    },
+    "review": {
+      "title": "Review Your Order",
+      "orderItems": "Order Items ({{count}})",
+      "qty": "Qty",
+      "shippingTo": "Shipping to {{governorate}}",
+      "deliveryTime": "Standard delivery 2-4 business days",
+      "shippingInformation": "Shipping Information",
+      "city": "City",
+      "depositRequired": "Deposit Required",
+      "depositEqualsShipping": "Deposit equals shipping cost: {{amount}}",
+      "depositPercentage": "Deposit is {{percentage}}% of order total: {{amount}}",
+      "depositInstruction": "You'll need to complete the deposit payment before confirming your order.",
+      "priceBreakdown": "Price Breakdown",
+      "subtotal": "Subtotal",
+      "shipping": "Shipping",
+      "deposit": "Deposit",
+      "remainingOnDelivery": "Remaining (on delivery)",
+      "total": "Total",
+      "termsAgreement": "I agree to the Terms of Service and Privacy Policy. I understand that this order is subject to vendor approval and shipping times."
+    },
+    "summary": {
+      "subtotal": "Subtotal",
+      "shippingCost": "Shipping Cost",
+      "selectGovernorate": "— Select governorate",
+      "deposit": "Deposit",
+      "toPayNow": "To Pay Now",
+      "total": "Total",
+      "remainingOnDelivery": "Remaining {{amount}} on delivery",
+      "estimatedDelivery": "Estimated Delivery",
+      "deliveryTime": "2-4 business days within Egypt",
+      "orderProcess": "Order Process",
+      "step1": "Create Customer Account",
+      "step2": "Create Order with Items & Variants",
+      "step3": "Send Order Confirmation"
+    },
+    "modal": {
+      "fullPayment": {
+        "title": "Complete Payment",
+        "description": "Pay total amount to confirm your order",
+        "successTitle": "Payment Confirmed!",
+        "successMessage": "Your payment has been received. The vendor will process your order shortly."
+      },
+      "deposit": {
+        "title": "Deposit Required",
+        "description": "Pay deposit to confirm your order",
+        "amount": "Deposit Amount",
+        "equalsShipping": "Deposit equals shipping cost",
+        "ofOrderTotal": "% of order total",
+        "sendTo": "Send deposit to",
+        "payAmount": "Pay {{amount}} as deposit",
+        "remainingOnDelivery": "The remaining {{amount}} will be paid upon delivery.",
+        "uploadProof": "Upload Deposit Proof",
+        "confirmDeposit": "Confirm Deposit",
+        "successTitle": "Deposit Submitted!",
+        "successMessage": "Your deposit proof has been uploaded. The vendor will confirm your payment shortly."
+      },
+      "amountToPay": "Amount to Pay",
+      "totalOrderAmount": "Total order amount",
+      "paymentDetails": "Payment Details",
+      "account": "Account",
+      "copied": "Copied!",
+      "copy": "Copy",
+      "uploadScreenshot": "Upload Payment Screenshot",
+      "clickToUpload": "Click to upload screenshot",
+      "imageRequirements": "PNG, JPG up to 5MB",
+      "cancel": "Cancel",
+      "confirmPayment": "Confirm Payment",
+      "processing": "Processing...",
+      "processingMessage": "Please don't close this window while we process your order...",
+      "redirecting": "Redirecting to store..."
+    },
+    "buttons": {
+      "reviewOrder": "Review Order",
+      "change": "Change",
+      "back": "Back",
+      "processing": "Processing...",
+      "placeOrder": "Place Order"
+    },
+    "errors": {
+      "selectGovernorate": "Please select a governorate for shipping.",
+      "noPaymentMethods": "No payment methods available for this store.",
+      "createOrderFailed": "Failed to create order",
+      "orderFailed": "Failed to place order",
+      "createCustomerFailed": "Failed to create customer",
+      "uploadProofRequired": "Please upload proof of payment",
+      "uploadFailedOrderCancelled": "فشل رفع صورة الدفع. تم إلغاء الطلب.",
+      "transactionFailed": "فشلت العملية. الرجاء المحاولة مرة أخرى.",
+      "fileTooLarge": "File too large. Maximum size is 5MB",
+      "notImageFile": "Please upload an image file",
+      "instapayNotConfigured": "Instapay number not configured by vendor.",
+      "vodafoneNotConfigured": "Vodafone Cash number not configured by vendor.",
+      "noPaymentMethodsConfigured": "No payment methods configured for deposit.",
+      "noShippingOptions": "No shipping options available for this store."
+    }
+  }
+}

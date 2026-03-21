@@ -17,6 +17,7 @@ import {
   ChevronRight,
   Info
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 // ✨ إضافة أنماط CSS للـ animations
 const fadeInStyles = `
@@ -59,7 +60,8 @@ const ProductCard = ({
   isInWishlist, 
   onViewDetails,
   formatPrice,
-  colors = { primary: '#4f46e5', secondary: '#9333ea', primaryLight: '#e0e7ff' } // 🎨 ألوان افتراضية
+  colors = { primary: '#4f46e5', secondary: '#9333ea', primaryLight: '#e0e7ff' },
+  t
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
@@ -78,14 +80,12 @@ const ProductCard = ({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // ✨ تأثير ظهور البطاقة
   useEffect(() => {
     setTimeout(() => {
       setCardLoaded(true);
     }, 100);
   }, []);
 
-  // 🎨 دالة لتوليد style object للتدرجات
   const getGradientStyle = (fromColor, toColor) => {
     return {
       background: `linear-gradient(to right, ${fromColor}, ${toColor})`
@@ -103,7 +103,6 @@ const ProductCard = ({
     e.stopPropagation();
     setIsAddingToCart(true);
     
-    // If product has variants, show quick add modal on mobile
     if (isMobile && product.hasVariants) {
       setShowQuickAdd(true);
       setIsAddingToCart(false);
@@ -117,7 +116,7 @@ const ProductCard = ({
   const defaultFormatPrice = (price) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'EGP',
       minimumFractionDigits: 0,
       maximumFractionDigits: 2
     }).format(price);
@@ -138,19 +137,15 @@ const ProductCard = ({
     
     return (
       <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-        {/* Backdrop */}
         <div 
           className="absolute inset-0 bg-black/60 backdrop-blur-sm"
           onClick={() => setShowQuickAdd(false)}
         />
         
-        {/* Modal Content */}
         <div className="relative bg-white w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl animate-slide-up sm:animate-fade-in-scale">
-          {/* Handle Bar for Mobile */}
           <div className="sm:hidden w-12 h-1 bg-gray-300 rounded-full mx-auto mt-3 mb-2" />
           
           <div className="p-6">
-            {/* Header */}
             <div className="flex items-start justify-between mb-6">
               <div className="flex items-center gap-3">
                 <div className="h-14 w-14 rounded-xl overflow-hidden bg-gray-100">
@@ -171,7 +166,7 @@ const ProductCard = ({
                     {product.productName || product.name}
                   </h4>
                   <p className="text-sm text-gray-500">
-                    {variantCount} variants available
+                    {variantCount} {t('productCard.variantsAvailable')}
                   </p>
                 </div>
               </div>
@@ -183,7 +178,6 @@ const ProductCard = ({
               </button>
             </div>
             
-            {/* Variants Summary */}
             <div className="space-y-4 mb-6">
               <div 
                 className="rounded-xl p-4"
@@ -198,16 +192,15 @@ const ProductCard = ({
                   </div>
                   <div>
                     <p className="text-sm font-medium" style={{ color: colors.primary }}>
-                      This product has multiple options
+                      {t('productCard.multipleOptions')}
                     </p>
                     <p className="text-xs mt-1" style={{ color: colors.primary, opacity: 0.7 }}>
-                      Select color and size on the product page
+                      {t('productCard.selectOptionsOnProductPage')}
                     </p>
                   </div>
                 </div>
               </div>
               
-              {/* Quick Actions */}
               <div className="flex gap-3">
                 <button
                   onClick={() => {
@@ -217,7 +210,7 @@ const ProductCard = ({
                   className="flex-1 py-4 text-white rounded-xl font-medium text-lg shadow-lg hover:shadow-xl transition-all"
                   style={getGradientStyle(colors.primary, colors.secondary)}
                 >
-                  View Details
+                  {t('productCard.viewDetails')}
                 </button>
                 <button
                   onClick={() => {
@@ -236,10 +229,9 @@ const ProductCard = ({
               </div>
             </div>
             
-            {/* Price Info */}
             <div className="border-t border-gray-100 pt-4">
               <div className="flex items-center justify-between">
-                <span className="text-gray-600">Starting from</span>
+                <span className="text-gray-600">{t('productCard.startingFrom')}</span>
                 <div>
                   <span className="text-2xl font-bold text-gray-900">
                     {priceFormatter(product.price)}
@@ -274,9 +266,7 @@ const ProductCard = ({
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
-          {/* Image Container */}
           <div className="relative aspect-square bg-gradient-to-br from-gray-50 to-gray-100">
-            {/* Product Image */}
             <div 
               className="h-full w-full cursor-pointer"
               onClick={onViewDetails}
@@ -294,7 +284,6 @@ const ProductCard = ({
               )}
             </div>
             
-            {/* Badges */}
             <div className="absolute top-2 left-2 flex flex-col gap-1">
               {discount && (
                 <div 
@@ -311,12 +300,11 @@ const ProductCard = ({
                   style={{ backgroundColor: colors.secondary }}
                 >
                   <Palette className="h-3 w-3" />
-                  <span>Variants</span>
+                  <span>{t('productCard.variants')}</span>
                 </div>
               )}
             </div>
             
-            {/* Wishlist Button */}
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -332,29 +320,25 @@ const ProductCard = ({
               <Heart className={`h-4 w-4 ${isInWishlist ? 'fill-current' : ''}`} />
             </button>
             
-            {/* Stock Indicator */}
             {!isOutOfStock && isLowStock && (
               <div className="absolute bottom-2 left-2 right-2">
                 <div 
                   className="text-white text-xs px-2 py-1 rounded-lg text-center"
                   style={{ backgroundColor: colors.secondary, opacity: 0.9 }}
                 >
-                  Only {totalStock} left
+                  {t('productCard.onlyLeft', { count: totalStock })}
                 </div>
               </div>
             )}
           </div>
 
-          {/* Product Info */}
           <div className="p-3">
-            {/* Category */}
             <div className="mb-1">
               <span className="text-xs text-gray-500">
-                {product.category?.categoryName || product.category?.name || 'Product'}
+                {product.category?.categoryName || product.category?.name || t('productCard.product')}
               </span>
             </div>
 
-            {/* Title */}
             <h3 
               className="font-medium text-gray-900 mb-2 line-clamp-2 text-sm leading-tight cursor-pointer"
               onClick={onViewDetails}
@@ -363,7 +347,6 @@ const ProductCard = ({
               {product.productName || product.name}
             </h3>
 
-            {/* Price */}
             <div className="flex items-baseline gap-1 mb-2">
               <span className="text-lg font-bold text-gray-900">
                 {priceFormatter(product.price)}
@@ -375,17 +358,15 @@ const ProductCard = ({
               )}
             </div>
 
-            {/* Rating */}
             <div className="flex items-center gap-1 mb-3">
               <div className="flex items-center">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="h-3 w-3 text-amber-400 fill-current" />
                 ))}
               </div>
-              <span className="text-xs text-gray-600">(128)</span>
+              <span className="text-xs text-gray-600"></span>
             </div>
 
-            {/* Add to Cart Button */}
             <button
               onClick={handleAddToCart}
               disabled={isOutOfStock}
@@ -406,26 +387,25 @@ const ProductCard = ({
               {isAddingToCart ? (
                 <>
                   <Check className="h-4 w-4" />
-                  Added!
+                  {t('productCard.added')}
                 </>
               ) : isOutOfStock ? (
-                'Out of Stock'
+                t('productCard.outOfStock')
               ) : hasVariants ? (
                 <>
                   <Palette className="h-4 w-4" />
-                  Select Options
+                  {t('productCard.selectOptions')}
                 </>
               ) : (
                 <>
                   <ShoppingCart className="h-4 w-4" />
-                  Add to Cart
+                  {t('productCard.addToCart')}
                 </>
               )}
             </button>
           </div>
         </div>
         
-        {/* Quick Add Modal */}
         <QuickAddModal />
       </>
     );
@@ -448,9 +428,7 @@ const ProductCard = ({
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
-          {/* Image Container */}
           <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50">
-            {/* Main Image */}
             <div 
               className="h-full w-full cursor-pointer relative"
               onClick={onViewDetails}
@@ -467,7 +445,6 @@ const ProductCard = ({
                 </div>
               )}
               
-              {/* Hover Overlay */}
               <div className={`absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent flex items-end p-4 transition-opacity duration-500 ${
                 isHovered ? 'opacity-100' : 'opacity-0'
               }`}>
@@ -476,12 +453,11 @@ const ProductCard = ({
                   className="w-full py-2.5 bg-white text-gray-900 rounded-lg font-medium text-sm hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
                 >
                   <Eye className="h-4 w-4" />
-                  Quick View
+                  {t('productCard.quickView')}
                 </button>
               </div>
             </div>
             
-            {/* Badges */}
             <div className="absolute top-3 left-3 flex flex-col gap-2">
               {discount && (
                 <div 
@@ -498,7 +474,7 @@ const ProductCard = ({
                   style={{ backgroundColor: colors.secondary }}
                 >
                   <Palette className="h-3 w-3" />
-                  <span>{variantCount} variants</span>
+                  <span>{variantCount} {t('productCard.variants')}</span>
                 </div>
               )}
               
@@ -507,12 +483,11 @@ const ProductCard = ({
                   className="px-2.5 py-1.5 text-white text-xs font-medium rounded-lg shadow-lg"
                   style={{ backgroundColor: colors.primary }}
                 >
-                  Featured
+                  {t('productCard.featured')}
                 </div>
               )}
             </div>
             
-            {/* Wishlist Button */}
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -528,32 +503,28 @@ const ProductCard = ({
               <Heart className={`h-4 w-4 ${isInWishlist ? 'fill-current' : ''}`} />
             </button>
             
-            {/* Stock Indicator */}
             {!isOutOfStock && isLowStock && (
               <div className="absolute bottom-3 left-3 right-3">
                 <div 
                   className="text-white text-xs px-2 py-1.5 rounded-lg text-center font-medium"
                   style={{ backgroundColor: colors.secondary }}
                 >
-                  Only {totalStock} left in stock
+                  {t('productCard.onlyLeftInStock', { count: totalStock })}
                 </div>
               </div>
             )}
           </div>
 
-          {/* Product Info */}
           <div className="p-4">
-            {/* Category */}
             <div className="mb-2">
               <span 
                 className="inline-flex px-2 py-1 rounded-md text-xs"
                 style={{ backgroundColor: colors.primaryLight, color: colors.primary }}
               >
-                {product.category?.categoryName || product.category?.name || 'Product'}
+                {product.category?.categoryName || product.category?.name || t('productCard.product')}
               </span>
             </div>
 
-            {/* Title */}
             <h3 
               className="font-semibold text-gray-900 mb-2 line-clamp-2 cursor-pointer transition-colors text-sm leading-relaxed"
               onClick={onViewDetails}
@@ -562,7 +533,6 @@ const ProductCard = ({
               {product.productName || product.name}
             </h3>
 
-            {/* Rating */}
             <div className="flex items-center gap-2 mb-3">
               <div className="flex items-center">
                 {[...Array(5)].map((_, i) => (
@@ -572,7 +542,6 @@ const ProductCard = ({
               <span className="text-xs text-gray-600"></span>
             </div>
 
-            {/* Price and Action */}
             <div className="flex items-center justify-between">
               <div>
                 <div className="flex items-baseline gap-2">
@@ -586,11 +555,10 @@ const ProductCard = ({
                   )}
                 </div>
                 <div className="text-xs text-gray-500 mt-1">
-                  {totalStock} available
+                  {totalStock} {t('productCard.available')}
                 </div>
               </div>
               
-              {/* Add to Cart Button */}
               <button
                 onClick={handleAddToCart}
                 disabled={isOutOfStock}
@@ -611,7 +579,7 @@ const ProductCard = ({
                 {isAddingToCart ? (
                   <Check className="h-5 w-5" />
                 ) : isOutOfStock ? (
-                  <span className="text-xs px-2">Out</span>
+                  <span className="text-xs px-2">{t('productCard.out')}</span>
                 ) : hasVariants ? (
                   <Palette className="h-5 w-5" />
                 ) : (
@@ -625,7 +593,7 @@ const ProductCard = ({
     );
   }
 
-  // List View (Desktop Only - optimized for all screens)
+  // List View
   return (
     <>
       <style>{fadeInStyles}</style>
@@ -641,7 +609,6 @@ const ProductCard = ({
         onMouseLeave={() => setIsHovered(false)}
       >
         <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
-          {/* Product Image */}
           <div className="relative w-full sm:w-40 lg:w-48 flex-shrink-0">
             <div 
               className="relative aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 cursor-pointer"
@@ -659,7 +626,6 @@ const ProductCard = ({
                 </div>
               )}
               
-              {/* Badges */}
               <div className="absolute top-2 left-2 flex flex-col gap-1">
                 {discount && (
                   <div 
@@ -674,16 +640,14 @@ const ProductCard = ({
                     className="px-2 py-1 text-white text-xs font-medium rounded-lg"
                     style={{ backgroundColor: colors.secondary }}
                   >
-                    {variantCount} variants
+                    {variantCount} {t('productCard.variants')}
                   </div>
                 )}
               </div>
             </div>
           </div>
 
-          {/* Product Details */}
           <div className="flex-1 min-w-0">
-            {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-3">
               <div>
                 <div className="flex items-center gap-2 mb-2">
@@ -691,7 +655,7 @@ const ProductCard = ({
                     className="px-2 py-1 rounded-md text-xs"
                     style={{ backgroundColor: colors.primaryLight, color: colors.primary }}
                   >
-                    {product.category?.categoryName || product.category?.name || 'Product'}
+                    {product.category?.categoryName || product.category?.name || t('productCard.product')}
                   </span>
                   <div className="flex items-center gap-1">
                     <Star className="h-4 w-4 text-amber-400 fill-current" />
@@ -708,7 +672,6 @@ const ProductCard = ({
                 </h3>
               </div>
               
-              {/* Wishlist Button */}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -725,12 +688,10 @@ const ProductCard = ({
               </button>
             </div>
 
-            {/* Description */}
             <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-              {product.description || 'Premium quality product with exceptional features and durability.'}
+              {product.description || t('productCard.defaultDescription')}
             </p>
 
-            {/* Price and Actions */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <div className="flex items-baseline gap-2 mb-1">
@@ -746,7 +707,7 @@ const ProductCard = ({
                         className="text-xs font-medium px-2 py-1 rounded-lg"
                         style={{ backgroundColor: colors.primaryLight, color: colors.primary }}
                       >
-                        Save {priceFormatter(product.oldPrice - product.price)}
+                        {t('productCard.save')} {priceFormatter(product.oldPrice - product.price)}
                       </span>
                     </>
                   )}
@@ -764,11 +725,10 @@ const ProductCard = ({
                       ? isLowStock ? 'bg-amber-500' : 'bg-emerald-500'
                       : 'bg-gray-400'
                   }`} />
-                  {isOutOfStock ? 'Out of Stock' : `${totalStock} in stock`}
+                  {isOutOfStock ? t('productCard.outOfStock') : `${totalStock} ${t('productCard.inStock')}`}
                 </div>
               </div>
 
-              {/* Action Buttons */}
               <div className="flex gap-2">
                 <button
                   onClick={onViewDetails}
@@ -780,7 +740,7 @@ const ProductCard = ({
                   }}
                 >
                   <Eye className="h-4 w-4" />
-                  <span className="hidden sm:inline">Details</span>
+                  <span className="hidden sm:inline">{t('productCard.details')}</span>
                 </button>
                 
                 <button
@@ -803,39 +763,38 @@ const ProductCard = ({
                   {isAddingToCart ? (
                     <>
                       <Check className="h-4 w-4" />
-                      <span>Added!</span>
+                      <span>{t('productCard.added')}</span>
                     </>
                   ) : isOutOfStock ? (
-                    'Out of Stock'
+                    t('productCard.outOfStock')
                   ) : hasVariants ? (
                     <>
                       <Palette className="h-4 w-4" />
-                      <span>Select</span>
+                      <span>{t('productCard.select')}</span>
                     </>
                   ) : (
                     <>
                       <ShoppingCart className="h-4 w-4" />
-                      <span>Add</span>
+                      <span>{t('productCard.add')}</span>
                     </>
                   )}
                 </button>
               </div>
             </div>
 
-            {/* Features */}
             <div className="mt-4 pt-4 border-t border-gray-100">
               <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500">
                 <div className="flex items-center gap-1">
                   <Shield className="h-3 w-3" style={{ color: colors.primary }} />
-                  <span>1 Year Warranty</span>
+                  <span>{t('productCard.warranty')}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Truck className="h-3 w-3" style={{ color: colors.secondary }} />
-                  <span>Free Shipping</span>
+                  <span>{t('productCard.freeShipping')}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <RefreshCw className="h-3 w-3" style={{ color: colors.primary }} />
-                  <span>30-Day Returns</span>
+                  <span>{t('productCard.returns')}</span>
                 </div>
               </div>
             </div>

@@ -2,6 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, Store, Sparkles, Rocket, Zap, Shield, Globe, Eye,  } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+
+
 
 const Hero = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -9,6 +12,7 @@ const Hero = () => {
   const [hoveredCard, setHoveredCard] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
   const [gyroscopeAvailable, setGyroscopeAvailable] = useState(false);
+  const { t } = useTranslation();
 
   // Detect mobile device
   useEffect(() => {
@@ -93,7 +97,7 @@ const Hero = () => {
     <div className='bg-black/90'>
       <section 
       className="relative min-h-screen pt-32 pb-20 overflow-hidden bg-black"
-      aria-label="Hero section"
+      aria-label={t('landing.hero.ariaLabel')}
       style={{
         
         transition: 'transform 0.1s ease-out',
@@ -103,8 +107,7 @@ const Hero = () => {
       {isMobile && gyroscopeAvailable && (
         <div className="fixed bottom-4 left-4 z-50 bg-white/10 backdrop-blur-xl px-3 py-1.5 rounded-full border border-white/20 text-xs text-white/60">
           <span className="flex items-center">
-            
-            Move your device
+            {t('landing.hero.moveDevice')}
           </span>
         </div>
       )}
@@ -154,27 +157,27 @@ const Hero = () => {
                   textShadow: '0 10px 30px rgba(0,0,0,0.5), 0 0 40px rgba(59,130,246,0.3)',
                 }}>
                   <span className="bg-gradient-to-r from-white via-blue-200 to-purple-200 bg-clip-text text-transparent">
-                    Launch Your
+                    {t('landing.hero.headline.launchYour')}
                   </span>
                 </span>
                 <span className="block transform-gpu hover:translate-z-20 transition-transform duration-300 mt-2" style={{
                   textShadow: '0 15px 40px rgba(0,0,0,0.5), 0 0 60px rgba(168,85,247,0.3)',
                 }}>
                   <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                    Online Store
+                    {t('landing.hero.headline.onlineStore')}
                   </span>
                 </span>
                 <span className="block transform-gpu hover:translate-z-5 transition-transform duration-300 mt-2" style={{
                   textShadow: '0 5px 20px rgba(0,0,0,0.5)',
                 }}>
                   <span className="bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
-                    in Minutes
+                    {t('landing.hero.headline.inMinutes')}
                   </span>
                 </span>
               </h1>
               
               <p className="text-lg sm:text-xl text-blue-100/70 mb-10 leading-relaxed max-w-xl mx-auto lg:mx-0 drop-shadow-2xl">
-                Experience the future of e-commerce. Create your branded store with zero technical skills in an immersive 3D environment.
+                {t('landing.hero.description')}
               </p>
               
               {/* 3D Buttons */}
@@ -196,7 +199,7 @@ const Hero = () => {
                     </div>
                     
                     <span className="relative z-10 flex items-center justify-center space-x-2 text-white font-semibold">
-                      <span>Start Now</span>
+                      <span>{t('landing.hero.buttons.startNow')}</span>
                       <Rocket className="h-5 w-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                     </span>
                   </button>
@@ -211,7 +214,7 @@ const Hero = () => {
                     <div className="absolute inset-0 bg-white/10 backdrop-blur-2xl border border-white/20"></div>
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:translate-x-full transition-transform duration-1000"></div>
                     
-                    <span className="relative z-10 text-white font-semibold">View Pricing</span>
+                    <span className="relative z-10 text-white font-semibold">{t('landing.hero.buttons.viewPricing')}</span>
                   </button>
                 </Link>
               </div>
@@ -219,9 +222,9 @@ const Hero = () => {
               {/* 3D Trust indicators */}
               <div className="flex flex-wrap items-center justify-center lg:justify-start gap-8">
                 {[
-                  { icon: Zap, text: 'No code', color: 'blue' },
-                  { icon: Shield, text: 'Secure', color: 'green' },
-                  { icon: Globe, text: 'Global', color: 'purple' },
+                  { icon: Zap, text: t('landing.hero.trust.noCode'), color: 'blue' },
+                  { icon: Shield, text: t('landing.hero.trust.secure'), color: 'green' },
+                  { icon: Globe, text: t('landing.hero.trust.global'), color: 'purple' },
                 ].map((item, index) => (
                   <div
                     key={index}
@@ -268,14 +271,14 @@ const Hero = () => {
                           <Store className="h-6 w-6 text-white" />
                         </div>
                         <div>
-                          <div className="text-white font-semibold text-lg">My Store Dashboard</div>
-                          <div className="text-sm text-blue-200/70">storely-eg.com/mystore</div>
+                          <div className="text-white font-semibold text-lg">{t('landing.hero.dashboardCard.storeDashboard')}</div>
+                        <div className="text-sm text-blue-200/70">{t('landing.hero.dashboardCard.storeUrl')}</div>
                         </div>
                       </div>
                       <div className="px-3 py-1.5 bg-green-400/20 border border-green-400/30 rounded-full backdrop-blur-sm">
                         <span className="text-xs text-green-300 font-medium flex items-center">
                           <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse mr-1.5"></span>
-                          Live
+                          {t('landing.hero.dashboardCard.live')}
                         </span>
                       </div>
                     </div>
@@ -283,8 +286,8 @@ const Hero = () => {
                     {/* 3D Stats Cards */}
                     <div className="grid grid-cols-2 gap-4 mb-6">
                       {[
-                        { label: 'Orders Today', value: '124', color: 'blue', percentage: 75 },
-                        { label: 'Revenue', value: '$2,450', color: 'purple', percentage: 60 },
+                        { label: t('landing.hero.dashboardCard.stats.ordersToday'), value: '124', color: 'blue', percentage: 75 },
+                        { label: t('landing.hero.dashboardCard.stats.revenue'), value: `${t('landing.hero.dashboardCard.amountPrefix')}2,450`, color: 'purple', percentage: 60 },
                       ].map((stat, index) => (
                         <div
                           key={index}
@@ -310,12 +313,12 @@ const Hero = () => {
                     <div className="space-y-3">
                       <h3 className="text-sm font-medium text-gray-300 flex items-center">
                         <Eye className="h-4 w-4 mr-2 text-blue-400" />
-                        Recent Orders
+                        {t('landing.hero.dashboardCard.recentOrders')}
                       </h3>
                       <div className="space-y-2">
                         {[
-                          { id: '1234', items: 2, customer: 'John Doe', amount: 89.99 },
-                          { id: '1235', items: 3, customer: 'Jane Smith', amount: 129.99 },
+                          { id: '1234', items: 2, customer: t('landing.hero.dashboardCard.customerJohn'), amount: 89.99 },
+                          { id: '1235', items: 3, customer: t('landing.hero.dashboardCard.customerJane'), amount: 129.99 },
                         ].map((order, index) => (
                           <div
                             key={index}
@@ -324,10 +327,10 @@ const Hero = () => {
                             <div className="absolute inset-0 bg-white/5 blur-xl rounded-xl"></div>
                             <div className="relative bg-white/5 backdrop-blur-sm rounded-xl p-3 border border-white/10 flex items-center justify-between">
                               <div>
-                                <span className="text-white font-medium">Order #{order.id}</span>
-                                <div className="text-xs text-gray-400">{order.items} items • {order.customer}</div>
+                                <span className="text-white font-medium">{t('landing.hero.dashboardCard.orderPrefix', { id: order.id })}</span>
+                                <div className="text-xs text-gray-400">{t('landing.hero.dashboardCard.orderMeta', { items: order.items, customer: order.customer })}</div>
                               </div>
-                              <span className="text-green-400 font-medium">${order.amount}</span>
+                              <span className="text-green-400 font-medium">{t('landing.hero.dashboardCard.amountPrefix')}{order.amount}</span>
                             </div>
                           </div>
                         ))}

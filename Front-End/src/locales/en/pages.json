@@ -1,0 +1,96 @@
+{
+  "pages": {
+    "login": {
+      "backToHomeAria": "Back to home",
+      "homeLabel": "Home",
+      "welcomeBack": "Welcome Back",
+      "subtitle": "Sign in to continue your journey",
+      "form": {
+        "emailLabel": "Email Address",
+        "passwordLabel": "Password",
+        "emailPlaceholder": "hello@example.com",
+        "passwordPlaceholder": "••••••••"
+      },
+      "button": {
+        "signIn": "Sign In",
+        "redirecting": "Redirecting...",
+        "signingIn": "Signing in..."
+      },
+      "signupPrompt": "Don't have an account?",
+      "createAccountLink": "Create account",
+      "footer": {
+        "support": "Support",
+        "pricing": "Pricing",
+        "privacy": "Privacy"
+      },
+      "trust": {
+        "securedBy": "Secured by Storely",
+        "copyright": "© {{year}}"
+      }
+    }
+    ,
+    "signup": {
+      "homeLabel": "Home",
+      "title": "Create Your Vendor Account",
+      "subtitle": "Join thousands of vendors selling on Storely",
+      "success": "Account created successfully! Redirecting to login...",
+      "form": {
+        "fullNameLabel": "Full Name",
+        "emailLabel": "Email Address",
+        "phoneLabel": "Phone Number",
+        "passwordLabel": "Password",
+        "confirmPasswordLabel": "Confirm Password",
+        "placeholders": {
+          "fullName": "John Doe",
+          "email": "vendor@example.com",
+          "phone": "+1234567890",
+          "password": "Create a strong password",
+          "confirmPassword": "Confirm your password"
+        }
+      },
+      "passwordStrength": {
+        "label": "Password strength",
+        "labels": {
+          "weak": "Weak",
+          "fair": "Fair",
+          "good": "Good",
+          "strong": "Strong",
+          "veryStrong": "Very Strong"
+        }
+      },
+      "passwordRequirements": {
+        "atLeast8": "At least 8 characters",
+        "oneUppercase": "One uppercase letter",
+        "oneLowercase": "One lowercase letter",
+        "oneNumber": "One number",
+        "oneSpecial": "One special character"
+      },
+      "submit": {
+        "creating": "Creating Account...",
+        "redirecting": "Redirecting to Login...",
+        "button": "Create Vendor Account"
+      },
+      "benefits": {
+        "title": "Why join Storely?",
+        "items": [
+          "No coding skills required - set up your store in minutes",
+          "Get your own branded store URL",
+          "No bulk payment - pay only small monthly fee",
+          "24/7 customer support"
+        ]
+      },
+      "loginPrompt": {
+        "text": "Already have an account?",
+        "link": "Sign in here"
+      },
+      "trust": {
+        "securedBy": "Secured by Storely",
+        "joinVendors": "Join 10k+ vendors"
+      },
+      "errors": {
+        "passwordsDoNotMatch": "Passwords do not match"
+      }
+    }
+  }
+}
+

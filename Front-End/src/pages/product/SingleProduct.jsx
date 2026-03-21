@@ -1,6 +1,7 @@
 // pages/ProductDetail.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { productAPI } from '../../api/product.api';
 import { storeAPI } from '../../api/store.api';
 import { Palette, Ruler, Check, AlertCircle, ChevronLeft, ShoppingBag } from 'lucide-react';
@@ -58,6 +59,7 @@ const fadeInStyles = `
 const ProductDetail = () => {
   const { storeName, productId } = useParams();
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
   
   const [product, setProduct] = useState(null);
   const [store, setStore] = useState(null);
@@ -79,10 +81,10 @@ const ProductDetail = () => {
   // 🎨 دالة للحصول على الألوان المخصصة مع قيم افتراضية
   const getStoreColors = () => {
     return {
-      primary: store?.primaryColor || '#4f46e5', // indigo-600 كلون افتراضي
-      secondary: store?.secondaryColor || '#9333ea', // purple-600 كلون افتراضي
-      primaryLight: store?.primaryColor ? `${store.primaryColor}20` : '#e0e7ff', // نسخة شفافة من primary
-      secondaryLight: store?.secondaryColor ? `${store.secondaryColor}20` : '#f3e8ff' // نسخة شفافة من secondary
+      primary: store?.primaryColor || '#4f46e5',
+      secondary: store?.secondaryColor || '#9333ea',
+      primaryLight: store?.primaryColor ? `${store.primaryColor}20` : '#e0e7ff',
+      secondaryLight: store?.secondaryColor ? `${store.secondaryColor}20` : '#f3e8ff'
     };
   };
 
@@ -97,7 +99,6 @@ const ProductDetail = () => {
     fetchProductData();
   }, [storeName, productId]);
 
-  // ✨ تحديد أن الصفحة تم تحميلها
   useEffect(() => {
     if (!loading && product && store) {
       setTimeout(() => {
@@ -108,13 +109,11 @@ const ProductDetail = () => {
 
   useEffect(() => {
     if (product && product.variants && product.variants.length > 0) {
-      // Extract unique colors
       const colors = [...new Set(product.variants
         .map(v => v.productColor)
         .filter(Boolean))];
       setUniqueColors(colors);
       
-      // Set first color as default if available
       if (colors.length > 0 && !selectedColor) {
         setSelectedColor(colors[0]);
       }
@@ -123,22 +122,19 @@ const ProductDetail = () => {
 
   useEffect(() => {
     if (selectedColor && product?.variants) {
-      // Get all sizes available for selected color
       const sizes = product.variants
         .filter(v => v.productColor === selectedColor && v.productSize)
         .map(v => v.productSize)
-        .filter((v, i, a) => a.indexOf(v) === i); // Unique sizes
+        .filter((v, i, a) => a.indexOf(v) === i);
       
       setAvailableSizes(sizes);
       
-      // Reset size selection if not available for this color
       if (selectedSize && !sizes.includes(selectedSize)) {
         setSelectedSize(null);
         setSelectedVariant(null);
         setVariantQuantity(0);
       }
       
-      // Find variant if only colors (no sizes)
       if (!product.variants.some(v => v.productSize)) {
         const variant = product.variants.find(v => v.productColor === selectedColor);
         setSelectedVariant(variant);
@@ -149,7 +145,6 @@ const ProductDetail = () => {
 
   useEffect(() => {
     if (selectedColor && selectedSize && product?.variants) {
-      // Find variant with selected color and size
       const variant = product.variants.find(
         v => v.productColor === selectedColor && v.productSize === selectedSize
       );
@@ -163,12 +158,10 @@ const ProductDetail = () => {
       setLoading(true);
       setPageLoaded(false);
       
-      // Fetch store first
       const storeData = await storeAPI.getByName(storeName);
       if (!storeData) throw new Error('Store not found');
       setStore(storeData);
 
-      // Fetch product
       const productData = await productAPI.getById(productId, storeData.id);
       if (!productData || productData.storeId !== storeData.id) {
         throw new Error('Product not found in this store');
@@ -177,7 +170,7 @@ const ProductDetail = () => {
 
     } catch (err) {
       handleError(err);
-      setError(err.message || 'Failed to load product');
+      setError(err.message || t('productDetail.errors.failedToLoad'));
     } finally {
       setLoading(false);
     }
@@ -197,7 +190,6 @@ const ProductDetail = () => {
     const cartKey = `cart_${storeName}`;
     const existingCart = JSON.parse(localStorage.getItem(cartKey) || '[]');
     
-    // Create cart item with variant information
     const cartItem = {
       id: product.id,
       productName: product.productName || product.name,
@@ -207,7 +199,6 @@ const ProductDetail = () => {
       addedAt: new Date().toISOString()
     };
 
-    // Add variant information if product has variants
     if (product?.variants && product.variants.length > 0) {
       if (selectedColor) {
         cartItem.selectedColor = selectedColor;
@@ -224,12 +215,10 @@ const ProductDetail = () => {
     
     const existingItemIndex = existingCart.findIndex(item => {
       if (product?.variants && product.variants.length > 0) {
-        // For variant products, match by variant combination
         return item.id === product.id && 
                item.selectedColor === selectedColor &&
                item.selectedSize === selectedSize;
       }
-      // For simple products, just match by id
       return item.id === product.id;
     });
     
@@ -241,28 +230,24 @@ const ProductDetail = () => {
     
     localStorage.setItem(cartKey, JSON.stringify(existingCart));
     
-    // Show success message
     const variantText = selectedColor && selectedSize 
       ? ` (${selectedColor} / ${selectedSize})`
       : selectedColor 
         ? ` (${selectedColor})`
         : '';
     
-    // handleError({message_en: `Added ${quantity} ${quantity > 1 ? 'items' : 'item'}${variantText} to cart!`})
-    
-    // Navigate to cart or stay on page
     navigate(`/store/${storeName}?addedToCart=true`);
   };
 
   const formatPrice = (price) => {
-    return new Intl.NumberFormat('en-US', {
+    const localeCode = i18n.language === 'ar' ? 'ar-EG' : 'en-US';
+    return new Intl.NumberFormat(localeCode, {
       style: 'currency',
       currency: 'EGP',
       minimumFractionDigits: 2
     }).format(price || 0);
   };
 
-  // 🎨 الحصول على الألوان المخصصة
   const colors = store ? getStoreColors() : { primary: '#4f46e5', secondary: '#9333ea', primaryLight: '#e0e7ff', secondaryLight: '#f3e8ff' };
 
   if (loading) {
@@ -276,7 +261,7 @@ const ProductDetail = () => {
               borderTopColor: colors.primary 
             }}
           ></div>
-          <p className="text-gray-600">Loading product...</p>
+          <p className="text-gray-600">{t('productDetail.loading.product')}</p>
         </div>
       </div>
     );
@@ -287,14 +272,14 @@ const ProductDetail = () => {
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center">
         <div className="text-center max-w-md">
           <div className="text-6xl mb-4">📦</div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Product Not Found</h2>
-          <p className="text-gray-600 mb-6">{error || 'This product does not exist or has been removed.'}</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('productDetail.errors.productNotFound')}</h2>
+          <p className="text-gray-600 mb-6">{error || t('productDetail.errors.productNotFoundMessage')}</p>
           <button
             onClick={() => navigate(`/store/${storeName}`)}
             className="inline-flex items-center px-6 py-3 text-white rounded-xl hover:opacity-90 transition-all"
             style={getGradientStyle(colors.primary, colors.secondary)}
           >
-            Back to Store
+            {t('productDetail.buttons.backToStore')}
           </button>
         </div>
       </div>
@@ -310,11 +295,10 @@ const ProductDetail = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      {/* ✨ إضافة أنماط CSS */}
       <style>{fadeInStyles}</style>
       
       <div className="container mx-auto px-4 py-8">
-        {/* Back Button مع تأثير Fade In */}
+        {/* Back Button */}
         <button
           onClick={() => navigate(`/store/${storeName}`)}
           className={`mb-6 flex items-center space-x-2 transition-all duration-700 ${
@@ -323,10 +307,10 @@ const ProductDetail = () => {
           style={{ color: colors.primary }}
         >
           <ChevronLeft className="h-5 w-5" />
-          <span>Back to {store?.storeName}</span>
+          <span>{t('productDetail.buttons.backToStoreName', { storeName: store?.storeName })}</span>
         </button>
 
-        {/* Product Card مع تأثير Fade In */}
+        {/* Product Card */}
         <div 
           className={`bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-lg transition-all duration-700 ${
             pageLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
@@ -384,7 +368,7 @@ const ProductDetail = () => {
                   className="inline-block px-3 py-1 rounded-full text-sm font-medium mb-3"
                   style={{ backgroundColor: colors.primaryLight, color: colors.primary }}
                 >
-                  {product.categoryName || product.category?.name || 'Uncategorized'}
+                  {product.categoryName || product.category?.name || t('productDetail.uncategorized')}
                 </span>
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">
                   {product.productName || product.name}
@@ -405,7 +389,7 @@ const ProductDetail = () => {
                       className="px-2 py-1 rounded-lg text-sm font-medium"
                       style={{ backgroundColor: colors.primaryLight, color: colors.primary }}
                     >
-                      {Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)}% OFF
+                      {Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)}% {t('productDetail.off')}
                     </span>
                   </div>
                 )}
@@ -419,9 +403,9 @@ const ProductDetail = () => {
                     <div>
                       <div className="flex items-center gap-2 mb-3">
                         <Palette className="h-5 w-5" style={{ color: colors.primary }} />
-                        <label className="text-sm font-medium text-gray-700">Color:</label>
+                        <label className="text-sm font-medium text-gray-700">{t('productDetail.color')}:</label>
                         <span className="text-sm font-semibold" style={{ color: colors.primary }}>
-                          {selectedColor || 'Select'}
+                          {selectedColor || t('productDetail.select')}
                         </span>
                       </div>
                       <div className="flex flex-wrap gap-3">
@@ -448,7 +432,7 @@ const ProductDetail = () => {
                             >
                               {color}
                               {!isAvailable && (
-                                <span className="ml-2 text-xs">(Out)</span>
+                                <span className="ml-2 text-xs">({t('productDetail.out')})</span>
                               )}
                             </button>
                           );
@@ -462,9 +446,9 @@ const ProductDetail = () => {
                     <div>
                       <div className="flex items-center gap-2 mb-3">
                         <Ruler className="h-5 w-5" style={{ color: colors.primary }} />
-                        <label className="text-sm font-medium text-gray-700">Size:</label>
+                        <label className="text-sm font-medium text-gray-700">{t('productDetail.size')}:</label>
                         <span className="text-sm font-semibold" style={{ color: colors.primary }}>
-                          {selectedSize || 'Select'}
+                          {selectedSize || t('productDetail.select')}
                         </span>
                       </div>
                       <div className="flex flex-wrap gap-3">
@@ -492,7 +476,7 @@ const ProductDetail = () => {
                             >
                               {size}
                               {!isAvailable && (
-                                <span className="ml-2 text-xs">(Out)</span>
+                                <span className="ml-2 text-xs">({t('productDetail.out')})</span>
                               )}
                             </button>
                           );
@@ -511,10 +495,10 @@ const ProductDetail = () => {
                         <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" style={{ color: colors.primary }} />
                         <div>
                           <p className="text-sm font-medium" style={{ color: colors.primary }}>
-                            Selected: {selectedColor} {selectedSize && `/ ${selectedSize}`}
+                            {t('productDetail.selected')}: {selectedColor} {selectedSize && `/ ${selectedSize}`}
                           </p>
                           <p className="text-sm opacity-75" style={{ color: colors.primary }}>
-                            {availableStock} units available
+                            {availableStock} {t('productDetail.unitsAvailable')}
                           </p>
                         </div>
                       </div>
@@ -525,16 +509,16 @@ const ProductDetail = () => {
 
               {/* Description */}
               <div className={`transition-all duration-700 delay-500 ${pageLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Description</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">{t('productDetail.description')}</h3>
                 <p className="text-gray-600 whitespace-pre-line">
-                  {product.description || 'No description available.'}
+                  {product.description || t('productDetail.noDescription')}
                 </p>
               </div>
 
               {/* Quantity Selector */}
               <div className={`transition-all duration-700 delay-600 ${pageLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Quantity
+                  {t('productDetail.quantity')}
                 </label>
                 <div className="flex items-center space-x-4">
                   <div className="flex items-center border border-gray-200 rounded-lg">
@@ -557,7 +541,7 @@ const ProductDetail = () => {
                     </button>
                   </div>
                   <div className="text-sm text-gray-600">
-                    Max: {availableStock} units
+                    {t('productDetail.max')}: {availableStock} {t('productDetail.units')}
                   </div>
                 </div>
               </div>
@@ -576,10 +560,10 @@ const ProductDetail = () => {
                 style={!isOutOfStock && (!hasVariants || selectedVariant) ? getGradientStyle(colors.primary, colors.secondary) : {}}
               >
                 {hasVariants && !selectedVariant
-                  ? 'Select Options'
+                  ? t('productDetail.selectOptions')
                   : isOutOfStock
-                    ? 'Out of Stock'
-                    : `Add to Cart - ${formatPrice((product.price || 0) * quantity)}`
+                    ? t('productDetail.outOfStock')
+                    : `${t('productDetail.addToCart')} - ${formatPrice((product.price || 0) * quantity)}`
                 }
               </button>
 
@@ -601,9 +585,9 @@ const ProductDetail = () => {
                     )}
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-900">Sold by {store?.storeName}</div>
+                    <div className="font-semibold text-gray-900">{t('productDetail.soldBy')} {store?.storeName}</div>
                     <div className="text-sm text-gray-600">
-                      {store?.storeDescription || 'Verified seller'}
+                      {store?.storeDescription || t('productDetail.verifiedSeller')}
                     </div>
                     {store?.primaryColor && (
                       <div className="flex items-center gap-2 mt-1">
@@ -615,7 +599,7 @@ const ProductDetail = () => {
                           className="h-3 w-3 rounded-full" 
                           style={{ backgroundColor: colors.secondary }}
                         />
-                        <span className="text-xs text-gray-500">Store colors</span>
+                        <span className="text-xs text-gray-500">{t('productDetail.storeColors')}</span>
                       </div>
                     )}
                   </div>

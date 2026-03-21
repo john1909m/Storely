@@ -5,60 +5,62 @@ import {
   CheckCircle, Sparkles, ArrowRight, Zap, Eye, 
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const HowItWorks = () => {
   const [hoveredStep, setHoveredStep] = useState(null);
   const [hoveredCard, setHoveredCard] = useState(null);
+  const { t } = useTranslation();
 
   const steps = [
     {
       number: '01',
       icon: <UserPlus className="h-6 w-6" />,
-      title: 'Sign Up',
-      description: 'Create your vendor account in under 2 minutes',
+      title: t('landing.howItWorks.steps.01.title'),
+      description: t('landing.howItWorks.steps.01.description'),
       color: 'blue',
       gradient: 'from-blue-400 to-cyan-400',
-      details: 'Quick registration with email or social media',
+      details: t('landing.howItWorks.steps.01.details'),
       depth: 10,
     },
     {
       number: '02',
       icon: <Store className="h-6 w-6" />,
-      title: 'Create Store',
-      description: 'Set up your branded store with custom URL',
+      title: t('landing.howItWorks.steps.02.title'),
+      description: t('landing.howItWorks.steps.02.description'),
       color: 'purple',
       gradient: 'from-purple-400 to-pink-400',
-      details: 'Customize colors, logo, and store information',
+      details: t('landing.howItWorks.steps.02.details'),
       depth: 20,
     },
     {
       number: '03',
       icon: <Package className="h-6 w-6" />,
-      title: 'Add Products',
-      description: 'Upload products with images, prices, and categories',
+      title: t('landing.howItWorks.steps.03.title'),
+      description: t('landing.howItWorks.steps.03.description'),
       color: 'green',
       gradient: 'from-green-400 to-emerald-400',
-      details: 'Bulk upload or add products one by one',
+      details: t('landing.howItWorks.steps.03.details'),
       depth: 30,
     },
     {
       number: '04',
       icon: <Share2 className="h-6 w-6" />,
-      title: 'Share Link',
-      description: 'Share your unique store link with customers',
+      title: t('landing.howItWorks.steps.04.title'),
+      description: t('landing.howItWorks.steps.04.description'),
       color: 'orange',
       gradient: 'from-orange-400 to-red-400',
-      details: 'Share via social media, email, or QR code',
+      details: t('landing.howItWorks.steps.04.details'),
       depth: 40,
     },
     {
       number: '05',
       icon: <ShoppingCart className="h-6 w-6" />,
-      title: 'Receive Orders',
-      description: 'Start accepting orders and earning revenue',
+      title: t('landing.howItWorks.steps.05.title'),
+      description: t('landing.howItWorks.steps.05.description'),
       color: 'indigo',
       gradient: 'from-indigo-400 to-blue-400',
-      details: 'Real-time notifications and order tracking',
+      details: t('landing.howItWorks.steps.05.details'),
       depth: 50,
     },
   ];
@@ -108,7 +110,7 @@ const HowItWorks = () => {
             onMouseLeave={() => setHoveredCard(null)}
           >
             
-            <span className="text-sm font-medium">3D Experience</span>
+            <span className="text-sm font-medium">{t('landing.howItWorks.section.badge')}</span>
           </div>
           
           {/* 3D Text */}
@@ -120,15 +122,15 @@ const HowItWorks = () => {
             }}
           >
             <span className="bg-gradient-to-r from-white via-blue-200 to-purple-200 bg-clip-text text-transparent block">
-              Start Selling in
+              {t('landing.howItWorks.section.headlineLine1')}
             </span>
             <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent block mt-2">
-              Five Simple Steps
+              {t('landing.howItWorks.section.headlineLine2')}
             </span>
           </h2>
           
           <p className="text-lg text-blue-100/70">
-            Immerse yourself in the future of e-commerce. Follow these steps in our 3D environment.
+            {t('landing.howItWorks.section.description')}
           </p>
         </div>
 
@@ -226,7 +228,7 @@ const HowItWorks = () => {
               </div>
               
               <span className="relative z-10 flex items-center justify-center space-x-2 text-white font-bold text-lg">
-                <span>Get Started Now</span>
+                <span>{t('landing.howItWorks.cta')}</span>
                 <ArrowRight className="h-5 w-5 group-hover:translate-x-2 transition-transform" />
               </span>
             </button>

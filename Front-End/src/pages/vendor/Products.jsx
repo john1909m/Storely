@@ -1,5 +1,4 @@
-// Vendor Products Page - Updated with Cloudflare R2 image upload and Product Variants
-// Mobile optimized with always-visible action buttons
+// src/pages/vendor/VendorProducts.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import {
@@ -19,8 +18,10 @@ import StoreFooter from '../../components/StoreFooter';
 import { id } from 'date-fns/locale';
 import { useErrorHandler } from '../../hooks/useErrorHandler';
 import useAuthStore from '../../store/authStore';
+import { useTranslation } from 'react-i18next';
 
 const VendorProducts = () => {
+  const { t, i18n } = useTranslation();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -34,7 +35,7 @@ const VendorProducts = () => {
   const [isSavingProduct, setIsSavingProduct] = useState(false);
   const [isSavingCategory, setIsSavingCategory] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
-  const [viewMode, setViewMode] = useState('grid'); // grid or list
+  const [viewMode, setViewMode] = useState('grid');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   // Image upload states
@@ -77,52 +78,18 @@ const VendorProducts = () => {
     { id: 'xxl', name: 'XXL' },
     { id: 'xxxl', name: 'XXXL' },
     {id:'4xl',name:'4XL'},
-    { id:'5',name:'5'},
-    { id:'6',name:'6'},
-    { id:'7',name:'7'},
-    { id:'8',name:'8'},
-    { id:'9',name:'9'},
-    { id:'10',name:'10'},
-    { id:'11',name:'11'},
-    { id:'12',name:'12'},
-    { id:'13',name:'13'},
-    { id:'14',name:'14'},
-    { id:'15',name:'15'},
-    { id:'16',name:'16'},
-    { id:'17',name:'17'},
-    { id:'18',name:'18'},
-    { id:'19',name:'19'},
-    { id:'20',name:'20'},
-    { id:'21',name:'21'},
-    { id:'22',name:'22'},
-    { id:'23',name:'23'},
-    { id:'24',name:'24'},
-    { id:'25',name:'25'},
-    { id:'26',name:'26'},
-    { id:'27',name:'27'},
-    { id:'28',name:'28'},
-    { id:'29',name:'29'},
-    { id:'30',name:'30'},
-    { id:'32',name:'32'},
-    { id:'33',name:'33'},
-    { id:'34',name:'34'},
-    { id:'35',name:'35'},
-    { id:'36',name:'36'},
-    { id:'37',name:'37'},
-    { id:'38',name:'38'},
-    { id:'39',name:'39'},
-    { id:'40',name:'40'},
-    { id:'41',name:'41'},
-    { id:'42',name:'42'},
-    { id:'43',name:'43'},
-    { id:'44',name:'44'},
-    { id:'45',name:'45'},
-    { id:'46',name:'46'},
-    { id:'47',name:'47'},
-    { id:'48',name:'48'},
-    { id:'49',name:'49'},
+    { id:'5',name:'5'}, { id:'6',name:'6'}, { id:'7',name:'7'}, { id:'8',name:'8'},
+    { id:'9',name:'9'}, { id:'10',name:'10'}, { id:'11',name:'11'}, { id:'12',name:'12'},
+    { id:'13',name:'13'}, { id:'14',name:'14'}, { id:'15',name:'15'}, { id:'16',name:'16'},
+    { id:'17',name:'17'}, { id:'18',name:'18'}, { id:'19',name:'19'}, { id:'20',name:'20'},
+    { id:'21',name:'21'}, { id:'22',name:'22'}, { id:'23',name:'23'}, { id:'24',name:'24'},
+    { id:'25',name:'25'}, { id:'26',name:'26'}, { id:'27',name:'27'}, { id:'28',name:'28'},
+    { id:'29',name:'29'}, { id:'30',name:'30'}, { id:'32',name:'32'}, { id:'33',name:'33'},
+    { id:'34',name:'34'}, { id:'35',name:'35'}, { id:'36',name:'36'}, { id:'37',name:'37'},
+    { id:'38',name:'38'}, { id:'39',name:'39'}, { id:'40',name:'40'}, { id:'41',name:'41'},
+    { id:'42',name:'42'}, { id:'43',name:'43'}, { id:'44',name:'44'}, { id:'45',name:'45'},
+    { id:'46',name:'46'}, { id:'47',name:'47'}, { id:'48',name:'48'}, { id:'49',name:'49'},
     { id:'50',name:'50'},
-    
   ]);
   
   const { 
@@ -135,7 +102,7 @@ const VendorProducts = () => {
   
   const navigate = useNavigate();
   const location = useLocation();
-    const { handleError } = useErrorHandler();
+  const { handleError } = useErrorHandler();
 
   // New product form state
   const [newProduct, setNewProduct] = useState({
@@ -168,21 +135,19 @@ const VendorProducts = () => {
     name: '',
     description: ''
   });
-    // const {authInialized} = useAuthStore();
-
 
   useEffect(() => {
     if (authLoading) return;
 
     if (!isAuthenticated || !isVendor) {
-      setError('Access denied. Please log in as a vendor.');
+      setError(t('vendor.products.errors.accessDenied'));
       setIsLoading(false);
       navigate('/login', { state: { from: location.pathname } });
       return;
     }
 
     if (!store || !store.id) {
-      setError('You need to create a store first before managing products.');
+      setError(t('vendor.products.errors.storeRequired'));
       setIsLoading(false);
       navigate('/vendor/store/create');
       return;
@@ -192,7 +157,7 @@ const VendorProducts = () => {
     setEditProduct(prev => ({ ...prev, storeId: store.id }));
     
     fetchData();
-  }, [authLoading, isAuthenticated, isVendor, store, navigate, location]);
+  }, [authLoading, isAuthenticated, isVendor, store, navigate, location, t]);
 
   const fetchData = async () => {
     try {
@@ -211,7 +176,7 @@ const VendorProducts = () => {
       const storeCategories = await categoryAPI.getByStore(store.id);
       const validCategories = storeCategories.map(cat => ({
       ...cat,
-      id: cat.id || cat.categoryId, // UUID
+      id: cat.id || cat.categoryId,
     }));
       setCategories(Array.isArray(validCategories) ? validCategories : []);
       
@@ -221,7 +186,7 @@ const VendorProducts = () => {
       setCategories([]);
       
       if (err.message?.includes('not found') || err.response?.status === 404) {
-        setError('Store not found. Please create a new store.');
+        setError(t('vendor.products.errors.storeNotFound'));
         setStore(null);
       }
     } finally {
@@ -294,7 +259,7 @@ const VendorProducts = () => {
         altText: `Product image ${index + 1}`
       }));
       
-      setUploadSuccess(`${uploadedImages.length} image${uploadedImages.length > 1 ? 's' : ''} uploaded successfully!`);
+      setUploadSuccess(`${uploadedImages.length} ${t('vendor.products.imageUpload.images')} ${t('vendor.products.imageUpload.uploadedSuccess')}`);
       setTimeout(() => setUploadSuccess(null), 3000);
       
       return uploadedImages;
@@ -308,18 +273,18 @@ const VendorProducts = () => {
     }
   };
 
-   const handleImageSelection = (event) => {
+  const handleImageSelection = (event) => {
     const files = Array.from(event.target.files);
     
     const validImages = files.filter(file => {
       if (file.size > 5 * 1024 * 1024) {
-        setUploadError(`File ${file.name} is too large. Max size is 5MB.`);
+        setUploadError(`File ${file.name} ${t('vendor.products.imageUpload.fileTooLarge')}`);
         setTimeout(() => setUploadError(null), 3000);
         return false;
       }
       
       if (!file.type.startsWith('image/')) {
-        setUploadError(`File ${file.name} is not an image.`);
+        setUploadError(`File ${file.name} ${t('vendor.products.imageUpload.notImage')}`);
         setTimeout(() => setUploadError(null), 3000);
         return false;
       }
@@ -392,7 +357,6 @@ const VendorProducts = () => {
     setExistingPhotos(newPhotos);
   };
 
-
   // ============ PRODUCT VARIANTS FUNCTIONS ============
 
   const resetVariantState = () => {
@@ -407,7 +371,6 @@ const VendorProducts = () => {
       setHasSizes(false);
       setVariants([]);
     } else {
-      // Initialize with one empty color variant if no sizes
       if (!hasSizes) {
         setVariants([{ productColor: '', productSize: null, quantity: 0 }]);
       }
@@ -417,7 +380,6 @@ const VendorProducts = () => {
   const handleHasSizesChange = (checked) => {
     setHasSizes(checked);
     if (!checked && hasColors) {
-      // Convert matrix back to color-only variants
       const colorOnlyVariants = [];
       const uniqueColors = [...new Set(variants.map(v => v.productColor).filter(Boolean))];
       
@@ -433,7 +395,6 @@ const VendorProducts = () => {
       
       setVariants(colorOnlyVariants.length > 0 ? colorOnlyVariants : [{ productColor: '', productSize: null, quantity: 0 }]);
     } else if (checked && hasColors) {
-      // Convert to matrix - generate all combinations
       generateVariantMatrix();
     } else if (!checked && !hasColors) {
       setVariants([]);
@@ -452,7 +413,6 @@ const VendorProducts = () => {
     
     colors.forEach(color => {
       sizes.forEach(size => {
-        // Find existing quantity if any
         const existingVariant = variants.find(
           v => v.productColor === color && v.productSize === size
         );
@@ -475,22 +435,17 @@ const VendorProducts = () => {
   const addSize = () => {
     if (!hasColors || !hasSizes) return;
     
-    // Add a new size to all colors
-    const newSize = prompt('Enter new size name:');
+    const newSize = prompt(t('vendor.products.prompts.enterNewSizeName'));
     if (!newSize) return;
     
     const newVariants = [];
-    
-    // Get all unique colors
     const colors = [...new Set(variants.map(v => v.productColor).filter(Boolean))];
     
     if (colors.length === 0) {
-      // If no colors yet, just add a size with empty color
       setVariants([...variants, { productColor: '', productSize: newSize, quantity: 0 }]);
       return;
     }
     
-    // Add the new size for each color
     colors.forEach(color => {
       newVariants.push({
         productColor: color,
@@ -499,7 +454,6 @@ const VendorProducts = () => {
       });
     });
     
-    // Keep existing variants and add new ones
     setVariants([...variants, ...newVariants]);
   };
 
@@ -507,7 +461,6 @@ const VendorProducts = () => {
     const updatedVariants = [...variants];
     updatedVariants[index][field] = value;
     
-    // Validate quantity
     if (field === 'quantity' && value < 0) {
       updatedVariants[index].quantity = 0;
     }
@@ -525,7 +478,6 @@ const VendorProducts = () => {
   };
 
   const validateVariants = () => {
-    // Check for duplicate color-only variants
     if (hasColors && !hasSizes) {
       const colors = variants.map(v => v.productColor).filter(Boolean);
       const hasDuplicates = colors.some((color, index) => 
@@ -533,12 +485,11 @@ const VendorProducts = () => {
       );
       
       if (hasDuplicates) {
-        alert('Duplicate colors are not allowed');
+        alert(t('vendor.products.errors.duplicateColors'));
         return false;
       }
     }
     
-    // Check for duplicate color+size combinations
     if (hasColors && hasSizes) {
       const combinations = variants.map(v => `${v.productColor}|${v.productSize}`).filter(c => !c.includes('|'));
       const hasDuplicates = combinations.some((combo, index) => 
@@ -546,15 +497,14 @@ const VendorProducts = () => {
       );
       
       if (hasDuplicates) {
-        alert('Duplicate color and size combinations are not allowed');
+        alert(t('vendor.products.errors.duplicateCombinations'));
         return false;
       }
     }
     
-    // Check for negative quantities
     const hasNegative = variants.some(v => v.quantity < 0);
     if (hasNegative) {
-      alert('Quantity cannot be negative');
+      alert(t('vendor.products.errors.negativeQuantity'));
       return false;
     }
     
@@ -573,29 +523,22 @@ const VendorProducts = () => {
       setIsSavingProduct(true);
       
       if (!store?.id) {
-        alert('Store not found. Please refresh the page.');
+        alert(t('vendor.products.errors.storeNotFound'));
         return;
       }
 
-    let categoryIdValue = null;
-        if (newProduct.categoryId && newProduct.categoryId !== '' && !isNaN(newProduct.categoryId)) {
-          // لو كان رقم (للحالات القديمة)
-          categoryIdValue = newProduct.categoryId;
-        } else if (newProduct.categoryId && newProduct.categoryId !== '') {
-          // UUID - سيبه string
-          categoryIdValue = newProduct.categoryId;
-        }
-        
-        console.log('📦 Final categoryId:', categoryIdValue);
-        console.log('📦 categoryId type:', typeof categoryIdValue);
+      let categoryIdValue = null;
+      if (newProduct.categoryId && newProduct.categoryId !== '' && !isNaN(newProduct.categoryId)) {
+        categoryIdValue = newProduct.categoryId;
+      } else if (newProduct.categoryId && newProduct.categoryId !== '') {
+        categoryIdValue = newProduct.categoryId;
+      }
       
-      // Validate variants if enabled
       if (hasColors && !validateVariants()) {
         setIsSavingProduct(false);
         return;
       }
       
-      // Filter out empty variants
       let finalVariants = [];
       if (hasColors) {
         if (hasSizes) {
@@ -630,8 +573,6 @@ const VendorProducts = () => {
         position: [],
         altText: []
       };
-      
-      console.log('Sending product data:', productData);
       
       const createdProduct = await productAPI.add(productData);
       
@@ -676,30 +617,22 @@ const VendorProducts = () => {
       setIsSavingProduct(true);
       
       if (!store?.id || !editProduct.id) {
-        alert('Product or store not found. Please refresh the page.');
+        alert(t('vendor.products.errors.productOrStoreNotFound'));
         return;
       }
 
-       let categoryIdValue = null;
-        if (editProduct.categoryId && editProduct.categoryId !== '' && !isNaN(editProduct.categoryId)) {
-          console.log('📦 Parsing categoryId as integer:', editProduct.categoryId);
-          categoryIdValue = editProduct.categoryId;
-        } else if (editProduct.categoryId && editProduct.categoryId !== '') {
-          // UUID - سيبه string
-          categoryIdValue = editProduct.categoryId;
-        }
-      
-          console.log('📦 Final categoryId:', categoryIdValue);
-          console.log('📦 categoryId type:', typeof categoryIdValue);
+      let categoryIdValue = null;
+      if (editProduct.categoryId && editProduct.categoryId !== '' && !isNaN(editProduct.categoryId)) {
+        categoryIdValue = editProduct.categoryId;
+      } else if (editProduct.categoryId && editProduct.categoryId !== '') {
+        categoryIdValue = editProduct.categoryId;
+      }
 
-
-      // Validate variants if enabled
       if (hasColors && !validateVariants()) {
         setIsSavingProduct(false);
         return;
       }
       
-      // Filter out empty variants
       let finalVariants = [];
       if (hasColors) {
         if (hasSizes) {
@@ -739,7 +672,7 @@ const VendorProducts = () => {
       
       const imageUrls = allImages.map(img => img.url);
       const positions = allImages.map((_, index) => index);
-      const altTexts = allImages.map((img, index) => img.altText || `Product image ${index + 1}`);
+      const altTexts = allImages.map((img, index) => img.altText || `${t('vendor.products.imageUpload.productImage')} ${index + 1}`);
       
       const productData = {
         id: editProduct.id,
@@ -756,13 +689,7 @@ const VendorProducts = () => {
         storeId: store.id
       };
       
-      console.log('Updating product with data:', productData);
-      
-      const updatedProduct = await productAPI.update({
-        ...productData
-        // id: editProduct.id
-      });
-      console.log('Updated product:', updatedProduct);
+      const updatedProduct = await productAPI.update(productData);
       
       setProducts(prev => prev.map(p => 
         p.id === editProduct.id ? updatedProduct : p
@@ -783,7 +710,7 @@ const VendorProducts = () => {
       setIsSavingCategory(true);
       
       if (!store?.id) {
-        alert('Store not found. Please refresh the page.');
+        alert(t('vendor.products.errors.storeNotFound'));
         return;
       }
       
@@ -810,7 +737,7 @@ const VendorProducts = () => {
   };
 
   const handleDelete = async (productId) => {
-    if (!window.confirm('Are you sure you want to delete this product?')) {
+    if (!window.confirm(t('vendor.products.confirmDelete'))) {
       return;
     }
 
@@ -824,7 +751,7 @@ const VendorProducts = () => {
   };
 
   const handleBulkDelete = async () => {
-    if (!window.confirm(`Delete ${selectedProducts.length} product(s)? This action cannot be undone.`)) {
+    if (!window.confirm(t('vendor.products.confirmBulkDelete', { count: selectedProducts.length }))) {
       return;
     }
 
@@ -866,12 +793,11 @@ const VendorProducts = () => {
     const loadedPhotos = images.map((url, index) => ({
       url: typeof url === 'string' ? url : url.url,
       position: positions[index] || index,
-      altText: altTexts[index] || `Product image ${index + 1}`
+      altText: altTexts[index] || `${t('vendor.products.imageUpload.productImage')} ${index + 1}`
     }));
     
     setExistingPhotos(loadedPhotos);
     
-    // Determine if product has variants
     const productVariants = product.variants || [];
     const hasVariants = productVariants.length > 0;
     
@@ -882,7 +808,6 @@ const VendorProducts = () => {
       setHasColors(hasColorsInVariants);
       setHasSizes(hasSizesInVariants);
       
-      // Map variants to our format
       const mappedVariants = productVariants.map(v => ({
         productColor: v.productColor || '',
         productSize: v.productSize || null,
@@ -953,11 +878,19 @@ const VendorProducts = () => {
 
   // Format currency
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
+    const localeCode = i18n.language === 'ar' ? 'ar-EG' : 'en-US';
+    return new Intl.NumberFormat(localeCode, {
       style: 'currency',
       currency: 'EGP',
-      minimumFractionDigits: 2
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     }).format(amount || 0);
+  };
+
+  // Format number
+  const formatNumber = (num) => {
+    const localeCode = i18n.language === 'ar' ? 'ar-EG' : 'en-US';
+    return new Intl.NumberFormat(localeCode).format(num || 0);
   };
 
   // Calculate product stock based on variants
@@ -1003,17 +936,16 @@ const VendorProducts = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <VariantsIcon className="h-5 w-5 text-indigo-600" />
-            <h3 className="text-lg font-semibold text-gray-900">Product Variants</h3>
+            <h3 className="text-lg font-semibold text-gray-900">{t('vendor.products.variants.title')}</h3>
           </div>
           
           {hasColors && (
             <div className="text-sm bg-gray-100 px-3 py-1.5 rounded-lg">
-              Total Stock: <span className="font-bold text-indigo-600">{totalQuantity}</span> units
+              {t('vendor.products.variants.totalStock')}: <span className="font-bold text-indigo-600">{totalQuantity}</span> {t('vendor.products.variants.units')}
             </div>
           )}
         </div>
         
-        {/* Inventory Options */}
         <div className="bg-gray-50 rounded-xl p-4 space-y-3">
           <div className="flex items-center space-x-6">
             <label className="flex items-center space-x-2 cursor-pointer">
@@ -1025,7 +957,7 @@ const VendorProducts = () => {
               />
               <span className="text-sm font-medium text-gray-700 flex items-center">
                 <Palette className="h-4 w-4 mr-1 text-gray-500" />
-                This product has colors
+                {t('vendor.products.variants.hasColors')}
               </span>
             </label>
             
@@ -1039,7 +971,7 @@ const VendorProducts = () => {
                 />
                 <span className="text-sm font-medium text-gray-700 flex items-center">
                   <Ruler className="h-4 w-4 mr-1 text-gray-500" />
-                  This product has sizes
+                  {t('vendor.products.variants.hasSizes')}
                 </span>
               </label>
             )}
@@ -1048,17 +980,15 @@ const VendorProducts = () => {
           {hasColors && (
             <p className="text-xs text-gray-500 mt-2">
               {hasSizes 
-                ? "Configure stock for each color and size combination"
-                : "Configure stock for each color"
+                ? t('vendor.products.variants.colorSizeHelp')
+                : t('vendor.products.variants.colorOnlyHelp')
               }
             </p>
           )}
         </div>
         
-        {/* Variants Builder */}
         {hasColors && (
           <div className="space-y-4">
-            {/* Action Buttons */}
             <div className="flex items-center space-x-2">
               <button
                 type="button"
@@ -1066,7 +996,7 @@ const VendorProducts = () => {
                 className="px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors text-sm flex items-center"
               >
                 <PlusCircle className="h-4 w-4 mr-1" />
-                Add Color
+                {t('vendor.products.variants.addColor')}
               </button>
               
               {hasSizes && (
@@ -1076,22 +1006,21 @@ const VendorProducts = () => {
                   className="px-3 py-1.5 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors text-sm flex items-center"
                 >
                   <PlusCircle className="h-4 w-4 mr-1" />
-                  Add Size
+                  {t('vendor.products.variants.addSize')}
                 </button>
               )}
             </div>
             
-            {/* Variants Table */}
             <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
               <table className="w-full">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Color</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('vendor.products.variants.color')}</th>
                     {hasSizes && (
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Size</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('vendor.products.variants.size')}</th>
                     )}
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Quantity</th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('vendor.products.variants.quantity')}</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">{t('vendor.products.variants.actions')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -1103,7 +1032,7 @@ const VendorProducts = () => {
                           onChange={(e) => updateVariant(index, 'productColor', e.target.value)}
                           className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm"
                         >
-                          <option value="">Select Color</option>
+                          <option value="">{t('vendor.products.variants.selectColor')}</option>
                           {availableColors.map(color => (
                             <option key={color.id} value={color.name}>
                               {color.name}
@@ -1119,7 +1048,7 @@ const VendorProducts = () => {
                             onChange={(e) => updateVariant(index, 'productSize', e.target.value)}
                             className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm"
                           >
-                            <option value="">Select Size</option>
+                            <option value="">{t('vendor.products.variants.selectSize')}</option>
                             {availableSizes.map(size => (
                               <option key={size.id} value={size.name}>
                                 {size.name}
@@ -1144,7 +1073,7 @@ const VendorProducts = () => {
                           type="button"
                           onClick={() => removeVariant(index)}
                           className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Remove variant"
+                          title={t('vendor.products.variants.removeVariant')}
                         >
                           <MinusCircle className="h-4 w-4" />
                         </button>
@@ -1155,19 +1084,18 @@ const VendorProducts = () => {
               </table>
             </div>
             
-            {/* Summary */}
             <div className="bg-blue-50 rounded-xl p-4 flex items-start space-x-3">
               <div className="h-8 w-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
                 <Package className="h-4 w-4 text-blue-600" />
               </div>
               <div>
                 <p className="text-sm font-medium text-blue-900">
-                  Total inventory across all variants: {totalQuantity} units
+                  {t('vendor.products.variants.totalInventory')}: {totalQuantity} {t('vendor.products.variants.units')}
                 </p>
                 <p className="text-xs text-blue-700 mt-1">
                   {hasSizes 
-                    ? "Each color + size combination has its own stock quantity"
-                    : "Each color has its own stock quantity"
+                    ? t('vendor.products.variants.colorSizeInventoryHelp')
+                    : t('vendor.products.variants.colorOnlyInventoryHelp')
                   }
                 </p>
               </div>
@@ -1185,14 +1113,13 @@ const VendorProducts = () => {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <label className="block text-sm font-semibold text-gray-700">
-            Product Images
+            {t('vendor.products.imageUpload.title')}
             <span className="text-gray-500 text-xs ml-2 font-normal">
-              Max 5MB per image • First image is main
+              {t('vendor.products.imageUpload.maxSizeHint')}
             </span>
           </label>
         </div>
         
-        {/* Upload Status Messages */}
         {uploadSuccess && (
           <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl flex items-center justify-between animate-slide-down">
             <div className="flex items-center">
@@ -1217,7 +1144,6 @@ const VendorProducts = () => {
           </div>
         )}
         
-        {/* Main Upload Area */}
         <div 
           className="relative border-2 border-dashed border-gray-300 rounded-xl p-8 transition-all hover:border-indigo-400 hover:bg-indigo-50/50 group cursor-pointer"
           onDrop={handleDrop}
@@ -1240,25 +1166,24 @@ const VendorProducts = () => {
             
             <div className="space-y-2">
               <p className="text-lg font-semibold text-gray-900">
-                Drop images here or click to upload
+                {t('vendor.products.imageUpload.dropOrClick')}
               </p>
               <p className="text-sm text-gray-500">
-                PNG, JPG, GIF up to 5MB each
+                {t('vendor.products.imageUpload.supportedFormats')}
               </p>
             </div>
           </div>
         </div>
 
-        {/* Selected Images Preview */}
         {selectedImages.length > 0 && (
           <div className="mt-6 animate-fade-in">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-2">
                 <h4 className="text-sm font-semibold text-gray-900">
-                  New Images ({selectedImages.length})
+                  {t('vendor.products.imageUpload.newImages')} ({selectedImages.length})
                 </h4>
                 <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
-                  Not uploaded yet
+                  {t('vendor.products.imageUpload.notUploaded')}
                 </span>
               </div>
               <button
@@ -1267,7 +1192,7 @@ const VendorProducts = () => {
                 className="text-sm text-red-600 hover:text-red-700 flex items-center space-x-1 px-3 py-1.5 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
               >
                 <XCircle className="h-4 w-4" />
-                <span>Clear All</span>
+                <span>{t('vendor.products.imageUpload.clearAll')}</span>
               </button>
             </div>
             
@@ -1282,27 +1207,24 @@ const VendorProducts = () => {
                     />
                   </div>
                   
-                  {/* Image Position Badge */}
                   <div className="absolute top-2 left-2 bg-indigo-600 text-white text-xs font-medium px-2 py-1 rounded-lg shadow-lg">
                     #{index + 1}
                   </div>
                   
-                  {/* Main Image Badge */}
                   {index === 0 && (
                     <div className="absolute top-2 right-2 bg-green-600 text-white text-xs font-medium px-2 py-1 rounded-lg shadow-lg flex items-center">
                       <Star className="h-3 w-3 mr-1 fill-white" />
-                      Main
+                      {t('vendor.products.imageUpload.main')}
                     </div>
                   )}
                   
-                  {/* Image Actions */}
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center">
                     <div className="flex flex-col space-y-2">
                       <button
                         type="button"
                         onClick={() => removeImage(index)}
                         className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors shadow-lg"
-                        title="Remove image"
+                        title={t('vendor.products.imageUpload.removeImage')}
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -1312,7 +1234,7 @@ const VendorProducts = () => {
                           onClick={() => moveImageUp(index)}
                           disabled={index === 0}
                           className="p-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg"
-                          title="Move up"
+                          title={t('vendor.products.imageUpload.moveUp')}
                         >
                           <ArrowUp className="h-4 w-4" />
                         </button>
@@ -1321,7 +1243,7 @@ const VendorProducts = () => {
                           onClick={() => moveImageDown(index)}
                           disabled={index === selectedImages.length - 1}
                           className="p-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg"
-                          title="Move down"
+                          title={t('vendor.products.imageUpload.moveDown')}
                         >
                           <ArrowDown className="h-4 w-4" />
                         </button>
@@ -1329,7 +1251,6 @@ const VendorProducts = () => {
                     </div>
                   </div>
                   
-                  {/* Image Info */}
                   <div className="mt-2">
                     <p className="text-xs text-gray-500 truncate">{image.name}</p>
                     <p className="text-xs text-gray-400">{(image.size / 1024 / 1024).toFixed(2)}MB</p>
@@ -1337,12 +1258,11 @@ const VendorProducts = () => {
                 </div>
               ))}
               
-              {/* Add More Button */}
               <label className="cursor-pointer">
                 <div className="aspect-square rounded-xl border-2 border-dashed border-gray-300 hover:border-indigo-400 hover:bg-indigo-50 transition-all flex flex-col items-center justify-center group">
                   <Plus className="h-8 w-8 text-gray-400 group-hover:text-indigo-600 transition-colors mb-2" />
-                  <span className="text-sm font-medium text-gray-600 group-hover:text-indigo-700">Add More</span>
-                  <span className="text-xs text-gray-400 mt-1">Click to select</span>
+                  <span className="text-sm font-medium text-gray-600 group-hover:text-indigo-700">{t('vendor.products.imageUpload.addMore')}</span>
+                  <span className="text-xs text-gray-400 mt-1">{t('vendor.products.imageUpload.clickToSelect')}</span>
                   <input
                     type="file"
                     multiple
@@ -1356,16 +1276,15 @@ const VendorProducts = () => {
           </div>
         )}
 
-        {/* Existing Images (for edit mode) */}
         {isEditMode && existingPhotos.length > 0 && (
           <div className="mt-6 animate-fade-in">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-2">
                 <h4 className="text-sm font-semibold text-gray-900">
-                  Existing Images ({existingPhotos.length})
+                  {t('vendor.products.imageUpload.existingImages')} ({existingPhotos.length})
                 </h4>
                 <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
-                  Uploaded
+                  {t('vendor.products.imageUpload.uploaded')}
                 </span>
               </div>
             </div>
@@ -1381,27 +1300,24 @@ const VendorProducts = () => {
                     />
                   </div>
                   
-                  {/* Image Position Badge */}
                   <div className="absolute top-2 left-2 bg-indigo-600 text-white text-xs font-medium px-2 py-1 rounded-lg shadow-lg">
                     #{index + 1}
                   </div>
                   
-                  {/* Main Image Badge */}
                   {index === 0 && (
                     <div className="absolute top-2 right-2 bg-green-600 text-white text-xs font-medium px-2 py-1 rounded-lg shadow-lg flex items-center">
                       <Star className="h-3 w-3 mr-1 fill-white" />
-                      Main
+                      {t('vendor.products.imageUpload.main')}
                     </div>
                   )}
                   
-                  {/* Image Actions */}
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center">
                     <div className="flex flex-col space-y-2">
                       <button
                         type="button"
                         onClick={() => removeExistingPhoto(index)}
                         className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors shadow-lg"
-                        title="Remove image"
+                        title={t('vendor.products.imageUpload.removeImage')}
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -1411,7 +1327,7 @@ const VendorProducts = () => {
                           onClick={() => moveExistingPhotoUp(index)}
                           disabled={index === 0}
                           className="p-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg"
-                          title="Move up"
+                          title={t('vendor.products.imageUpload.moveUp')}
                         >
                           <ArrowUp className="h-4 w-4" />
                         </button>
@@ -1420,7 +1336,7 @@ const VendorProducts = () => {
                           onClick={() => moveExistingPhotoDown(index)}
                           disabled={index === existingPhotos.length - 1}
                           className="p-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg"
-                          title="Move down"
+                          title={t('vendor.products.imageUpload.moveDown')}
                         >
                           <ArrowDown className="h-4 w-4" />
                         </button>
@@ -1428,7 +1344,6 @@ const VendorProducts = () => {
                     </div>
                   </div>
                   
-                  {/* Drag Handle */}
                   <div className="absolute bottom-2 left-2 p-1.5 bg-black/50 rounded-lg cursor-move opacity-0 group-hover:opacity-100 transition-opacity">
                     <GripVertical className="h-4 w-4 text-white" />
                   </div>
@@ -1438,14 +1353,13 @@ const VendorProducts = () => {
           </div>
         )}
 
-        {/* Upload Progress */}
         {(uploadingImages || uploadProgress > 0) && (
           <div className="mt-4 bg-gray-50 rounded-xl p-4 animate-fade-in">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center space-x-2">
                 <Loader2 className="h-5 w-5 text-indigo-600 animate-spin" />
                 <span className="text-sm font-medium text-gray-700">
-                  {uploadingImages ? 'Uploading to Cloudflare R2...' : 'Processing...'}
+                  {uploadingImages ? t('vendor.products.imageUpload.uploading') : t('vendor.products.imageUpload.processing')}
                 </span>
               </div>
               <span className="text-sm font-semibold text-indigo-600">{uploadProgress}%</span>
@@ -1458,12 +1372,11 @@ const VendorProducts = () => {
             </div>
             <p className="text-xs text-gray-500 mt-2 flex items-center">
               <Camera className="h-3 w-3 mr-1" />
-              Uploading {selectedImages.length} image{selectedImages.length !== 1 ? 's' : ''} in one request...
+              {t('vendor.products.imageUpload.uploadingImagesCount', { count: selectedImages.length })}
             </p>
           </div>
         )}
         
-        {/* Info Message */}
         <div className="mt-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-xl p-4">
           <div className="flex items-center">
             <div className="h-8 w-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0 mr-3">
@@ -1472,8 +1385,9 @@ const VendorProducts = () => {
             <div>
               <p className="text-sm font-medium text-blue-900">
                 {isEditMode 
-                  ? "Managing product images"
-                  : "Upload multiple images in one request"}
+                  ? t('vendor.products.imageUpload.managingImages')
+                  : t('vendor.products.imageUpload.uploadMultipleHint')
+                }
               </p>
             </div>
           </div>
@@ -1492,8 +1406,8 @@ const VendorProducts = () => {
             <div className="animate-spin rounded-full h-16 w-16 border-4 border-indigo-200 border-t-indigo-600 mx-auto mb-4"></div>
             <Package className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-6 w-6 text-indigo-600" />
           </div>
-          <p className="text-gray-600 font-medium">Loading your products...</p>
-          <p className="text-sm text-gray-500 mt-2">Please wait a moment</p>
+          <p className="text-gray-600 font-medium">{t('vendor.products.loading')}</p>
+          <p className="text-sm text-gray-500 mt-2">{t('vendor.products.pleaseWait')}</p>
         </div>
       </div>
     );
@@ -1507,20 +1421,20 @@ const VendorProducts = () => {
             <div className="bg-red-100 rounded-full h-20 w-20 flex items-center justify-center mx-auto mb-6">
               <AlertCircle className="h-10 w-10 text-red-600" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-3">Access Error</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">{t('vendor.products.errors.accessDenied')}</h2>
             <p className="text-gray-600 mb-8">{error}</p>
             <div className="space-y-3">
               <Link
                 to="/login"
                 className="block w-full px-6 py-3.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors shadow-lg"
               >
-                Go to Login
+                {t('vendor.products.goToLogin')}
               </Link>
               <Link
                 to="/vendor/store"
                 className="block w-full px-6 py-3.5 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-colors"
               >
-                Back to Store
+                {t('vendor.products.backToStore')}
               </Link>
             </div>
           </div>
@@ -1531,7 +1445,9 @@ const VendorProducts = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
-      {/* Sticky Header with Glassmorphism */}
+      <style>{styles}</style>
+      
+      {/* Sticky Header */}
       <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-gray-200/80 shadow-sm">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
@@ -1545,16 +1461,15 @@ const VendorProducts = () => {
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center">
                   <Package className="h-6 w-6 mr-2 text-indigo-600" />
-                  Products
+                  {t('vendor.products.title')}
                 </h1>
                 <p className="text-sm text-gray-600 hidden sm:block">
-                  {store?.storeName} • {stats.total} products
+                  {store?.storeName} • {stats.total} {t('vendor.products.products')}
                 </p>
               </div>
             </div>
             
             <div className="flex items-center space-x-2">
-              {/* View Mode Toggle - Desktop */}
               <div className="hidden md:flex items-center bg-gray-100 rounded-xl p-1">
                 <button
                   onClick={() => setViewMode('grid')}
@@ -1563,7 +1478,7 @@ const VendorProducts = () => {
                       ? 'bg-white text-indigo-600 shadow-sm'
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
-                  title="Grid view"
+                  title={t('vendor.products.gridView')}
                 >
                   <Grid className="h-5 w-5" />
                 </button>
@@ -1574,40 +1489,34 @@ const VendorProducts = () => {
                       ? 'bg-white text-indigo-600 shadow-sm'
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
-                  title="List view"
+                  title={t('vendor.products.listView')}
                 >
                   <List className="h-5 w-5" />
                 </button>
               </div>
 
-              {/* Desktop Actions */}
               <div className="hidden md:flex items-center space-x-2">
                 <button
                   onClick={() => setShowAddCategoryModal(true)}
                   className="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-green-500 text-white rounded-xl hover:from-emerald-700 hover:to-green-600 transition-all shadow-md flex items-center space-x-2"
                 >
                   <Tag className="h-4 w-4" />
-                  <span className="text-sm font-medium">Category</span>
+                  <span className="text-sm font-medium">{t('vendor.products.category')}</span>
                 </button>
                 <button
                   onClick={() => setShowAddProductModal(true)}
                   className="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all shadow-md flex items-center space-x-2"
                 >
                   <Plus className="h-4 w-4" />
-                  <span className="text-sm font-medium">Add Product</span>
+                  <span className="text-sm font-medium">{t('vendor.products.addProduct')}</span>
                 </button>
               </div>
 
-              {/* Mobile Menu Button */}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className="md:hidden p-2.5 text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
               >
-                {isMobileMenuOpen ? (
-                  <X className="h-5 w-5" />
-                ) : (
-                  <Menu className="h-5 w-5" />
-                )}
+                {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </button>
             </div>
           </div>
@@ -1630,7 +1539,7 @@ const VendorProducts = () => {
                       <Package className="h-5 w-5 text-indigo-600" />
                     </div>
                     <div>
-                      <div className="font-semibold text-gray-900">Product Management</div>
+                      <div className="font-semibold text-gray-900">{t('vendor.products.productManagement')}</div>
                       <div className="text-xs text-gray-500">{store?.storeName}</div>
                     </div>
                   </div>
@@ -1647,7 +1556,7 @@ const VendorProducts = () => {
                 <div className="space-y-4">
                   <div>
                     <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                      View Mode
+                      {t('vendor.products.viewMode')}
                     </h3>
                     <div className="flex space-x-2">
                       <button
@@ -1662,7 +1571,7 @@ const VendorProducts = () => {
                         }`}
                       >
                         <Grid className="h-6 w-6 mb-2" />
-                        <span className="text-sm font-medium">Grid View</span>
+                        <span className="text-sm font-medium">{t('vendor.products.gridView')}</span>
                       </button>
                       <button
                         onClick={() => {
@@ -1676,14 +1585,14 @@ const VendorProducts = () => {
                         }`}
                       >
                         <List className="h-6 w-6 mb-2" />
-                        <span className="text-sm font-medium">List View</span>
+                        <span className="text-sm font-medium">{t('vendor.products.listView')}</span>
                       </button>
                     </div>
                   </div>
                   
                   <div className="border-t border-gray-100 pt-4">
                     <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                      Quick Actions
+                      {t('vendor.products.quickActions')}
                     </h3>
                     <div className="space-y-2">
                       <button
@@ -1695,7 +1604,7 @@ const VendorProducts = () => {
                       >
                         <div className="flex items-center">
                           <Plus className="h-5 w-5 mr-3" />
-                          <span className="text-sm font-medium">Add New Product</span>
+                          <span className="text-sm font-medium">{t('vendor.products.addNewProduct')}</span>
                         </div>
                         <ChevronRight className="h-4 w-4" />
                       </button>
@@ -1709,7 +1618,7 @@ const VendorProducts = () => {
                       >
                         <div className="flex items-center">
                           <Tag className="h-5 w-5 mr-3" />
-                          <span className="text-sm font-medium">Add New Category</span>
+                          <span className="text-sm font-medium">{t('vendor.products.addNewCategory')}</span>
                         </div>
                         <ChevronRight className="h-4 w-4" />
                       </button>
@@ -1718,23 +1627,23 @@ const VendorProducts = () => {
                   
                   <div className="border-t border-gray-100 pt-4">
                     <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                      Store Stats
+                      {t('vendor.products.storeStats')}
                     </h3>
                     <div className="bg-gray-50 rounded-xl p-4 space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Total Products</span>
+                        <span className="text-sm text-gray-600">{t('vendor.products.totalProducts')}</span>
                         <span className="font-semibold text-gray-900">{stats.total}</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">In Stock</span>
+                        <span className="text-sm text-gray-600">{t('vendor.products.inStock')}</span>
                         <span className="font-semibold text-green-600">{stats.inStock}</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Low Stock</span>
+                        <span className="text-sm text-gray-600">{t('vendor.products.lowStock')}</span>
                         <span className="font-semibold text-amber-600">{stats.lowStock}</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">With Variants</span>
+                        <span className="text-sm text-gray-600">{t('vendor.products.withVariants')}</span>
                         <span className="font-semibold text-indigo-600">{stats.withVariants}</span>
                       </div>
                     </div>
@@ -1749,7 +1658,7 @@ const VendorProducts = () => {
                   </div>
                   <div className="flex-1">
                     <div className="text-sm font-medium text-gray-900">{store?.storeName}</div>
-                    <div className="text-xs text-gray-500">Cloudflare R2 Storage</div>
+                    <div className="text-xs text-gray-500">{t('vendor.products.cloudflareR2Storage')}</div>
                   </div>
                 </div>
               </div>
@@ -1779,7 +1688,7 @@ const VendorProducts = () => {
           </div>
         )}
 
-        {/* Stats Summary - 2 columns on mobile, 4 on desktop */}
+        {/* Stats Summary */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <div className="bg-white rounded-2xl p-5 sm:p-6 border border-gray-200/80 shadow-sm hover:shadow-md transition-all group">
             <div className="flex items-center justify-between mb-3">
@@ -1787,11 +1696,11 @@ const VendorProducts = () => {
                 <Package className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
               </div>
               <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                Total
+                {t('vendor.products.total')}
               </span>
             </div>
-            <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">{stats.total}</div>
-            <div className="text-xs sm:text-sm text-gray-600">Total Products</div>
+            <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">{formatNumber(stats.total)}</div>
+            <div className="text-xs sm:text-sm text-gray-600">{t('vendor.products.totalProducts')}</div>
           </div>
           
           <div className="bg-white rounded-2xl p-5 sm:p-6 border border-gray-200/80 shadow-sm hover:shadow-md transition-all group">
@@ -1801,12 +1710,12 @@ const VendorProducts = () => {
               </div>
               {stats.lowStock > 0 && (
                 <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded-full">
-                  {stats.lowStock} low
+                  {stats.lowStock} {t('vendor.products.low')}
                 </span>
               )}
             </div>
-            <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">{stats.inStock}</div>
-            <div className="text-xs sm:text-sm text-gray-600">In Stock</div>
+            <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">{formatNumber(stats.inStock)}</div>
+            <div className="text-xs sm:text-sm text-gray-600">{t('vendor.products.inStock')}</div>
           </div>
           
           <div className="bg-white rounded-2xl p-5 sm:p-6 border border-gray-200/80 shadow-sm hover:shadow-md transition-all group">
@@ -1818,8 +1727,8 @@ const VendorProducts = () => {
                 {((stats.lowStock / stats.total) * 100 || 0).toFixed(0)}%
               </span>
             </div>
-            <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">{stats.lowStock}</div>
-            <div className="text-xs sm:text-sm text-gray-600">Low Stock</div>
+            <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">{formatNumber(stats.lowStock)}</div>
+            <div className="text-xs sm:text-sm text-gray-600">{t('vendor.products.lowStock')}</div>
           </div>
           
           <div className="bg-white rounded-2xl p-5 sm:p-6 border border-gray-200/80 shadow-sm hover:shadow-md transition-all group">
@@ -1831,7 +1740,7 @@ const VendorProducts = () => {
             <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
               {formatCurrency(stats.totalValue)}
             </div>
-            <div className="text-xs sm:text-sm text-gray-600">Inventory Value</div>
+            <div className="text-xs sm:text-sm text-gray-600">{t('vendor.products.inventoryValue')}</div>
           </div>
         </div>
 
@@ -1842,7 +1751,7 @@ const VendorProducts = () => {
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search products by name, ID, or category..."
+                placeholder={t('vendor.products.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all focus:bg-white"
@@ -1857,7 +1766,7 @@ const VendorProducts = () => {
                   onChange={(e) => setSelectedCategory(e.target.value)}
                   className="w-full sm:w-48 pl-12 pr-10 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none appearance-none transition-all focus:bg-white"
                 >
-                  <option value="all">All Categories</option>
+                  <option value="all">{t('vendor.products.allCategories')}</option>
                   {categories.map((cat) => (
                     <option key={cat.id} value={cat.id}>
                       {cat.categoryName || cat.name} ({products.filter(p => p.categoryId === cat.id).length})
@@ -1872,19 +1781,18 @@ const VendorProducts = () => {
                   className="px-4 py-3.5 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-all shadow-md flex items-center space-x-2"
                 >
                   <Trash2 className="h-5 w-5" />
-                  <span className="text-sm font-medium hidden sm:inline">Delete ({selectedProducts.length})</span>
+                  <span className="text-sm font-medium hidden sm:inline">{t('vendor.products.delete')} ({selectedProducts.length})</span>
                 </button>
               )}
             </div>
           </div>
           
-          {/* Active Filters */}
           {(searchQuery || selectedCategory !== 'all') && (
             <div className="mt-4 pt-4 border-t border-gray-100 flex flex-wrap items-center gap-2">
-              <span className="text-xs text-gray-500">Active filters:</span>
+              <span className="text-xs text-gray-500">{t('vendor.products.activeFilters')}:</span>
               {searchQuery && (
                 <span className="inline-flex items-center px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-full text-xs font-medium">
-                  Search: {searchQuery}
+                  {t('vendor.products.search')}: {searchQuery}
                   <button onClick={() => setSearchQuery('')} className="ml-2 hover:text-indigo-900">
                     <X className="h-3 w-3" />
                   </button>
@@ -1892,7 +1800,7 @@ const VendorProducts = () => {
               )}
               {selectedCategory !== 'all' && (
                 <span className="inline-flex items-center px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-full text-xs font-medium">
-                  Category: {categories.find(c => c.id.toString() === selectedCategory)?.categoryName || selectedCategory}
+                  {t('vendor.products.category')}: {categories.find(c => c.id.toString() === selectedCategory)?.categoryName || selectedCategory}
                   <button onClick={() => setSelectedCategory('all')} className="ml-2 hover:text-indigo-900">
                     <X className="h-3 w-3" />
                   </button>
@@ -1909,11 +1817,11 @@ const VendorProducts = () => {
               <div className="h-24 w-24 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Package className="h-12 w-12 text-indigo-600" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">No Products Found</h3>
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">{t('vendor.products.noProductsFound')}</h3>
               <p className="text-gray-600 mb-8">
                 {searchQuery || selectedCategory !== 'all' 
-                  ? 'Try adjusting your search or filter criteria' 
-                  : 'Get started by adding your first product'}
+                  ? t('vendor.products.adjustFilters') 
+                  : t('vendor.products.addFirstProduct')}
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <button
@@ -1921,14 +1829,14 @@ const VendorProducts = () => {
                   className="w-full sm:w-auto px-6 py-3.5 bg-gradient-to-r from-emerald-600 to-green-500 text-white rounded-xl hover:from-emerald-700 hover:to-green-600 transition-all shadow-md flex items-center justify-center space-x-2"
                 >
                   <Tag className="h-5 w-5" />
-                  <span>Add Category First</span>
+                  <span>{t('vendor.products.addCategoryFirst')}</span>
                 </button>
                 <button
                   onClick={() => setShowAddProductModal(true)}
                   className="w-full sm:w-auto px-6 py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all shadow-md flex items-center justify-center space-x-2"
                 >
                   <Plus className="h-5 w-5" />
-                  <span>Add Your First Product</span>
+                  <span>{t('vendor.products.addFirstProduct')}</span>
                 </button>
               </div>
             </div>
@@ -1944,7 +1852,7 @@ const VendorProducts = () => {
                       <Check className="h-4 w-4 text-white" />
                     </div>
                     <span className="text-sm font-medium">
-                      {selectedProducts.length} product{selectedProducts.length > 1 ? 's' : ''} selected
+                      {selectedProducts.length} {t('vendor.products.productSelected', { count: selectedProducts.length })}
                     </span>
                   </div>
                   <div className="flex items-center space-x-3">
@@ -1952,21 +1860,21 @@ const VendorProducts = () => {
                       onClick={() => setSelectedProducts([])}
                       className="px-4 py-2 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-colors text-sm font-medium"
                     >
-                      Clear Selection
+                      {t('vendor.products.clearSelection')}
                     </button>
                     <button
                       onClick={handleBulkDelete}
                       className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-medium flex items-center space-x-2"
                     >
                       <Trash2 className="h-4 w-4" />
-                      <span>Delete Selected</span>
+                      <span>{t('vendor.products.deleteSelected')}</span>
                     </button>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Grid View - مع أزرار مرئية دائماً للموبايل */}
+            {/* Grid View */}
             {viewMode === 'grid' ? (
               <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                 {filteredProducts.map((product) => {
@@ -1988,7 +1896,6 @@ const VendorProducts = () => {
                       key={product.id}
                       className="group bg-white rounded-2xl border border-gray-200/80 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden"
                     >
-                      {/* Product Image */}
                       <div className="relative aspect-square bg-gradient-to-br from-gray-50 to-gray-100">
                         {mainImage ? (
                           <img
@@ -2002,7 +1909,6 @@ const VendorProducts = () => {
                           </div>
                         )}
                         
-                        {/* Image Count Badge */}
                         {imageCount > 0 && (
                           <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-sm text-white text-xs px-2 py-1.5 rounded-lg flex items-center shadow-lg">
                             <Image className="h-3 w-3 mr-1" />
@@ -2010,24 +1916,23 @@ const VendorProducts = () => {
                           </div>
                         )}
                         
-                        {/* Variant Badge */}
                         {hasVariants && (
                           <div className="absolute top-3 right-3 bg-indigo-600 text-white text-xs px-2 py-1.5 rounded-lg flex items-center shadow-lg">
                             <VariantsIcon className="h-3 w-3 mr-1" />
-                            {variantCount} variants
+                            {variantCount} {t('vendor.products.variants')}
                           </div>
                         )}
                         
-                        {/* Stock Status Badge */}
                         <div className={`absolute bottom-3 left-3 px-3 py-1.5 rounded-lg text-xs font-medium shadow-lg ${
                           stockStatus === 'in' ? 'bg-green-500 text-white' :
                           stockStatus === 'low' ? 'bg-amber-500 text-white' :
                           'bg-red-500 text-white'
                         }`}>
-                          {stockStatus === 'in' ? 'In Stock' : stockStatus === 'low' ? 'Low Stock' : 'Out of Stock'}
+                          {stockStatus === 'in' ? t('vendor.products.inStockStatus') : 
+                           stockStatus === 'low' ? t('vendor.products.lowStockStatus') : 
+                           t('vendor.products.outOfStockStatus')}
                         </div>
                         
-                        {/* Selection Checkbox */}
                         <div className="absolute bottom-3 right-3">
                           <label className="relative cursor-pointer">
                             <input
@@ -2039,60 +1944,57 @@ const VendorProducts = () => {
                           </label>
                         </div>
                         
-                        {/* 📱 Mobile Action Buttons - Visible Always */}
                         <div className="md:hidden absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3">
                           <div className="flex items-center justify-center space-x-3">
                             <button
                               onClick={() => navigate(`/store/${store?.storeName}/product/${product.id}`)}
                               className="p-2.5 bg-white/90 backdrop-blur-sm text-gray-700 rounded-full hover:bg-white transition-colors shadow-lg"
-                              title="View"
+                              title={t('vendor.products.view')}
                             >
                               <Eye className="h-5 w-5" />
                             </button>
                             <button
                               onClick={() => handleEditClick(product)}
                               className="p-2.5 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 transition-colors shadow-lg"
-                              title="Edit"
+                              title={t('vendor.products.edit')}
                             >
                               <Edit className="h-5 w-5" />
                             </button>
                             <button
                               onClick={() => handleDelete(product.id)}
                               className="p-2.5 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors shadow-lg"
-                              title="Delete"
+                              title={t('vendor.products.delete')}
                             >
                               <Trash2 className="h-5 w-5" />
                             </button>
                           </div>
                         </div>
                         
-                        {/* 🖥️ Desktop Action Buttons - On Hover */}
                         <div className="hidden md:flex absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity items-center justify-center space-x-2">
                           <button
                             onClick={() => navigate(`/store/${store?.storeName}/product/${product.id}`)}
                             className="p-2.5 bg-white text-gray-700 rounded-lg hover:bg-gray-100 transition-colors shadow-lg"
-                            title="View"
+                            title={t('vendor.products.view')}
                           >
                             <Eye className="h-5 w-5" />
                           </button>
                           <button
                             onClick={() => handleEditClick(product)}
                             className="p-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-lg"
-                            title="Edit"
+                            title={t('vendor.products.edit')}
                           >
                             <Edit className="h-5 w-5" />
                           </button>
                           <button
                             onClick={() => handleDelete(product.id)}
                             className="p-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors shadow-lg"
-                            title="Delete"
+                            title={t('vendor.products.delete')}
                           >
                             <Trash2 className="h-5 w-5" />
                           </button>
                         </div>
                       </div>
                       
-                      {/* Product Info */}
                       <div className="p-5">
                         <div className="flex items-start justify-between mb-2">
                           <div>
@@ -2117,18 +2019,18 @@ const VendorProducts = () => {
                                 </span> 
                                 {discountPercentage > 0 && (
                                   <span className="text-xs text-red-500 ml-2 bg-red-600 p-1 px-2 rounded-2xl text-white">
-                                    {discountPercentage}% off
+                                    {discountPercentage}% {t('vendor.products.off')}
                                   </span>
                                 )}
                               </div>
                             )}
                             <span className="text-xs text-gray-500 ml-2">
-                              {productQuantity} left in stock
-                              {hasVariants && ' across variants'}
+                              {productQuantity} {t('vendor.products.leftInStock')}
+                              {hasVariants && ` ${t('vendor.products.acrossVariants')}`}
                             </span>
                           </div>
                           <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full w-fit">
-                            {product.categoryName || product.category?.name || 'Uncategorized'}
+                            {product.categoryName || product.category?.name || t('vendor.products.uncategorized')}
                           </span>
                         </div>
                       </div>
@@ -2151,12 +2053,12 @@ const VendorProducts = () => {
                             className="h-5 w-5 text-indigo-600 rounded"
                           />
                         </th>
-                        <th className="text-left p-6 font-semibold text-gray-900">Product</th>
-                        <th className="text-left p-6 font-semibold text-gray-900">Category</th>
-                        <th className="text-left p-6 font-semibold text-gray-900">Price</th>
-                        <th className="text-left p-6 font-semibold text-gray-900">Stock</th>
-                        <th className="text-left p-6 font-semibold text-gray-900">Variants</th>
-                        <th className="text-left p-6 font-semibold text-gray-900">Actions</th>
+                        <th className="text-left p-6 font-semibold text-gray-900">{t('vendor.products.product')}</th>
+                        <th className="text-left p-6 font-semibold text-gray-900">{t('vendor.products.category')}</th>
+                        <th className="text-left p-6 font-semibold text-gray-900">{t('vendor.products.price')}</th>
+                        <th className="text-left p-6 font-semibold text-gray-900">{t('vendor.products.stock')}</th>
+                        <th className="text-left p-6 font-semibold text-gray-900">{t('vendor.products.variants')}</th>
+                        <th className="text-left p-6 font-semibold text-gray-900">{t('vendor.products.actions')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -2182,7 +2084,7 @@ const VendorProducts = () => {
                                 onChange={() => handleSelectProduct(product.id)}
                                 className="h-5 w-5 text-indigo-600 rounded"
                               />
-                            </td>
+                             </td>
                             <td className="p-6">
                               <div className="flex items-center space-x-4">
                                 <div className="h-12 w-12 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg overflow-hidden flex-shrink-0">
@@ -2203,36 +2105,36 @@ const VendorProducts = () => {
                                     {productName}
                                   </div>
                                   <div className="text-xs text-gray-500 mt-1">
-                                    ID: {product.id} • {product.imageUrls?.length || 0} images
+                                    ID: {product.id} • {product.imageUrls?.length || 0} {t('vendor.products.images')}
                                   </div>
                                 </div>
                               </div>
-                            </td>
+                             </td>
                             <td className="p-6">
                               <span className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm">
-                                {product.categoryName || product.category?.name || 'Uncategorized'}
+                                {product.categoryName || product.category?.name || t('vendor.products.uncategorized')}
                               </span>
-                            </td>
+                             </td>
                             <td className="p-6">
                               <div className="font-semibold flex flex-col text-gray-900">
                                 {formatCurrency(productPrice)}
                                 {productOldPrice > productPrice && (
                                   <div className="text-xs text-red-500 mt-1">
                                     <span className="line-through">{formatCurrency(productOldPrice)}</span>
-                                    <span className="ml-2">({Math.round(((productOldPrice - productPrice) / productOldPrice) * 100)}% off)</span>
+                                    <span className="ml-2">({discountPercentage}% {t('vendor.products.off')})</span>
                                   </div>
                                 )}
                               </div>
-                            </td>
+                             </td>
                             <td className="p-6">
                               <div className={`inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium ${
                                 stockStatus === 'in' ? 'bg-green-100 text-green-800' :
                                 stockStatus === 'low' ? 'bg-amber-100 text-amber-800' :
                                 'bg-red-100 text-red-800'
                               }`}>
-                                {productQuantity} units
+                                {productQuantity} {t('vendor.products.units')}
                               </div>
-                            </td>
+                             </td>
                             <td className="p-6">
                               {hasVariants ? (
                                 <div className="flex items-center space-x-1 text-indigo-600">
@@ -2242,33 +2144,33 @@ const VendorProducts = () => {
                               ) : (
                                 <span className="text-sm text-gray-400">-</span>
                               )}
-                            </td>
+                             </td>
                             <td className="p-6">
                               <div className="flex items-center space-x-2">
                                 <button
                                   onClick={() => navigate(`/store/${store?.storeName}/product/${product.id}`)}
                                   className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                  title="View"
+                                  title={t('vendor.products.view')}
                                 >
                                   <Eye className="h-5 w-5" />
                                 </button>
                                 <button
                                   onClick={() => handleEditClick(product)}
                                   className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                                  title="Edit"
+                                  title={t('vendor.products.edit')}
                                 >
                                   <Edit className="h-5 w-5" />
                                 </button>
                                 <button
                                   onClick={() => handleDelete(product.id)}
                                   className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                  title="Delete"
+                                  title={t('vendor.products.delete')}
                                 >
                                   <Trash2 className="h-5 w-5" />
                                 </button>
                               </div>
-                            </td>
-                          </tr>
+                             </td>
+                           </tr>
                         );
                       })}
                     </tbody>
@@ -2280,11 +2182,11 @@ const VendorProducts = () => {
             {/* Results Summary */}
             <div className="mt-6 flex items-center justify-between text-sm">
               <div className="text-gray-600">
-                Showing <span className="font-semibold text-gray-900">{filteredProducts.length}</span> of{' '}
-                <span className="font-semibold text-gray-900">{products.length}</span> products
+                {t('vendor.products.showing')} <span className="font-semibold text-gray-900">{filteredProducts.length}</span> {t('vendor.products.of')} {' '}
+                <span className="font-semibold text-gray-900">{products.length}</span> {t('vendor.products.products')}
               </div>
               <div className="text-gray-500">
-                {categories.length} categor{categories.length === 1 ? 'y' : 'ies'} • {stats.withVariants} with variants
+                {categories.length} {categories.length === 1 ? t('vendor.products.category') : t('vendor.products.categories')} • {stats.withVariants} {t('vendor.products.withVariants')}
               </div>
             </div>
             <StoreFooter />
@@ -2295,15 +2197,15 @@ const VendorProducts = () => {
       {/* Add Product Modal */}
       {showAddProductModal && (
         <div className="fixed inset-0 bg-black/50 flex items-start justify-center p-4 z-50 overflow-y-auto">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-4xl w-full my-8 shadow-2xl animate-scale-in ">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-4xl w-full my-8 shadow-2xl animate-scale-in">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center space-x-4">
                 <div className="h-12 w-12 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-xl flex items-center justify-center">
                   <Plus className="h-6 w-6 text-indigo-600" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Add New Product</h2>
-                  <p className="text-sm text-gray-500 mt-1">Fill in the product details below</p>
+                  <h2 className="text-2xl font-bold text-gray-900">{t('vendor.products.addNewProduct')}</h2>
+                  <p className="text-sm text-gray-500 mt-1">{t('vendor.products.fillProductDetails')}</p>
                 </div>
               </div>
               <button
@@ -2316,10 +2218,9 @@ const VendorProducts = () => {
             
             <form onSubmit={handleAddProduct} className="space-y-6">
               <div className="space-y-6">
-                {/* Product Name */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Product Name <span className="text-red-500">*</span>
+                    {t('vendor.products.productName')} <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <Package className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -2329,15 +2230,14 @@ const VendorProducts = () => {
                       onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
                       required
                       className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all focus:bg-white"
-                      placeholder="Enter product name"
+                      placeholder={t('vendor.products.enterProductName')}
                     />
                   </div>
                 </div>
 
-                {/* Description */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Description <span className="text-red-500">*</span>
+                    {t('vendor.products.description')} <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <BookOpen className="absolute left-4 top-4 h-5 w-5 text-gray-400" />
@@ -2347,16 +2247,15 @@ const VendorProducts = () => {
                       required
                       rows={4}
                       className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all focus:bg-white resize-none"
-                      placeholder="Describe your product..."
+                      placeholder={t('vendor.products.describeProduct')}
                     />
                   </div>
                 </div>
 
-                {/* Price & Stock */}
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Price (EGP) <span className="text-red-500">*</span>
+                      {t('vendor.products.price')} (EGP) <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
                       <DollarSign className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -2375,7 +2274,7 @@ const VendorProducts = () => {
 
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Old Price (EGP)
+                      {t('vendor.products.oldPrice')} (EGP)
                     </label>
                     <div className="relative">
                       <DollarSign className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -2392,11 +2291,10 @@ const VendorProducts = () => {
                   </div>
                 </div>
 
-                {/* Quantity - Only shown when no variants */}
                 {!hasColors && (
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Stock Quantity <span className="text-red-500">*</span>
+                      {t('vendor.products.stockQuantity')} <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
                       <Hash className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -2413,11 +2311,10 @@ const VendorProducts = () => {
                   </div>
                 )}
 
-                {/* Category Selection */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <label className="block text-sm font-semibold text-gray-700">
-                      Category <span className="text-red-500">*</span>
+                      {t('vendor.products.category')} <span className="text-red-500">*</span>
                     </label>
                     <button
                       type="button"
@@ -2428,13 +2325,13 @@ const VendorProducts = () => {
                       className="text-sm text-indigo-600 hover:text-indigo-700 flex items-center space-x-1 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
                     >
                       <Plus className="h-4 w-4" />
-                      <span>Add New</span>
+                      <span>{t('vendor.products.addNew')}</span>
                     </button>
                   </div>
                   {categories.length === 0 ? (
                     <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 text-center">
                       <AlertCircle className="h-8 w-8 text-amber-600 mx-auto mb-3" />
-                      <p className="text-amber-700 font-medium mb-4">No categories found</p>
+                      <p className="text-amber-700 font-medium mb-4">{t('vendor.products.noCategoriesFound')}</p>
                       <button
                         type="button"
                         onClick={() => {
@@ -2443,7 +2340,7 @@ const VendorProducts = () => {
                         }}
                         className="px-6 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
                       >
-                        Add First Category
+                        {t('vendor.products.addFirstCategory')}
                       </button>
                     </div>
                   ) : (
@@ -2451,13 +2348,11 @@ const VendorProducts = () => {
                       <Layers className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                       <select
                         value={newProduct.categoryId}
-                        onChange={(e) => {
-                          console.log('📦 Selected category ID:', e.target.value);
-                          setNewProduct({...newProduct, categoryId: e.target.value})}}
+                        onChange={(e) => setNewProduct({...newProduct, categoryId: e.target.value})}
                         required
                         className="w-full pl-12 pr-10 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none appearance-none transition-all focus:bg-white"
                       >
-                        <option value="">Select a category</option>
+                        <option value="">{t('vendor.products.selectCategory')}</option>
                         {categories.map((cat) => (
                           <option key={cat.id} value={cat.id}>
                             {cat.categoryName || cat.name}
@@ -2468,14 +2363,11 @@ const VendorProducts = () => {
                   )}
                 </div>
 
-                {/* Variants Builder */}
                 <VariantsBuilder />
 
-                {/* Image Upload Section */}
                 <ImageUploadSection isEditMode={false} />
               </div>
 
-              {/* Form Actions */}
               <div className="flex flex-col sm:flex-row-reverse gap-3 pt-6 border-t border-gray-200">
                 <button
                   type="submit"
@@ -2485,12 +2377,12 @@ const VendorProducts = () => {
                   {isSavingProduct ? (
                     <>
                       <Loader2 className="h-5 w-5 animate-spin" />
-                      <span className="font-medium">Adding Product...</span>
+                      <span className="font-medium">{t('vendor.products.addingProduct')}</span>
                     </>
                   ) : (
                     <>
                       <Save className="h-5 w-5" />
-                      <span className="font-medium">Add Product</span>
+                      <span className="font-medium">{t('vendor.products.addProduct')}</span>
                     </>
                   )}
                 </button>
@@ -2500,7 +2392,7 @@ const VendorProducts = () => {
                   disabled={isSavingProduct || uploadingImages}
                   className="sm:flex-1 px-6 py-3.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 disabled:opacity-50 transition-all"
                 >
-                  Cancel
+                  {t('vendor.products.cancel')}
                 </button>
               </div>
             </form>
@@ -2511,14 +2403,14 @@ const VendorProducts = () => {
       {/* Edit Product Modal */}
       {showEditProductModal && editingProduct && (
         <div className="fixed inset-0 bg-black/50 flex items-start justify-center p-4 z-50 overflow-y-auto">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-4xl w-full my-8 shadow-2xl animate-scale-in ">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-4xl w-full my-8 shadow-2xl animate-scale-in">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center space-x-4">
                 <div className="h-12 w-12 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-xl flex items-center justify-center">
                   <Edit className="h-6 w-6 text-indigo-600" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Edit Product</h2>
+                  <h2 className="text-2xl font-bold text-gray-900">{t('vendor.products.editProduct')}</h2>
                   <p className="text-sm text-gray-500 mt-1">{editingProduct.productName || editingProduct.name}</p>
                 </div>
               </div>
@@ -2532,10 +2424,9 @@ const VendorProducts = () => {
             
             <form onSubmit={handleEditProduct} className="space-y-6">
               <div className="space-y-6">
-                {/* Product Name */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Product Name <span className="text-red-500">*</span>
+                    {t('vendor.products.productName')} <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <Package className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -2545,15 +2436,14 @@ const VendorProducts = () => {
                       onChange={(e) => setEditProduct({...editProduct, name: e.target.value})}
                       required
                       className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all focus:bg-white"
-                      placeholder="Enter product name"
+                      placeholder={t('vendor.products.enterProductName')}
                     />
                   </div>
                 </div>
 
-                {/* Description */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Description <span className="text-red-500">*</span>
+                    {t('vendor.products.description')} <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <BookOpen className="absolute left-4 top-4 h-5 w-5 text-gray-400" />
@@ -2563,16 +2453,15 @@ const VendorProducts = () => {
                       required
                       rows={4}
                       className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all focus:bg-white resize-none"
-                      placeholder="Describe your product..."
+                      placeholder={t('vendor.products.describeProduct')}
                     />
                   </div>
                 </div>
 
-                {/* Price & Stock */}
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Price (EGP) <span className="text-red-500">*</span>
+                      {t('vendor.products.price')} (EGP) <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
                       <DollarSign className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -2591,7 +2480,7 @@ const VendorProducts = () => {
 
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Old Price (EGP)
+                      {t('vendor.products.oldPrice')} (EGP)
                     </label>
                     <div className="relative">
                       <DollarSign className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -2608,11 +2497,10 @@ const VendorProducts = () => {
                   </div>
                 </div>
 
-                {/* Quantity - Only shown when no variants */}
                 {!hasColors && (
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Stock Quantity <span className="text-red-500">*</span>
+                      {t('vendor.products.stockQuantity')} <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
                       <Hash className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -2629,11 +2517,10 @@ const VendorProducts = () => {
                   </div>
                 )}
 
-                {/* Category Selection */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <label className="block text-sm font-semibold text-gray-700">
-                      Category
+                      {t('vendor.products.category')}
                     </label>
                     <button
                       type="button"
@@ -2644,13 +2531,13 @@ const VendorProducts = () => {
                       className="text-sm text-indigo-600 hover:text-indigo-700 flex items-center space-x-1 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
                     >
                       <Plus className="h-4 w-4" />
-                      <span>Add New</span>
+                      <span>{t('vendor.products.addNew')}</span>
                     </button>
                   </div>
                   {categories.length === 0 ? (
                     <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 text-center">
                       <AlertCircle className="h-8 w-8 text-amber-600 mx-auto mb-3" />
-                      <p className="text-amber-700 font-medium mb-4">No categories found</p>
+                      <p className="text-amber-700 font-medium mb-4">{t('vendor.products.noCategoriesFound')}</p>
                       <button
                         type="button"
                         onClick={() => {
@@ -2659,7 +2546,7 @@ const VendorProducts = () => {
                         }}
                         className="px-6 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
                       >
-                        Add First Category
+                        {t('vendor.products.addFirstCategory')}
                       </button>
                     </div>
                   ) : (
@@ -2670,7 +2557,7 @@ const VendorProducts = () => {
                         onChange={(e) => setEditProduct({...editProduct, categoryId: e.target.value})}
                         className="w-full pl-12 pr-10 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none appearance-none transition-all focus:bg-white"
                       >
-                        <option value="">Uncategorized</option>
+                        <option value="">{t('vendor.products.uncategorized')}</option>
                         {categories.map((cat) => (
                           <option key={cat.id} value={cat.id}>
                             {cat.categoryName || cat.name}
@@ -2681,14 +2568,11 @@ const VendorProducts = () => {
                   )}
                 </div>
 
-                {/* Variants Builder */}
                 <VariantsBuilder isEditMode={true} />
 
-                {/* Image Upload Section */}
                 <ImageUploadSection isEditMode={true} />
               </div>
 
-              {/* Form Actions */}
               <div className="flex flex-col sm:flex-row-reverse gap-3 pt-6 border-t border-gray-200">
                 <button
                   type="submit"
@@ -2698,12 +2582,12 @@ const VendorProducts = () => {
                   {isSavingProduct ? (
                     <>
                       <Loader2 className="h-5 w-5 animate-spin" />
-                      <span className="font-medium">Updating Product...</span>
+                      <span className="font-medium">{t('vendor.products.updatingProduct')}</span>
                     </>
                   ) : (
                     <>
                       <Save className="h-5 w-5" />
-                      <span className="font-medium">Update Product</span>
+                      <span className="font-medium">{t('vendor.products.updateProduct')}</span>
                     </>
                   )}
                 </button>
@@ -2713,7 +2597,7 @@ const VendorProducts = () => {
                   disabled={isSavingProduct || uploadingImages}
                   className="sm:flex-1 px-6 py-3.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 disabled:opacity-50 transition-all"
                 >
-                  Cancel
+                  {t('vendor.products.cancel')}
                 </button>
               </div>
             </form>
@@ -2731,8 +2615,8 @@ const VendorProducts = () => {
                   <Tag className="h-6 w-6 text-emerald-600" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Add New Category</h2>
-                  <p className="text-sm text-gray-500 mt-1">Organize your products</p>
+                  <h2 className="text-2xl font-bold text-gray-900">{t('vendor.products.addNewCategory')}</h2>
+                  <p className="text-sm text-gray-500 mt-1">{t('vendor.products.organizeProducts')}</p>
                 </div>
               </div>
               <button
@@ -2747,7 +2631,7 @@ const VendorProducts = () => {
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Category Name <span className="text-red-500">*</span>
+                    {t('vendor.products.categoryName')} <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <Tag className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -2757,18 +2641,15 @@ const VendorProducts = () => {
                       onChange={(e) => setNewCategory({...newCategory, name: e.target.value})}
                       required
                       className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all focus:bg-white"
-                      placeholder="Electronics, Clothing, etc."
+                      placeholder={t('vendor.products.categoryPlaceholder')}
                     />
                   </div>
                 </div>
 
-                
-
-                {/* Existing Categories */}
                 {categories.length > 0 && (
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-3">
-                      Existing Categories
+                      {t('vendor.products.existingCategories')}
                     </label>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                       {categories.map((cat) => (
@@ -2781,7 +2662,7 @@ const VendorProducts = () => {
                             {cat.categoryName || cat.name}
                           </span>
                           <span className="text-xs text-gray-500 mt-1">
-                            {products.filter(p => p.categoryId === cat.id).length} products
+                            {products.filter(p => p.categoryId === cat.id).length} {t('vendor.products.products')}
                           </span>
                         </div>
                       ))}
@@ -2799,12 +2680,12 @@ const VendorProducts = () => {
                   {isSavingCategory ? (
                     <>
                       <Loader2 className="h-5 w-5 animate-spin" />
-                      <span className="font-medium">Adding Category...</span>
+                      <span className="font-medium">{t('vendor.products.addingCategory')}</span>
                     </>
                   ) : (
                     <>
                       <Save className="h-5 w-5" />
-                      <span className="font-medium">Add Category</span>
+                      <span className="font-medium">{t('vendor.products.addCategory')}</span>
                     </>
                   )}
                 </button>
@@ -2814,7 +2695,7 @@ const VendorProducts = () => {
                   disabled={isSavingCategory}
                   className="sm:flex-1 px-6 py-3.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 disabled:opacity-50 transition-all"
                 >
-                  Cancel
+                  {t('vendor.products.cancel')}
                 </button>
               </div>
             </form>
@@ -2833,55 +2714,31 @@ const VendorProducts = () => {
   );
 };
 
-// Add to your global CSS
+// CSS styles
 const styles = `
   @keyframes slideLeft {
-    from {
-      transform: translateX(100%);
-    }
-    to {
-      transform: translateX(0);
-    }
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
   }
 
   @keyframes slideDown {
-    from {
-      transform: translateY(-20px);
-      opacity: 0;
-    }
-    to {
-      transform: translateY(0);
-      opacity: 1;
-    }
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
   }
 
   @keyframes scaleIn {
-    from {
-      transform: scale(0.95);
-      opacity: 0;
-    }
-    to {
-      transform: scale(1);
-      opacity: 1;
-    }
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
   }
 
   @keyframes fadeIn {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 
   @keyframes bounceSubtle {
-    0%, 100% {
-      transform: translateY(0);
-    }
-    50% {
-      transform: translateY(-4px);
-    }
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
   }
 
   .animate-slide-left {

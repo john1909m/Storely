@@ -1,0 +1,139 @@
+{
+  "storeHome": {
+    "loading": {
+      "store": "Loading store...",
+      "products": "Loading products..."
+    },
+    "header": {
+      "onlineStore": "Online Store",
+      "verifiedStore": "Verified Store"
+    },
+    "cart": {
+      "yourCart": "Your Cart",
+      "items": "items"
+    },
+    "menu": {
+      "searchProducts": "Search Products",
+      "categories": "Categories",
+      "backToHome": "Back to Home"
+    },
+    "search": {
+      "placeholder": "Search products..."
+    },
+    "filters": {
+      "categories": "Categories"
+    },
+    "sort": {
+      "sort": "Sort",
+      "featured": "Featured",
+      "priceLowToHigh": "Price: Low to High",
+      "priceHighToLow": "Price: High to Low",
+      "newest": "Newest Arrivals",
+      "lowPrice": "Low Price",
+      "highPrice": "High Price"
+    },
+    "categories": {
+      "title": "Categories",
+      "allProducts": "All Products",
+      "allItems": "All items",
+      "category": "Category",
+      "applyFilter": "Apply Filter",
+      "more": "More"
+    },
+    "storeInfo": {
+      "title": "Store Info",
+      "location": "Location",
+      "contact": "Contact",
+      "descriptionFallback": "Premium products with exceptional quality"
+    },
+    "items": "items",
+    "products": "products",
+    "showing": "Showing",
+    "noProducts": {
+      "title": "No Products Found",
+      "noMatch": "No products match \"{query}\"",
+      "noProductsInCategory": "No products available in this category",
+      "noProducts": "No products available"
+    },
+    "buttons": {
+      "goBackHome": "Go Back Home",
+      "viewAllProducts": "View All Products",
+      "refresh": "Refresh"
+    },
+    "variantModal": {
+      "title": "Select Options"
+    },
+    "errors": {
+      "failedToLoad": "Failed to load store",
+      "failedToLoadProducts": "Failed to load products",
+      "storeNotFound": "Store Not Found",
+      "storeNotFoundMessage": "This store does not exist or has been removed.",
+      "storeInactive": "Store is Not Active",
+      "storeInactiveMessage": "This store is currently inactive."
+    }
+  },
+  
+  "cart": {
+    "title": "Your Shopping Cart",
+    "shoppingAt": "Shopping at",
+    "item": "item",
+    "items": "items",
+    "total": "Total",
+    "empty": "Your cart is empty",
+    "emptyMessage": "Add some amazing products from {{storeName}} to get started",
+    "continueShopping": "Continue Shopping",
+    "each": "each",
+    "removeItem": "Remove item",
+    "saveForLater": "Save for later",
+    "savedForLater": "Saved for later",
+    "moveToCart": "Move to cart",
+    "subtotal": "Subtotal",
+    "proceedToCheckout": "Proceed to Checkout",
+    "processing": "Processing..."
+  },
+  "productCard": {
+    "variantsAvailable": "variants available",
+    "multipleOptions": "This product has multiple options",
+    "selectOptionsOnProductPage": "Select color and size on the product page",
+    "viewDetails": "View Details",
+    "startingFrom": "Starting from",
+    "variants": "variants",
+    "onlyLeft": "Only {{count}} left",
+    "onlyLeftInStock": "Only {{count}} left in stock",
+    "added": "Added!",
+    "outOfStock": "Out of Stock",
+    "selectOptions": "Select Options",
+    "addToCart": "Add to Cart",
+    "quickView": "Quick View",
+    "featured": "Featured",
+    "product": "Product",
+    "available": "available",
+    "out": "Out",
+    "defaultDescription": "Premium quality product with exceptional features and durability.",
+    "save": "Save",
+    "inStock": "in stock",
+    "details": "Details",
+    "select": "Select",
+    "add": "Add",
+    "warranty": "1 Year Warranty",
+    "freeShipping": "Free Shipping",
+    "returns": "30-Day Returns"
+  },
+  "variantSelector": {
+    "selectOptions": "Please select all options",
+    "notEnoughStock": "Only {{count}} units available",
+    "color": "Color",
+    "size": "Size",
+    "left": "left",
+    "outOfStock": "Out of stock",
+    "out": "Out",
+    "selected": "Selected",
+    "unitsAvailable": "units available",
+    "quantity": "Quantity",
+    "max": "Max",
+    "addToCart": "Add to Cart",
+    "cancel": "Cancel",
+    "total": "Total",
+    "onlyLeftOrderSoon": "Only {{count}} left in stock - order soon"
+  }
+}

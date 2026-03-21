@@ -6,54 +6,56 @@ import {
   Facebook, Twitter, Linkedin, Youtube,
   MapPin, Phone, Clock, Award,  Eye
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const Footer = () => {
   const [hoveredLink, setHoveredLink] = useState(null);
   const [hoveredSocial, setHoveredSocial] = useState(null);
+  const { t } = useTranslation();
 
   const quickLinks = [
-    { name: 'About Us', href: '#', ariaLabel: 'Learn about Storely', icon: <Globe className="h-4 w-4" /> },
-    { name: 'Features', href: '#features', ariaLabel: 'View all features', icon: <Sparkles className="h-4 w-4" /> },
-    { name: 'Pricing', href: '/pricing', ariaLabel: 'View pricing plans', icon: <Zap className="h-4 w-4" /> },
-    { name: 'Contact', href: '/contact', ariaLabel: 'Contact us', icon: <Mail className="h-4 w-4" /> },
+    { name: t('landing.footer.quickLinks.aboutUs.name'), href: '#', ariaLabel: t('landing.footer.quickLinks.aboutUs.ariaLabel'), icon: <Globe className="h-4 w-4" /> },
+    { name: t('landing.footer.quickLinks.features.name'), href: '#features', ariaLabel: t('landing.footer.quickLinks.features.ariaLabel'), icon: <Sparkles className="h-4 w-4" /> },
+    { name: t('landing.footer.quickLinks.pricing.name'), href: '/pricing', ariaLabel: t('landing.footer.quickLinks.pricing.ariaLabel'), icon: <Zap className="h-4 w-4" /> },
+    { name: t('landing.footer.quickLinks.contact.name'), href: '/contact', ariaLabel: t('landing.footer.quickLinks.contact.ariaLabel'), icon: <Mail className="h-4 w-4" /> },
   ];
 
   const legalLinks = [
-    { name: 'Privacy Policy', href: '#', ariaLabel: 'Read privacy policy' },
-    { name: 'Terms of Service', href: '#', ariaLabel: 'Read terms of service' },
-    { name: 'Cookie Policy', href: '#', ariaLabel: 'Read cookie policy' },
+    { name: t('landing.footer.legalLinks.privacyPolicy.name'), href: '#', ariaLabel: t('landing.footer.legalLinks.privacyPolicy.ariaLabel') },
+    { name: t('landing.footer.legalLinks.termsOfService.name'), href: '#', ariaLabel: t('landing.footer.legalLinks.termsOfService.ariaLabel') },
+    { name: t('landing.footer.legalLinks.cookiePolicy.name'), href: '#', ariaLabel: t('landing.footer.legalLinks.cookiePolicy.ariaLabel') },
   ];
 
   const socialLinks = [
     { 
       icon: <Instagram className="h-5 w-5" />, 
       href: 'https://www.instagram.com/storely_platform/',
-      name: 'Instagram',
-      ariaLabel: 'Follow us on Instagram',
+      name: t('landing.footer.social.instagram.name'),
+      ariaLabel: t('landing.footer.social.instagram.ariaLabel'),
       color: 'pink'
     },
     { 
       icon: <Facebook className="h-5 w-5" />, 
       href: 'https://www.facebook.com/profile.php?id=61585122357618',
-      name: 'Facebook',
-      ariaLabel: 'Follow us on Facebook',
+      name: t('landing.footer.social.facebook.name'),
+      ariaLabel: t('landing.footer.social.facebook.ariaLabel'),
       color: 'blue'
     },
     
   ];
 
   const contactInfo = [
-    { icon: <MapPin className="h-4 w-4" />, text: 'Cairo, Egypt', color: 'blue' },
-    { icon: <Phone className="h-4 w-4" />, text: '+20 103 599 9541', color: 'green' },
-    { icon: <Mail className="h-4 w-4" />, text: 'johnemil21@yahoo.com', color: 'purple' },
-    { icon: <Clock className="h-4 w-4" />, text: '24/7 Support', color: 'orange' },
+    { icon: <MapPin className="h-4 w-4" />, text: t('landing.footer.contactInfo.cairo'), color: 'blue' },
+    { icon: <Phone className="h-4 w-4" />, text: t('landing.footer.contactInfo.phone'), color: 'green' },
+    { icon: <Mail className="h-4 w-4" />, text: t('landing.footer.contactInfo.email'), color: 'purple' },
+    { icon: <Clock className="h-4 w-4" />, text: t('landing.footer.contactInfo.supportHours'), color: 'orange' },
   ];
 
   return (
     <footer 
       className="relative bg-gray-950 pt-20 pb-8 overflow-hidden"
       role="contentinfo"
-      aria-label="Site footer"
+      aria-label={t('landing.footer.ariaLabel')}
     >
       {/* 3D Background */}
       <div className="absolute inset-0">
@@ -101,11 +103,11 @@ const Footer = () => {
               >
                 <ShoppingCart className="h-7 w-7 text-white" />
               </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">Storely</span>
+              <span className="text-2xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">{t('landing.footer.brandName')}</span>
             </div>
             
             <p className="text-gray-400 text-sm leading-relaxed">
-              Experience the future of e-commerce with our immersive 3D platform. Empowering vendors worldwide with cutting-edge technology.
+              {t('landing.footer.description')}
             </p>
             
             {/* 3D Stats Mini */}
@@ -121,7 +123,7 @@ const Footer = () => {
                 ))}
               </div>
               <div className="text-xs text-gray-400">
-                <span className="text-white font-semibold">100+</span> vendors
+                <span className="text-white font-semibold">{t('landing.footer.stats.vendorsCount')}</span>
               </div>
             </div>
           </div>
@@ -130,7 +132,7 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold text-white mb-6 flex items-center">
               <ChevronRight className="h-5 w-5 text-blue-400 mr-1 animate-pulse" />
-              Quick Links
+              {t('landing.footer.quickLinksTitle')}
             </h3>
             <ul className="space-y-3">
               {quickLinks.map((link, index) => (
@@ -161,7 +163,7 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold text-white mb-6 flex items-center">
               <Shield className="h-5 w-5 text-purple-400 mr-2 animate-pulse" />
-              Legal
+              {t('landing.footer.legalTitle')}
             </h3>
             <ul className="space-y-3">
               {legalLinks.map((link, index) => (
@@ -189,7 +191,7 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold text-white mb-6 flex items-center">
               <Globe className="h-5 w-5 text-pink-400 mr-2 animate-spin-slow" />
-              Connect
+              {t('landing.footer.connectTitle')}
             </h3>
             
             {/* Contact Info */}
@@ -253,19 +255,19 @@ const Footer = () => {
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
               <div className="text-sm text-gray-400 order-2 md:order-1 flex items-center space-x-2">
                 <Eye className="h-4 w-4 text-blue-400" />
-                <span>© {new Date().getFullYear()} Storely. All rights reserved.</span>
+                <span>{t('landing.footer.bottom.copyrightPrefix', { year: new Date().getFullYear() })}</span>
               </div>
               
               <div className="flex items-center space-x-6 text-sm text-gray-400 order-1 md:order-2">
                 <span className="flex items-center space-x-1 group">
-                  <span>Made with</span>
+                  <span>{t('landing.footer.bottom.madeWith')}</span>
                   <Heart className="h-4 w-4 text-red-400 mx-1 fill-current group-hover:scale-125 transition-transform" />
-                  <span>for vendors</span>
+                  <span>{t('landing.footer.bottom.forVendors')}</span>
                 </span>
                 <span className="w-1 h-1 bg-gray-600 rounded-full"></span>
                 <span className="flex items-center space-x-1">
                   <Sparkles className="h-3 w-3 text-purple-400" />
-                  <span>v3.0.0</span>
+                  <span>{t('landing.footer.bottom.version')}</span>
                 </span>
               </div>
             </div>
