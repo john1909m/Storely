@@ -217,7 +217,7 @@ function App() {
   const { i18n } = useTranslation();
 
    useEffect(() => {
-    const savedLanguage = localStorage.getItem('language');
+    const savedLanguage = localStorage.getItem('lang');
     if (savedLanguage && (savedLanguage === 'en' || savedLanguage === 'ar')) {
       i18n.changeLanguage(savedLanguage);
     } else {
