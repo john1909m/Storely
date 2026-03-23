@@ -216,6 +216,16 @@ function App() {
   const {initializeAuth} = useAuthStore();
   const { i18n } = useTranslation();
 
+   useEffect(() => {
+    const savedLanguage = localStorage.getItem('language');
+    if (savedLanguage && (savedLanguage === 'en' || savedLanguage === 'ar')) {
+      i18n.changeLanguage(savedLanguage);
+    } else {
+      // لو مفيش لغة محفوظة، نجعل العربية هي الافتراضية
+      i18n.changeLanguage('ar');
+    }
+  }, []);
+
   useEffect(() => {
     // Check authentication on initial load
     const token = sessionStorage.getItem('authToken');
