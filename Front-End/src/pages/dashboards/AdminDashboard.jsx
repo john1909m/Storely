@@ -1,23 +1,20 @@
 // Admin Dashboard - Real data from APIs
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import {
   Store, Users, DollarSign, TrendingUp,
   BarChart, Settings, Shield, AlertCircle
 } from 'lucide-react';
 import { storeAPI } from '../../api/store.api';
 import { vendorAPI } from '../../api/vendor.api';
-import { logout } from './../../api/auth.api';
 import useAuthStore from '../../store/authStore';
 
 const AdminDashboard = () => {
-  const { t } = useTranslation();
   const [stores, setStores] = useState([]);
   const [vendors, setVendors] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const {authInialized,isAuthenticated} = useAuthStore();
+  const {authInialized} = useAuthStore();
 
   const fetchDashboardData = async () => {
     try {
@@ -41,6 +38,13 @@ const AdminDashboard = () => {
       setIsLoading(false);
     }
   };
+
+  // Fetch data when component mounts and auth is initialized
+  useEffect(() => {
+    if (authInialized) {
+      fetchDashboardData();
+    }
+  }, [authInialized]);
 
   // Calculate stats from real data
   const stats = {

@@ -63,8 +63,11 @@ const ManageStores = () => {
       const storesList = Array.isArray(storesData) ? storesData : [];
       setStores(storesList);
 
-      // Fetch vendors for all stores
-      await fetchVendors(storesList);
+      // ✅ جلب vendors و subscriptions بالتوازي + batch
+      await Promise.all([
+        fetchVendorsBatch(storesList),
+        fetchSubscriptionsBatch(storesList)
+      ]);
       
     } catch (err) {
       setError(err.message || 'Failed to load stores');
@@ -74,42 +77,76 @@ const ManageStores = () => {
     }
   };
 
-  const fetchVendors = async (storesList) => {
-    const vendorMap = {};
+  // ✅ جلب vendors في مجموعات (10 في نفس الوقت بدل واحد واحد)
+  const fetchVendorsBatch = async (storesList) => {
     const vendorIds = [...new Set(storesList.map(s => s.vendorId).filter(Boolean))];
     
-    for (const vendorId of vendorIds) {
-      try {
-        const vendor = await vendorAPI.getById(vendorId);
-        if (vendor) {
-          vendorMap[vendorId] = vendor;
-        }
-      } catch (err) {
-        console.error('Error fetching vendor:', err);
-      }
+    if (vendorIds.length === 0) {
+      setVendors({});
+      return;
     }
-    
-    setVendors(vendorMap);
-    
-    // Fetch subscriptions for vendors
-    await fetchVendorSubscriptions(vendorIds, vendorMap);
+
+    try {
+      const vendorMap = {};
+      const batchSize = 10; // كل 10 vendor في Parallel Promise
+      
+      for (let i = 0; i < vendorIds.length; i += batchSize) {
+        const batch = vendorIds.slice(i, i + batchSize);
+        const vendorsPromises = batch.map(vendorId => 
+          vendorAPI.getById(vendorId).catch(err => {
+            console.error(`Error fetching vendor ${vendorId}:`, err);
+            return null;
+          })
+        );
+        
+        const results = await Promise.all(vendorsPromises);
+        results.forEach((vendor, index) => {
+          if (vendor) {
+            vendorMap[batch[index]] = vendor;
+          }
+        });
+      }
+      
+      setVendors(vendorMap);
+    } catch (err) {
+      console.error('Error fetching vendors:', err);
+    }
   };
 
-  const fetchVendorSubscriptions = async (vendorIds, vendorMap) => {
-    const subscriptionMap = {};
+  // ✅ جلب subscriptions في مجموعات بنفس الطريقة
+  const fetchSubscriptionsBatch = async (storesList) => {
+    const vendorIds = [...new Set(storesList.map(s => s.vendorId).filter(Boolean))];
     
-    for (const vendorId of vendorIds) {
-      try {
-        const subscription = await subscriptionAPI.getVendorSubscriptionByVendorId(vendorId);
-        if (subscription) {
-          subscriptionMap[vendorId] = subscription;
-        }
-      } catch (err) {
-        console.error(`Error fetching subscription for vendor ${vendorId}:`, err);
-      }
+    if (vendorIds.length === 0) {
+      setSubscriptions({});
+      return;
     }
-    
-    setSubscriptions(subscriptionMap);
+
+    try {
+      const subscriptionMap = {};
+      const batchSize = 10;
+      
+      for (let i = 0; i < vendorIds.length; i += batchSize) {
+        const batch = vendorIds.slice(i, i + batchSize);
+        const subscriptionsPromises = batch.map(vendorId =>
+          subscriptionAPI.getVendorSubscriptionByVendorId(vendorId).catch(err => {
+            console.error(`Error fetching subscription for vendor ${vendorId}:`, err);
+            return null;
+          })
+        );
+        
+        const results = await Promise.all(subscriptionsPromises);
+        results.forEach((subscription, index) => {
+          if (subscription) {
+            subscriptionMap[batch[index]] = subscription;
+          }
+        });
+      }
+      
+      setSubscriptions(subscriptionMap);
+    } catch (err) {
+      console.error('Error fetching subscriptions:', err);
+    }
   };
 
   const fetchPlans = async () => {
@@ -1333,7 +1370,6 @@ const ManageStores = () => {
                 )}
               </div>
               
-              {/* باقي الفورم كما هو */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
