@@ -15,12 +15,13 @@ import { categoryAPI } from '../../api/category.api';
 import { useErrorHandler } from '../../hooks/useErrorHandler';
 import StoreFooter from '../../components/StoreFooter';
 import Toast from '../../components/ui/Toast';
-import PageToggles from '../../components/vendor/StoreBuilder/PageToggles';
+// import PageToggles from '../../components/vendor/StoreBuilder/PageToggles';
 import SectionWrapper from '../../components/vendor/StoreBuilder/SectionWrapper';
 import BannerSection from '../../components/vendor/StoreBuilder/sections/BannerSection';
 import FeaturedProductsSection from '../../components/vendor/StoreBuilder/sections/FeaturedProductsSection';
 import CategoriesSection from '../../components/vendor/StoreBuilder/sections/CategoriesSection';
 import FooterSection from '../../components/vendor/StoreBuilder/sections/FooterSection';
+import PageToggles from './../../components/vendor/storeBuilder/PageToggles';
 
 const StoreBuilder = () => {
   const navigate = useNavigate();
