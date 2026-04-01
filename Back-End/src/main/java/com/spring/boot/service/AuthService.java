@@ -11,4 +11,5 @@ public interface AuthService {
     void signUp(UserDto userDto) throws SystemException;
     LoginResponseVM login(LoginRequestVM loginRequestVm, HttpServletResponse response) throws SystemException;
     void logout(HttpServletRequest request, HttpServletResponse response);
+    void resetPassword(String email,String newPassword) throws SystemException;
 }

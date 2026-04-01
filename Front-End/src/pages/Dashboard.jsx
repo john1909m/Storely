@@ -1,9 +1,11 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Store, LogOut, Package, Users, BarChart } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const handleLogout = () => {
     localStorage.removeItem('storely_auth_token');
@@ -20,7 +22,7 @@ const Dashboard = () => {
               <Store className="h-8 w-8 text-indigo-600" />
               <div>
                 <div className="text-xl font-bold text-gray-900">Storely Dashboard</div>
-                <div className="text-sm text-gray-500">Welcome back, Vendor!</div>
+                <div className="text-sm text-gray-500">{t('pages.dashboard.welcome')}</div>
               </div>
             </div>
             <button

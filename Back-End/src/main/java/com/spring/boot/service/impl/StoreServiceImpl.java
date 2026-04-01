@@ -114,6 +114,12 @@ public class StoreServiceImpl implements StoreService {
         if (storeDto.getStoreStatus() != null) {
             existingStore.setStoreStatus(StoreStatus.valueOf(storeDto.getStoreStatus()));
         }
+        if(storeDto.getThemeType() != null) {
+            existingStore.setThemeType(storeDto.getThemeType());
+        }
+        if(storeDto.getLayoutConfig() != null) {
+            existingStore.setLayoutConfig(storeDto.getLayoutConfig());
+        }
 
         // ✅ احفظ الـ Store الأول
         Store savedStore = storeRepo.save(existingStore);
@@ -198,10 +204,46 @@ public class StoreServiceImpl implements StoreService {
 
     }
 
+    @Override
+    @Transactional
+    public StoreDto updateLayout(UUID storeId, String layoutConfig) {
+        Store store = storeRepo.findById(storeId)
+                .orElseThrow(() -> new RuntimeException("store.not.found"));
+
+        store.setLayoutConfig(layoutConfig);
+        return storeMapper.toStoreDto(storeRepo.save(store));
+    }
+
+    @Override
+    public String uploadBannerImage(UUID storeId, MultipartFile file, String type) {
+        Store store = storeRepo.findById(storeId)
+                .orElseThrow(() -> new RuntimeException("store.not.found"));
+
+
+
+        String extension = getFileExtension(file.getOriginalFilename());
+        String fileName = type + "." + extension;
+
+        String objectKey = "stores/" + storeId + "/banner/" + fileName;
+
+        String imageUrl = r2StorageService.uploadFile(objectKey, file);
+
+        // update store
+        if (type.equalsIgnoreCase("logo")) {
+            store.setStoreLogoUrl(imageUrl);
+        }
+
+        storeRepo.save(store);
+
+        return imageUrl;
+    }
+
     private String getFileExtension(String filename) {
         if (filename == null || !filename.contains(".")) {
             return "png";
         }
         return filename.substring(filename.lastIndexOf(".") + 1);
     }
+
+
 }

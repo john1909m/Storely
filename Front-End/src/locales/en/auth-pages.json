@@ -1,0 +1,68 @@
+{
+  "authPages": {
+    "forgotPassword": {
+      "title": "Forgot Password?",
+      "subtitle": "Don't worry! We'll help you reset it",
+      "backToLogin": "Back to login",
+      "emailLabel": "Email Address",
+      "emailPlaceholder": "Enter your email",
+      "sendCode": "Send Code",
+      "sending": "Sending...",
+      "success": "Code sent successfully!",
+      "error": "Failed to send reset link",
+      "successMessage": "Check your email for the reset code",
+      "support": "Need help?",
+      "contactSupport": "Contact support"
+    },
+    "otpVerification": {
+      "title": "Email Verification",
+      "subtitle": "Enter the 6-digit code sent to your email",
+      "codeLabel": "Verification Code",
+      "codePlaceholder": "Enter code",
+      "verify": "Verify",
+      "verifying": "Verifying...",
+      "resend": "Resend Code",
+      "resendIn": "Resend in {{time}}s",
+      "timeLeft": "Code expires in {{time}}",
+      "invalidCode": "Invalid verification code",
+      "codeExpired": "Code has expired",
+      "resendSuccess": "Code sent successfully",
+      "backToForgot": "Back to forgot password",
+      "enterComplete": "Please enter the complete 6-digit code"
+    },
+    "resetPassword": {
+      "title": "Reset Password",
+      "subtitle": "Create a new password for your account",
+      "newPasswordLabel": "New Password",
+      "newPasswordPlaceholder": "Enter new password",
+      "confirmPasswordLabel": "Confirm Password",
+      "confirmPasswordPlaceholder": "Confirm your password",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
+      "resetPassword": "Reset Password",
+      "resetting": "Resetting...",
+      "success": "Password reset successfully!",
+      "error": "Failed to reset password",
+      "passwordTooShort": "Password must be at least 8 characters",
+      "passwordsDoNotMatch": "Passwords do not match",
+      "successMessage": "Your password has been reset",
+      "backToLogin": "Back to login"
+    },
+    "customerSignup": {
+      "title": "Create Your Account",
+      "subtitle": "Join Storely to start shopping",
+      "fullName": "Full Name",
+      "email": "Email Address",
+      "phone": "Phone Number",
+      "password": "Password",
+      "confirmPassword": "Confirm Password",
+      "terms": "I agree to the Terms and Conditions",
+      "signup": "Sign Up",
+      "signingUp": "Creating account...",
+      "haveAccount": "Already have an account?",
+      "login": "Login",
+      "success": "Account created successfully!",
+      "error": "Failed to create account"
+    }
+  }
+}

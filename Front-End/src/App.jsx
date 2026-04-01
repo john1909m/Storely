@@ -50,6 +50,9 @@ import useAuthStore from './store/authStore';
 import { Analytics } from "@vercel/analytics/react"
 import ManageCategories from './pages/vendor/Categories';
 import LanguageSwitcher from './components/LanguageSwitcher';
+import StoreBuilder from './pages/vendor/StoreBuilder';
+import AllProductsPage from './pages/store/AllProducts';
+import ResetPassword from './pages/auth/ResetPassword';
 
 // Create a wrapper component that uses useLocation
 const AppContent = () => {
@@ -68,14 +71,16 @@ const AppContent = () => {
       <Route path="/customer/signup" element={<CustomerSignup />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/verify-otp" element={<OTPVerification />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/pricing" element={<Pricing />} />
       <Route path="/contact" element={<CustomerContact />} />
       <Route path="/checkout" element={<Checkout />} />
 
       {/* Store Routes (Public) - Customer view */}
       <Route path="/store/:storeName" element={<StoreHome viewType="customer" />} />
-      <Route path="/store/:storeName/products" element={<AllProducts viewType="customer" />} />
+      <Route path="/store/:storeName/products" element={<AllProductsPage viewType="customer" />} />
       <Route path="/store/:storeName/product/:productId" element={<SingleProduct viewType="customer" />} />
+      <Route path="/store/:storeName/category/:categoryId" element={<AllProductsPage viewType="customer" />} />
       <Route path="/store/:storeName/cart" element={
         <CustomerRoute>
           <Cart />
@@ -108,6 +113,13 @@ const AppContent = () => {
           <VendorStore />
         </VendorRoute>
       } />
+
+      <Route path="/vendor/storeBuilder" element={
+        <VendorRoute requireStore={true}>
+          <StoreBuilder />
+        </VendorRoute>
+      } />
+
       <Route path="/vendor/products" element={
         <VendorRoute>
           <VendorProducts />

@@ -1,6 +1,7 @@
 package com.spring.boot.dto;
 
 import com.spring.boot.enums.StoreStatus;
+import com.spring.boot.enums.ThemeType;
 import com.spring.boot.model.Category;
 import com.spring.boot.model.Order;
 import jakarta.persistence.GeneratedValue;
@@ -48,7 +49,11 @@ public class StoreDto {
 
     private Long totalVisits;
 
+    private String layoutConfig;
+
     private String storeStatus="Inactive";
+
+    private String themeType="CLASSIC";
 
     private List<ProductDto> products;
 

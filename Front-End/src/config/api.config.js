@@ -9,6 +9,8 @@ export const API_ENDPOINTS = {
   AUTH: {
     LOGIN: '/auth/login',
     SIGNUP: '/auth/signup',
+    SEND_OTP: '/auth/send-otp',
+    RESET_PASSWORD: '/auth/reset-password',
   },
   // Vendor
   VENDOR: {

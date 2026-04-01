@@ -1,0 +1,79 @@
+{
+  "adminPages": {
+    "settings": {
+      "title": "Platform Settings",
+      "subtitle": "Configure platform-wide settings",
+      "comingSoon": "Coming Soon",
+      "message": "Platform settings will be available here"
+    },
+    "dashboard": {
+      "title": "Admin Dashboard",
+      "stores": "Stores",
+      "vendors": "Vendors",
+      "revenue": "Revenue",
+      "trending": "Trending",
+      "analyticsChart": "Analytics Chart",
+      "settings": "Settings",
+      "security": "Security",
+      "noData": "No data available",
+      "loadingError": "Error loading dashboard data"
+    },
+    "manageStores": {
+      "title": "Manage Stores",
+      "newStore": "New Store",
+      "totalStores": "Total Stores",
+      "activeStores": "Active Stores",
+      "inactiveStores": "Inactive Stores",
+      "searchPlaceholder": "Search stores...",
+      "storeName": "Store Name",
+      "vendor": "Vendor",
+      "status": "Status",
+      "createdAt": "Created At",
+      "actions": "Actions",
+      "edit": "Edit",
+      "delete": "Delete",
+      "view": "View",
+      "active": "Active",
+      "inactive": "Inactive",
+      "confirmDelete": "Are you sure you want to delete this store?"
+    },
+    "manageVendors": {
+      "title": "Manage Vendors",
+      "newVendor": "New Vendor",
+      "totalVendors": "Total Vendors",
+      "activeVendors": "Active Vendors",
+      "inactiveVendors": "Inactive Vendors",
+      "searchPlaceholder": "Search vendors...",
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone",
+      "status": "Status",
+      "joinDate": "Join Date",
+      "actions": "Actions",
+      "edit": "Edit",
+      "delete": "Delete",
+      "view": "View",
+      "approve": "Approve",
+      "reject": "Reject",
+      "active": "Active",
+      "pending": "Pending",
+      "rejected": "Rejected"
+    },
+    "pricingManagement": {
+      "title": "Pricing Management",
+      "plans": "Plans",
+      "basePlan": "Base Plan",
+      "proPlan": "Pro Plan",
+      "businessPlan": "Business Plan",
+      "enterprisePlan": "Enterprise Plan",
+      "editPlan": "Edit Plan",
+      "deletePlan": "Delete Plan",
+      "price": "Price",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "features": "Features",
+      "addFeature": "Add Feature",
+      "removeFeature": "Remove Feature"
+    }
+  }
+}

@@ -33,6 +33,7 @@ public class OrderServiceImpl implements OrderService {
     private R2StorageService storageService;
     private PaymentMethodRepo paymentMethodRepo;
     private StorePaymentMethodRepo storePaymentMethodRepo;
+    private EmailService emailService;
 
     @Autowired
     public OrderServiceImpl(OrderMapper orderMapper,
@@ -45,7 +46,8 @@ public class OrderServiceImpl implements OrderService {
                             DepositSettingRepo depositSettingRepo,
                             R2StorageService storageService,
                             PaymentMethodRepo paymentMethodRepo,
-                            StorePaymentMethodRepo storePaymentMethodRepo) {
+                            StorePaymentMethodRepo storePaymentMethodRepo,
+                            EmailService emailService) {
         this.orderMapper = orderMapper;
         this.orderRepo = orderRepo;
         this.storeRepo = storeRepo;
@@ -57,6 +59,7 @@ public class OrderServiceImpl implements OrderService {
         this.storageService = storageService;
         this.paymentMethodRepo = paymentMethodRepo;
         this.storePaymentMethodRepo = storePaymentMethodRepo;
+        this.emailService = emailService;
 
     }
 
@@ -259,6 +262,75 @@ public class OrderServiceImpl implements OrderService {
         variant.setQuantity(variant.getQuantity() - requestedQty);
     }
 
+    public void sendNewOrderEmail(Order order) {
+        String email = order.getStore().getVendor().getEmail();
+
+        String subject = "New Order Received 🎉";
+
+        String body= """
+                <!DOCTYPE html>
+                            <html>
+                            <head>
+                                <meta charset="UTF-8">
+                                <title>Order Confirmation - %s</title>
+                            </head>
+                            <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f4f4;">
+                                <div style="max-width: 500px; margin: 20px auto; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                
+                                    <!-- Header with store name instead of generic text -->
+                                    <div style="background: #f97316; padding: 20px; text-align: center;">
+                                        <h2 style="color: white; margin: 0; font-size: 20px;">%s</h2>
+                                        <p style="color: #ffedd5; margin: 5px 0 0 0; font-size: 12px;">Order Confirmation</p>
+                                    </div>
+                
+                                    <div style="padding: 25px;">
+                                        <div style="background: #fef9e8; padding: 15px; border-radius: 6px; margin-bottom: 20px; border-left: 3px solid #f97316;">
+                                            <p style="margin: 0; color: #92400e; font-size: 14px;">Hello %s,</p>
+                                            <p style="margin: 8px 0 0 0; color: #92400e; font-size: 14px;">You've received a new order!</p>
+                                        </div>
+                
+                                        <div style="margin-bottom: 20px;">
+                                            <table style="width: 100%%; border-collapse: collapse;">
+                                                <tr>
+                                                    <td style="padding: 8px 0; color: #6b7280; width: 100px;">Order ID:</td>
+                                                    <td style="padding: 8px 0; font-weight: bold; color: #f97316;">#%s</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="padding: 8px 0; color: #6b7280;">Customer:</td>
+                                                    <td style="padding: 8px 0; font-weight: 500;">%s</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="padding: 8px 0; color: #6b7280;">Total:</td>
+                                                    <td style="padding: 8px 0; font-weight: bold; color: #f97316; font-size: 18px;">%s</td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                
+                                        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
+                
+                                        <p style="color: #6b7280; font-size: 12px; text-align: center; margin: 0;">
+                                            View this order in your vendor dashboard.<br>
+                                            This is an automated message from %s.
+                                        </p>
+                                    </div>
+                                </div>
+                            </body>
+                            </html>
+                
+                """.formatted(
+                        order.getId(),
+                         order.getStore().getStoreName(),
+                order.getStore().getStoreName(),
+                order.getId(),
+                order.getCustomer().getFirstName()+" "+order.getCustomer().getLastName(),
+                order.getTotalPrice(),
+                order.getStore().getStoreName()
+                );
+
+        emailService.sendEmail(email, subject, body);
+
+    }
+
 
     @Transactional
     @Override
@@ -429,8 +501,13 @@ public class OrderServiceImpl implements OrderService {
 
         Order savedOrder = orderRepo.save(order);
 
+        sendNewOrderEmail(savedOrder);
+
         return orderMapper.toOrderDto(savedOrder);
     }
+
+
+
 
     @Override
     public OrderDto uploadDeposit(UUID orderId, MultipartFile screenshot) {

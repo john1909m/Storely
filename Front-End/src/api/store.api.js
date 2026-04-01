@@ -91,6 +91,17 @@ export const storeAPI = {
     });
   },
 
+  uploadBannerImage: async (storeId, file, type) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('type', type);
+    
+    return fetchWithAuth(`/store/banner-image/${storeId}`, {
+      method: 'POST',
+      body: formData,
+    });
+  },
+
   updateDepositSettings: async (depositSettings) => {
     return fetchWithAuth(API_ENDPOINTS.STORE.UPDATE_DEPOSIT_SETTINGS, {
       method: 'POST',
@@ -100,8 +111,17 @@ export const storeAPI = {
 
   getDepositSettings: async (storeId) => {
     return fetchWithAuth(API_ENDPOINTS.STORE.GET_DEPOSIT_SETTINGS(storeId));
-  }
+  },
 
+  updateLayout: async (storeId, layoutData) => {
+  return fetchWithAuth(`/store/layout/${storeId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(layoutData),
+  });
+},
   
 
 };

@@ -9,7 +9,8 @@
         "emailLabel": "Email Address",
         "passwordLabel": "Password",
         "emailPlaceholder": "hello@example.com",
-        "passwordPlaceholder": "••••••••"
+        "passwordPlaceholder": "••••••••",
+        "forgotPassword": "Forgot Password?"
       },
       "button": {
         "signIn": "Sign In",

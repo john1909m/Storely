@@ -9,20 +9,27 @@ import com.spring.boot.dto.VendorDto;
 import com.spring.boot.mapper.AdminMapper;
 import com.spring.boot.mapper.UserMapper;
 import com.spring.boot.mapper.VendorMapper;
+import com.spring.boot.model.Otp;
 import com.spring.boot.model.User;
+import com.spring.boot.model.Vendor;
+import com.spring.boot.repo.OtpReposatory;
 import com.spring.boot.repo.UserRepo;
 import com.spring.boot.service.AuthService;
+import com.spring.boot.service.OtpService;
 import com.spring.boot.service.UserService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.SystemException;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 public class AuthServiceImpl implements AuthService {
@@ -33,6 +40,8 @@ public class AuthServiceImpl implements AuthService {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private OtpReposatory otpReposatory;
 
 
     @Autowired
@@ -100,6 +109,7 @@ public class AuthServiceImpl implements AuthService {
 
 
         String cookieValue=String.format("%s=%s; Path=/; Domain=.storely-eg.com; Max-Age=%d; HttpOnly; Secure; SameSite=None", cookie.getName(), cookie.getValue(), cookie.getMaxAge());
+//        String cookieValue=String.format("%s=%s; Path=/;  Max-Age=%d; HttpOnly; Secure; SameSite=None", cookie.getName(), cookie.getValue(), cookie.getMaxAge());
 
         response.addHeader("Set-Cookie", cookieValue);
 
@@ -129,4 +139,21 @@ public class AuthServiceImpl implements AuthService {
             session.invalidate();
         }
     }
+
+    @Override
+    @Transactional
+    public void resetPassword(String email, String newPassword) throws SystemException {
+        User user = userRepo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User.not.found"));
+        Vendor vendor = user.getVendor();
+        Optional<Otp> otp = otpReposatory.findByEmail(email);
+        user.setPassword(passwordEncoder.encode(newPassword));
+        vendor.setPassword(passwordEncoder.encode(newPassword));
+        user.setVendor(vendor);
+        userRepo.save(user);
+
+        otpReposatory.deleteByEmail(otp.get().getEmail());
+    }
+
+
 }

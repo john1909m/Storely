@@ -23,10 +23,14 @@
       "payment": {
         "label": "Payment Methods",
         "description": "Configure payment options"
+        
       },
       "branding": {
         "label": "Branding",
-        "description": "Logo & colors"
+        "description": "Logo & colors",
+        "themeType": "Store Theme",
+      "themeDescription": "Choose how your store looks to customers. Select a design that matches your brand style.",
+      "themePreviewNote": "The theme will be applied immediately after saving. Your customers will see the new design on your store page."
       },
       "contact": {
         "label": "Contact",
@@ -128,7 +132,11 @@
       "livePreview": "Live Preview",
       "shopNow": "Shop Now",
       "learnMore": "Learn More",
-      "storeNamePlaceholder": "Your Store"
+      "storeNamePlaceholder": "Your Store",
+      "themeType": "Theme Type",
+      "themeDescription": "Choose how your store looks to customers. Select a design that matches your brand style.",
+      "themePreviewNote": "The theme will be applied immediately after saving. Your customers will see the new design on your store page."
+
     },
     "contact": {
       "title": "Contact Information",
@@ -195,4 +203,5 @@
     },
     "governoratePrefix": "Governorate "
   }
+  
 }

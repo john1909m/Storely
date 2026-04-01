@@ -37,7 +37,10 @@ public class R2StorageService {
 
             return r2Config.getPublicUrl() + "/" + key;
         } catch (Exception e) {
+            e.printStackTrace();
             throw new RuntimeException("upload.failed");
         }
     }
+
+
 }

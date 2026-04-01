@@ -5,21 +5,33 @@ spring:
     username: Storely
     password: Storely1909
 
-  data:
-    redis:
-      host: localhost
-      port: 6379
-    mail:
-      host: smtp.gmail.com
-      port: 587
-      username: johnemil21@gmail.com
-      password: johnEmil@1909
-      properties:
-        mail:
-          smtp:
-            auth: true
-            starttls:
-              enable: true
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: storelyeg@gmail.com
+    password: kispceftlrcbdufs
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+  #  data:
+#    redis:
+#      host: localhost
+#      port: 6379
+#    mail:
+#      host: smtp.gmail.com
+#      port: 587
+#      username: johnemil21@gmail.com
+#      password: johnEmil@1909
+#      properties:
+#        mail:
+#          smtp:
+#            auth: true
+#            starttls:
+#              enable: true
 
   jpa:
     hibernate:

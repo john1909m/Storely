@@ -16,6 +16,7 @@ public interface StoreMapper {
     @Mapping(source = "vendor.name",target = "vendorName")
     @Mapping(source = "shippingCosts",target = "shippingCosts")
     @Mapping(source = "storePaymentMethods" , target = "storePaymentMethods")
+    @Mapping(source = "themeType",target = "themeType")
     StoreDto toStoreDto(Store store);
 
     @Mapping(source = "storeStatus",target = "storeStatus")
@@ -24,5 +25,6 @@ public interface StoreMapper {
     @Mapping(source = "shippingCosts",target = "shippingCosts")
     @Mapping(source = "storePaymentMethods" , target = "storePaymentMethods")
     @Mapping(target = "vendor", ignore = true)
+    @Mapping(target = "themeType", ignore = true)
     Store toStoreEntity(StoreDto storeDto);
 }

@@ -69,7 +69,9 @@ public class SecurityConfig {
                                 "/deposit-settings/get/{storeId}",
                                 "/order/{storeId}/deposit",
                                 "/store-payment-methods/{storeId}",
-                                "/store/incVisit/{storeId}").permitAll()
+                                "/store/incVisit/{storeId}",
+                                "/auth/send-otp",
+                                "/auth/reset-password").permitAll()
                         .anyRequest().authenticated()
                 );
 
@@ -78,7 +80,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173","http://localhost:8080","https://www.storely-eg.com","https://storely-eg.com","http://localhost:*")); // React frontend
+        configuration.setAllowedOrigins(List.of("http://localhost:5173","http://localhost:8080","https://www.storely-eg.com","https://storely-eg.com","http://localhost:5173/*")); // React frontend
         configuration.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS")) ;
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

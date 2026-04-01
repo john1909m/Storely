@@ -2,8 +2,11 @@ package com.spring.boot.controller;
 
 import com.spring.boot.controller.vm.LoginRequestVM;
 import com.spring.boot.controller.vm.LoginResponseVM;
+import com.spring.boot.dto.ResetPasswordDto;
+import com.spring.boot.dto.SendOtpDto;
 import com.spring.boot.dto.UserDto;
 import com.spring.boot.service.AuthService;
+import com.spring.boot.service.OtpService;
 import com.spring.boot.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -22,6 +25,8 @@ public class AuthController {
     private AuthService authService;
     @Autowired
     private UserService userService;
+    @Autowired
+    private OtpService otpService;
 
 
 
@@ -45,6 +50,25 @@ public class AuthController {
         return ResponseEntity.ok("Logged.out.successfully");
     }
 
+    @PostMapping("/send-otp")
+    public void sendOtp(@RequestBody SendOtpDto dto){
+        otpService.sendOtp(dto.getEmail());
+    }
+
+
+
+    @PostMapping("/reset-password")
+    public String resetPassword(@RequestBody ResetPasswordDto dto) throws SystemException {
+        boolean valid=otpService.verifyOtp(dto.getEmail(),dto.getCode());
+
+        if(!valid){
+            throw new RuntimeException("Invalid.OTP");
+
+        }
+
+        authService.resetPassword(dto.getEmail(), dto.getNewPassword());
+        return "Password reset successfully";
+    }
 
 
 }

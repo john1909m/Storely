@@ -32,6 +32,85 @@
         "cart": "السلة",
         "cartCount": "السلة ({{count}})"
       }
+    },
+    "storeBuilder": {
+      "pageToggles": {
+        "title": "الصفحات",
+        "subtitle": "تفعيل أو تعطيل الصفحات على متجرك",
+        "homePage": "الصفحة الرئيسية",
+        "homePageDescription": "الصفحة الرئيسية للمتجر",
+        "allProductsPage": "صفحة جميع المنتجات",
+        "allProductsDescription": "استعرض جميع المنتجات",
+        "enable": "تفعيل",
+        "disable": "تعطيل"
+      },
+      "sectionWrapper": {
+        "edit": "تعديل",
+        "delete": "حذف",
+        "preview": "معاينة",
+        "moveUp": "نقل لأعلى",
+        "moveDown": "نقل لأسفل",
+        "deleteConfirm": "هل أنت متأكد من حذف هذا القسم؟"
+      },
+      "bannerSection": {
+        "title": "قسم البانر",
+        "addImage": "إضافة الصورة",
+        "removeImage": "إزالة الصورة",
+        "uploadImage": "تحميل الصورة",
+        "imageAlt": "صورة البانر",
+        "maxSize": "الحد الأقصى للحجم 5 ميجابايت",
+        "invalidFile": "نوع ملف غير صحيح",
+        "uploading": "جاري التحميل...",
+        "uploadSuccess": "تم تحميل الصورة بنجاح",
+        "uploadError": "فشل تحميل الصورة"
+      },
+      "categoriesSection": {
+        "title": "قسم الفئات",
+        "selectCategories": "اختر الفئات",
+        "availableCategories": "الفئات المتاحة",
+        "selectedCategories": "الفئات المحددة",
+        "addCategory": "إضافة فئة",
+        "removeCategory": "إزالة الفئة",
+        "noCategories": "لا توجد فئات محددة"
+      },
+      "featuredProductsSection": {
+        "title": "قسم المنتجات المميزة",
+        "selectProducts": "اختر المنتجات",
+        "availableProducts": "المنتجات المتاحة",
+        "selectedProducts": "المنتجات المحددة",
+        "addProduct": "إضافة منتج",
+        "removeProduct": "إزالة المنتج",
+        "noProducts": "لا توجد منتجات محددة",
+        "limit": "الحد الأقصى 10 منتجات"
+      },
+      "footerSection": {
+        "title": "قسم التذييل",
+        "aboutStore": "عن المتجر",
+        "contactInfo": "معلومات الاتصال",
+        "socialLinks": "روابط وسائل التواصل",
+        "quickLinks": "روابط سريعة",
+        "copyright": "حقوق الطبع والنشر"
+      }
+    },
+    "themes": {
+      "themeSelector": {
+        "title": "اختر المظهر",
+        "classic": "المظهر الكلاسيكي",
+        "minimal": "المظهر البسيط",
+        "modern": "المظهر الحديث",
+        "selectTheme": "اختر مظهراً",
+        "preview": "معاينة المظهر",
+        "apply": "تطبيق المظهر"
+      },
+      "classicTheme": {
+        "description": "تصميم تقليدي وموثوق"
+      },
+      "minimalTheme": {
+        "description": "تخطيط نظيف وبسيط"
+      },
+      "modernTheme": {
+        "description": "تصميم معاصر وعصري"
+      }
     }
   }
 }

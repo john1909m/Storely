@@ -1,21 +1,38 @@
 // src/pages/auth/OTPVerification.jsx
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
-import { Shield, RotateCcw, CheckCircle } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Shield, RotateCcw, AlertCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { authAPI } from '../../api/auth.api';
 
 const OTPVerification = () => {
+  const navigate = useNavigate();
+  const { t } = useTranslation();
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
-  const [timeLeft, setTimeLeft] = useState(120); // 2 minutes
-  const [isVerified, setIsVerified] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [resendDisabled, setResendDisabled] = useState(false);
   const inputRefs = useRef([]);
 
+  // Get email from sessionStorage
+  const email = sessionStorage.getItem('resetEmail');
+
+  // Redirect if no email
   useEffect(() => {
-    if (timeLeft > 0 && !isVerified) {
+    if (!email) {
+      navigate('/forgot-password');
+    }
+  }, [email, navigate]);
+
+  useEffect(() => {
+    if (timeLeft > 0) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
       return () => clearTimeout(timer);
+    } else {
+      setResendDisabled(false);
     }
-  }, [timeLeft, isVerified]);
+  }, [timeLeft]);
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -32,6 +49,11 @@ const OTPVerification = () => {
       // Auto-focus next input
       if (index < 5 && value) {
         inputRefs.current[index + 1].focus();
+      }
+      
+      // Auto-submit when all digits are filled
+      if (index === 5 && value && newOtp.every(digit => digit)) {
+        handleVerify(newOtp.join(''));
       }
     }
   };
@@ -51,26 +73,68 @@ const OTPVerification = () => {
         if (index < 6) newOtp[index] = digit;
       });
       setOtp(newOtp);
+      
+      // Auto-submit if all digits are filled
+      if (newOtp.every(digit => digit)) {
+        handleVerify(newOtp.join(''));
+      }
     }
   };
 
-  const handleResend = () => {
-    setTimeLeft(120);
-    // Simulate resend OTP
-    console.log('Resending OTP...');
+  const handleResend = async () => {
+    if (!email) return;
+    
+    setResendDisabled(true);
+    setError('');
+    
+    try {
+      await authAPI.sendOtp(email);
+      setTimeLeft(120);
+      setOtp(['', '', '', '', '', '']);
+      // Focus first input
+      inputRefs.current[0]?.focus();
+    } catch (err) {
+      setError(err.message || 'Failed to resend code. Please try again.');
+      setResendDisabled(false);
+    }
   };
 
-  const handleVerify = (e) => {
-    e.preventDefault();
-    setIsLoading(true);
+  const handleVerify = async (code) => {
+    if (!email) return;
     
-    // Simulate verification
-    setTimeout(() => {
-      const isValid = otp.join('') === '123456'; // Demo verification
-      setIsVerified(isValid);
+    setIsLoading(true);
+    setError('');
+    
+    try {
+      // Store OTP in sessionStorage for reset password page
+      // The actual verification will happen when resetting password
+      sessionStorage.setItem('resetOtp', code);
+      
+      // Redirect to reset password page (verification happens there with backend)
+      navigate('/reset-password');
+      
+    } catch (err) {
+      setError(err.message || 'Invalid verification code. Please try again.');
+      setOtp(['', '', '', '', '', '']);
+      inputRefs.current[0]?.focus();
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
+
+  const onSubmit = (e) => {
+    e.preventDefault();
+    const code = otp.join('');
+    if (code.length === 6) {
+      handleVerify(code);
+    } else {
+      setError('Please enter the complete 6-digit code');
+    }
+  };
+
+  if (!email) {
+    return null; // Will redirect in useEffect
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
@@ -87,88 +151,58 @@ const OTPVerification = () => {
             <p className="text-gray-600">
               Enter the 6-digit code sent to your email
             </p>
-            <p className="text-sm text-gray-500 mt-2">
-              demo@example.com
+            < span className="text-red-500 text-sm mt-1">
+              if you didn't receive the code, check your spam folder
+            </span>
+            <p className="text-sm text-gray-500 mt-2 font-medium">
+              {email}
             </p>
           </div>
 
-          {!isVerified ? (
-            <>
-              {/* OTP Inputs */}
-              <form onSubmit={handleVerify} className="space-y-8">
-                <div className="flex justify-center space-x-3">
-                  {otp.map((digit, index) => (
-                    <input
-                      key={index}
-                      ref={(el) => inputRefs.current[index] = el}
-                      type="text"
-                      maxLength="1"
-                      value={digit}
-                      onChange={(e) => handleChange(index, e.target.value)}
-                      onKeyDown={(e) => handleKeyDown(index, e)}
-                      onPaste={handlePaste}
-                      className="h-16 w-16 text-center text-2xl font-bold bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all outline-none"
-                    />
-                  ))}
-                </div>
-
-                {/* Timer */}
-                <div className="text-center">
-                  <div className="text-sm text-gray-600 mb-2">
-                    Code expires in: <span className="font-semibold">{formatTime(timeLeft)}</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleResend}
-                    disabled={timeLeft > 0}
-                    className={`text-sm ${
-                      timeLeft > 0 ? 'text-gray-400 cursor-not-allowed' : 'text-indigo-600 hover:text-indigo-500'
-                    }`}
-                  >
-                    <RotateCcw className="inline h-4 w-4 mr-1" />
-                    Resend Code {timeLeft > 0 && `(${formatTime(timeLeft)})`}
-                  </button>
-                </div>
-
-                {/* Verify Button */}
-                <button
-                  type="submit"
-                  disabled={isLoading || otp.some(digit => !digit)}
-                  className="w-full py-4 bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-blue-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isLoading ? 'Verifying...' : 'Verify Email'}
-                </button>
-              </form>
-
-              {/* Manual Entry */}
-              <div className="mt-6 p-4 bg-amber-50 border border-amber-100 rounded-xl">
-                <p className="text-sm text-amber-800 text-center">
-                  Demo code: <span className="font-mono font-bold">123456</span>
-                </p>
-              </div>
-            </>
-          ) : (
-            // Verification Success
-            <div className="text-center space-y-6">
-              <div className="inline-flex items-center justify-center h-20 w-20 bg-gradient-to-r from-green-50 to-emerald-50 rounded-full mb-4">
-                <CheckCircle className="h-10 w-10 text-green-600" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">
-                  Email Verified!
-                </h3>
-                <p className="text-gray-600">
-                  Your email has been successfully verified.
-                </p>
-              </div>
-              <Link
-                to="/dashboard"
-                className="inline-block w-full py-4 bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-blue-700 transition-all shadow-lg"
-              >
-                Continue to Dashboard
-              </Link>
+          {/* Error Message */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-red-700">{error}</p>
             </div>
           )}
+
+          {/* OTP Inputs */}
+          <form onSubmit={onSubmit} className="space-y-8">
+            <div className="flex justify-center space-x-3">
+              {otp.map((digit, index) => (
+                <input
+                  key={index}
+                  ref={(el) => inputRefs.current[index] = el}
+                  type="text"
+                  maxLength="1"
+                  value={digit}
+                  onChange={(e) => handleChange(index, e.target.value)}
+                  onKeyDown={(e) => handleKeyDown(index, e)}
+                  onPaste={handlePaste}
+                  disabled={isLoading}
+                  className="h-16 w-16 text-center text-2xl font-bold bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all outline-none disabled:opacity-50"
+                />
+              ))}
+            </div>
+
+            {/* Timer and Resend */}
+            <div className="text-center">
+              <div className="text-sm text-gray-600 mb-2">
+                Code expires in: <span className="font-semibold text-indigo-600">{formatTime(timeLeft)}</span>
+              </div>
+              
+            </div>
+
+            {/* Verify Button */}
+            <button
+              type="submit"
+              disabled={isLoading || otp.some(digit => !digit)}
+              className="w-full py-4 bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-blue-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? 'Verifying...' : 'Verify Code'}
+            </button>
+          </form>
 
           {/* Footer */}
           <div className="mt-8 text-center text-sm text-gray-500">

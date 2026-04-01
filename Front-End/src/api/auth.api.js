@@ -2,6 +2,59 @@
 import { fetchJSON, fetchWithAuth, cookieManager } from './fetchWithAuth';
 import { API_ENDPOINTS } from '../config/api.config';
 
+
+export const authAPI = {
+  /**
+   * Send OTP to email
+   * @param {string} email - User email
+   */
+  sendOtp: async (email) => {
+    try {
+      const response = await fetchJSON(
+        API_ENDPOINTS.AUTH.SEND_OTP,
+        {
+          method: 'POST',
+          body: JSON.stringify({ email }),
+        },
+        false
+      );
+      return response;
+    } catch (error) {
+      console.error('Send OTP error:', error);
+      throw new Error(error.message || 'Failed to send verification code');
+    }
+  },
+
+  /**
+   * Verify OTP and reset password in one call
+   * @param {string} email - User email
+   * @param {string} code - OTP code (6 digits)
+   * @param {string} newPassword - New password
+   * @returns {Promise<string>} - Success message
+   */
+  resetPassword: async (email, code, newPassword) => {
+    try {
+      const response = await fetchJSON(
+        API_ENDPOINTS.AUTH.RESET_PASSWORD,
+        {
+          method: 'POST',
+          body: JSON.stringify({ 
+            email, 
+            code, 
+            newPassword 
+          }),
+        },
+        false
+      );
+      return response;
+    } catch (error) {
+      console.error('Reset password error:', error);
+      throw new Error(error.message || 'Invalid code or failed to reset password');
+    }
+  },
+}
+
+
 /**
  * Login user - backend will set HTTP-only cookie
  * @param {object} credentials - { email, password }

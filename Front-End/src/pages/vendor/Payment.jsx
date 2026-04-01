@@ -1,6 +1,7 @@
 // src/pages/vendor/Payment.jsx
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft, CreditCard, CheckCircle, Shield,
   Lock, Calendar, FileText, Download, Loader2,

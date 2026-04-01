@@ -1,6 +1,7 @@
 // src/pages/checkout/Cart.jsx
 import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   ShoppingCart, Trash2, Plus, Minus,
   ArrowLeft, Tag, Truck, Shield,

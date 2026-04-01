@@ -96,6 +96,25 @@ public class StoreController {
         return ResponseEntity.noContent().build();
     }
 
+    @PutMapping("/layout/{storeId}")
+    public ResponseEntity<StoreDto> updateLayout(@PathVariable UUID storeId,
+                                                 @RequestBody Map<String,String> layoutConfig) {
+        return ResponseEntity.ok(storeService.updateLayout(storeId,layoutConfig.get("layoutConfig")));
+    }
+
+    @PostMapping("/banner-image/{storeId}")
+    @PreAuthorize("hasAnyRole('ADMIN','VENDOR')")
+    public ResponseEntity<Map<String,String>> bannerImage(@PathVariable UUID storeId,
+                                                @RequestParam("file") MultipartFile file,
+                                                @RequestParam("type") String type ) {
+        String imageUrl = storeService.uploadBannerImage(storeId, file, type);
+
+        return ResponseEntity.ok(
+                Map.of("url", imageUrl)
+        );
+    }
+
+
 
 
 

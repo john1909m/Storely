@@ -1,6 +1,7 @@
 // src/pages/checkout/OrderConfirmation.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   CheckCircle, ShoppingBag, Home, Package,
   Truck, Clock, Loader2, Palette, Ruler

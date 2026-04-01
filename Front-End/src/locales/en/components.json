@@ -32,6 +32,85 @@
         "cart": "Cart",
         "cartCount": "Cart ({{count}})"
       }
+    },
+    "storeBuilder": {
+      "pageToggles": {
+        "title": "Pages",
+        "subtitle": "Enable or disable pages on your store",
+        "homePage": "Home Page",
+        "homePageDescription": "Main store homepage",
+        "allProductsPage": "All Products Page",
+        "allProductsDescription": "Browse all products",
+        "enable": "Enable",
+        "disable": "Disable"
+      },
+      "sectionWrapper": {
+        "edit": "Edit",
+        "delete": "Delete",
+        "preview": "Preview",
+        "moveUp": "Move Up",
+        "moveDown": "Move Down",
+        "deleteConfirm": "Are you sure you want to delete this section?"
+      },
+      "bannerSection": {
+        "title": "Banner Section",
+        "addImage": "Add Image",
+        "removeImage": "Remove Image",
+        "uploadImage": "Upload Image",
+        "imageAlt": "Banner Image",
+        "maxSize": "Max size is 5MB",
+        "invalidFile": "Invalid file type",
+        "uploading": "Uploading...",
+        "uploadSuccess": "Image uploaded successfully",
+        "uploadError": "Failed to upload image"
+      },
+      "categoriesSection": {
+        "title": "Categories Section",
+        "selectCategories": "Select Categories",
+        "availableCategories": "Available Categories",
+        "selectedCategories": "Selected Categories",
+        "addCategory": "Add Category",
+        "removeCategory": "Remove Category",
+        "noCategories": "No categories selected"
+      },
+      "featuredProductsSection": {
+        "title": "Featured Products Section",
+        "selectProducts": "Select Products",
+        "availableProducts": "Available Products",
+        "selectedProducts": "Selected Products",
+        "addProduct": "Add Product",
+        "removeProduct": "Remove Product",
+        "noProducts": "No products selected",
+        "limit": "Maximum 10 products"
+      },
+      "footerSection": {
+        "title": "Footer Section",
+        "aboutStore": "About Store",
+        "contactInfo": "Contact Information",
+        "socialLinks": "Social Links",
+        "quickLinks": "Quick Links",
+        "copyright": "Copyright"
+      }
+    },
+    "themes": {
+      "themeSelector": {
+        "title": "Select Theme",
+        "classic": "Classic Theme",
+        "minimal": "Minimal Theme",
+        "modern": "Modern Theme",
+        "selectTheme": "Select a theme",
+        "preview": "Preview Theme",
+        "apply": "Apply Theme"
+      },
+      "classicTheme": {
+        "description": "Traditional and reliable design"
+      },
+      "minimalTheme": {
+        "description": "Clean and simple layout"
+      },
+      "modernTheme": {
+        "description": "Contemporary and trendy design"
+      }
     }
   }
 }

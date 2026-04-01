@@ -29,6 +29,11 @@ public interface StoreService {
 
     void updateTotalVisits(UUID storeId);
 
+    StoreDto updateLayout(UUID storeId, String layoutConfig);
+
+    String uploadBannerImage(UUID storeId, MultipartFile file, String type);
+
+
 
 
 

@@ -1,6 +1,7 @@
 package com.spring.boot.model;
 
 import com.spring.boot.enums.StoreStatus;
+import com.spring.boot.enums.ThemeType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,8 @@ import java.io.File;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+
+
 
 @Entity
 @Getter
@@ -45,6 +48,11 @@ public class Store {
 
     private Long totalVisits;
 
+    @Column(columnDefinition = "CLOB")
+    private String layoutConfig;
+
+    private String themeType = "CLASSIC";
+
     @OneToMany(mappedBy = "store",cascade = CascadeType.ALL)
     private List<ShippingCost> shippingCosts;
 
@@ -72,6 +80,38 @@ public class Store {
 
     @OneToMany(mappedBy = "store",cascade = CascadeType.ALL,orphanRemoval = true)
     private List<StorePaymentMethod> storePaymentMethods;
+
+
+
+
+    @PrePersist
+    public void setDefaultLayout()
+    {
+
+
+
+        if (this.layoutConfig == null){
+            this.layoutConfig = """
+        {
+          "pages": {
+            "home": true,
+            "allProducts": true
+          },
+          "sections": [
+            {
+              "type": "BANNER",
+              "image": ""
+            },
+            {
+              "type": "FEATURED_PRODUCTS",
+              "productIds": []
+            }
+          ]
+        }
+        """;
+        }
+    }
+
 
 
 

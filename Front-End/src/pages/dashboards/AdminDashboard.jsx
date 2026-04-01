@@ -1,6 +1,7 @@
 // Admin Dashboard - Real data from APIs
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Store, Users, DollarSign, TrendingUp,
   BarChart, Settings, Shield, AlertCircle
@@ -11,18 +12,12 @@ import { logout } from './../../api/auth.api';
 import useAuthStore from '../../store/authStore';
 
 const AdminDashboard = () => {
+  const { t } = useTranslation();
   const [stores, setStores] = useState([]);
   const [vendors, setVendors] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const {authInialized,isAuthenticated} = useAuthStore();
-
-  useEffect(() => {
-    if(!authInialized){
-      return;
-    }
-    fetchDashboardData();
-  }, [authInialized]);
 
   const fetchDashboardData = async () => {
     try {

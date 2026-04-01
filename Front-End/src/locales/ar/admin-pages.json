@@ -1,0 +1,79 @@
+{
+  "adminPages": {
+    "settings": {
+      "title": "إعدادات المنصة",
+      "subtitle": "تكوين إعدادات المنصة الشاملة",
+      "comingSoon": "قريباً",
+      "message": "ستكون إعدادات المنصة متاحة هنا"
+    },
+    "dashboard": {
+      "title": "لوحة تحكم المسؤول",
+      "stores": "المتاجر",
+      "vendors": "البائعين",
+      "revenue": "الإيرادات",
+      "trending": "الترندي",
+      "analyticsChart": "مخطط التحليلات",
+      "settings": "الإعدادات",
+      "security": "الأمان",
+      "noData": "لا توجد بيانات متاحة",
+      "loadingError": "خطأ في تحميل بيانات لوحة التحكم"
+    },
+    "manageStores": {
+      "title": "إدارة المتاجر",
+      "newStore": "متجر جديد",
+      "totalStores": "إجمالي المتاجر",
+      "activeStores": "متاجر نشطة",
+      "inactiveStores": "متاجر غير نشطة",
+      "searchPlaceholder": "ابحث عن المتاجر...",
+      "storeName": "اسم المتجر",
+      "vendor": "البائع",
+      "status": "الحالة",
+      "createdAt": "تاريخ الإنشاء",
+      "actions": "الإجراءات",
+      "edit": "تعديل",
+      "delete": "حذف",
+      "view": "عرض",
+      "active": "نشط",
+      "inactive": "غير نشط",
+      "confirmDelete": "هل أنت متأكد من حذف هذا المتجر؟"
+    },
+    "manageVendors": {
+      "title": "إدارة البائعين",
+      "newVendor": "بائع جديد",
+      "totalVendors": "إجمالي البائعين",
+      "activeVendors": "بائعين نشطين",
+      "inactiveVendors": "بائعين غير نشطين",
+      "searchPlaceholder": "ابحث عن البائعين...",
+      "name": "الاسم",
+      "email": "البريد الإلكتروني",
+      "phone": "الهاتف",
+      "status": "الحالة",
+      "joinDate": "تاريخ الانضمام",
+      "actions": "الإجراءات",
+      "edit": "تعديل",
+      "delete": "حذف",
+      "view": "عرض",
+      "approve": "الموافقة",
+      "reject": "الرفض",
+      "active": "نشط",
+      "pending": "قيد الانتظار",
+      "rejected": "مرفوض"
+    },
+    "pricingManagement": {
+      "title": "إدارة الأسعار",
+      "plans": "الخطط",
+      "basePlan": "الخطة الأساسية",
+      "proPlan": "خطة برو",
+      "businessPlan": "خطة العمل",
+      "enterprisePlan": "خطة العمل الكبير",
+      "editPlan": "تعديل الخطة",
+      "deletePlan": "حذف الخطة",
+      "price": "السعر",
+      "monthly": "شهري",
+      "yearly": "سنوي",
+      "features": "الميزات",
+      "addFeature": "إضافة ميزة",
+      "removeFeature": "إزالة ميزة"
+    }
+  }
+}
