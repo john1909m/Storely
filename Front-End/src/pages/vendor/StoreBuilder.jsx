@@ -19,13 +19,15 @@ import Toast from '../../components/ui/Toast';
 // import SectionWrapper from '../../components/vendor/StoreBuilder/SectionWrapper';
 // import BannerSection from '../../components/vendor/StoreBuilder/sections/BannerSection';
 // import FeaturedProductsSection from '../../components/vendor/StoreBuilder/sections/FeaturedProductsSection';
-import CategoriesSection from '../../components/vendor/StoreBuilder/sections/CategoriesSection';
-import FooterSection from '../../components/vendor/StoreBuilder/sections/FooterSection';
+// import CategoriesSection from '../../components/vendor/StoreBuilder/sections/CategoriesSection';
+// import FooterSection from '../../components/vendor/StoreBuilder/sections/FooterSection';
 import PageToggles from './../../components/vendor/storeBuilder/PageToggles';
 import SectionWrapper from './../../components/vendor/storeBuilder/SectionWrapper';
 import BannerSection from './../../components/vendor/storeBuilder/sections/BannerSection';
 // import FeaturedProductsSection from './../../components/layout/FeaturedProductsSection';
 import FeaturedProductsSection from './../../components/vendor/storeBuilder/sections/FeaturedProductsSection';
+import CategoriesSection from './../../components/vendor/storeBuilder/sections/CategoriesSection';
+import FooterSection from './../../components/vendor/storeBuilder/sections/FooterSection';
 
 const StoreBuilder = () => {
   const navigate = useNavigate();
