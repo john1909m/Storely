@@ -245,12 +245,12 @@ const ProductDetail = () => {
 
   if (error || !product) {
     return (
-      <div className={`min-h-screen ${getPageBg()} flex items-center justify-center`}>
-        <div className="text-center max-w-md">
+      <div className={`min-h-screen ${getPageBg()} flex items-center justify-center p-4`}>
+        <div className="text-center max-w-md w-full">
           <div className="text-6xl mb-4">📦</div>
-          <h2 className={`text-2xl font-bold ${getTextColor()} mb-2`}>{t('productDetail.errors.productNotFound')}</h2>
-          <p className={`${getSecondaryTextColor()} mb-6`}>{error || t('productDetail.errors.productNotFoundMessage')}</p>
-          <button onClick={() => navigate(`/store/${storeName}`)} className="inline-flex items-center px-6 py-3 text-white rounded-xl hover:opacity-90 transition-all" style={getGradientStyle(colors.primary, colors.secondary)}>
+          <h2 className={`text-xl sm:text-2xl font-bold ${getTextColor()} mb-2 break-words`}>{t('productDetail.errors.productNotFound')}</h2>
+          <p className={`${getSecondaryTextColor()} mb-6 text-sm sm:text-base break-words`}>{error || t('productDetail.errors.productNotFoundMessage')}</p>
+          <button onClick={() => navigate(`/store/${storeName}`)} className="inline-flex items-center px-4 sm:px-6 py-2.5 sm:py-3 text-white rounded-xl hover:opacity-90 transition-all text-sm sm:text-base" style={getGradientStyle(colors.primary, colors.secondary)}>
             {t('productDetail.buttons.backToStore')}
           </button>
         </div>
@@ -259,22 +259,22 @@ const ProductDetail = () => {
   }
 
   return (
-    <div className={`min-h-screen ${getPageBg()}`}>
+    <div className={`min-h-screen ${getPageBg()} overflow-x-hidden`}>
       <style>{fadeInStyles}</style>
       
-      <div className="container mx-auto px-4 py-8">
+      <div className="w-full max-w-full px-3 sm:px-4 py-4 sm:py-8 overflow-x-hidden">
         {/* Back Button */}
-        <button onClick={() => navigate(`/store/${storeName}`)} className={`mb-6 flex items-center space-x-2 transition-all duration-700 ${pageLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'}`} style={{ color: colors.primary }}>
-          <ChevronLeft className="h-5 w-5" />
-          <span>{t('productDetail.buttons.backToStoreName', { storeName: store?.storeName })}</span>
+        <button onClick={() => navigate(`/store/${storeName}`)} className={`mb-4 sm:mb-6 flex items-center space-x-1 sm:space-x-2 transition-all duration-700 text-sm sm:text-base ${pageLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'}`} style={{ color: colors.primary }}>
+          <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+          <span className="truncate max-w-[200px] sm:max-w-none">{t('productDetail.buttons.backToStoreName', { storeName: store?.storeName })}</span>
         </button>
 
         {/* Product Card */}
-        <div className={`${getCardBg()} rounded-2xl overflow-hidden shadow-lg transition-all duration-700 ${pageLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <div className="grid md:grid-cols-2 gap-8 p-8">
+        <div className={`w-full ${getCardBg()} rounded-xl sm:rounded-2xl overflow-hidden shadow-lg transition-all duration-700 ${pageLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          <div className="grid md:grid-cols-2 gap-4 sm:gap-8 p-4 sm:p-8">
             {/* Product Images */}
-            <div className="space-y-4">
-              <div className="aspect-square bg-gray-50 rounded-2xl overflow-hidden transition-all duration-700 delay-100" style={pageLoaded ? { opacity: 1 } : { opacity: 0 }}>
+            <div className="space-y-3 sm:space-y-4 w-full overflow-hidden">
+              <div className="aspect-square bg-gray-50 rounded-xl sm:rounded-2xl overflow-hidden transition-all duration-700 delay-100 w-full" style={pageLoaded ? { opacity: 1 } : { opacity: 0 }}>
                 {product.imageUrls && product.imageUrls[selectedImageIndex] ? (
                   <img src={product.imageUrls[selectedImageIndex]} alt={product.productName || product.name} className="h-full w-full object-cover" />
                 ) : (
@@ -283,9 +283,9 @@ const ProductDetail = () => {
               </div>
               
               {product.imageUrls && product.imageUrls.length > 1 && (
-                <div className="flex space-x-4 overflow-x-auto pb-2">
+                <div className="flex space-x-2 sm:space-x-4 overflow-x-auto pb-2 scrollbar-hide">
                   {product.imageUrls.map((image, index) => (
-                    <button key={index} onClick={() => setSelectedImageIndex(index)} className={`flex-shrink-0 h-20 w-20 rounded-lg overflow-hidden border-2 transition-all ${selectedImageIndex === index ? 'border-2' : 'border-gray-200'}`} style={selectedImageIndex === index ? { borderColor: colors.primary } : {}}>
+                    <button key={index} onClick={() => setSelectedImageIndex(index)} className={`flex-shrink-0 h-14 w-14 sm:h-20 sm:w-20 rounded-lg overflow-hidden border-2 transition-all ${selectedImageIndex === index ? 'border-2' : 'border-gray-200'}`} style={selectedImageIndex === index ? { borderColor: colors.primary } : {}}>
                       <img src={image} alt={`${product.productName} ${index + 1}`} className="h-full w-full object-cover" />
                     </button>
                   ))}
@@ -294,21 +294,21 @@ const ProductDetail = () => {
             </div>
 
             {/* Product Info */}
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6 w-full overflow-hidden">
               <div className={`transition-all duration-700 delay-200 ${pageLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                <span className="inline-block px-3 py-1 rounded-full text-sm font-medium mb-3" style={{ backgroundColor: colors.primaryLight, color: colors.primary }}>
+                <span className="inline-block px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium mb-2 sm:mb-3" style={{ backgroundColor: colors.primaryLight, color: colors.primary }}>
                   {product.categoryName || product.category?.name || t('productDetail.uncategorized')}
                 </span>
-                <h1 className={`text-3xl font-bold ${getTextColor()} mb-2`}>{product.productName || product.name}</h1>
+                <h1 className={`text-xl sm:text-3xl font-bold ${getTextColor()} mb-2 break-words`}>{product.productName || product.name}</h1>
               </div>
 
               {/* Price */}
               <div className={`transition-all duration-700 delay-300 ${pageLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                <div className={`text-4xl font-bold ${getTextColor()} mb-2`}>{formatPrice(product.price || 0)}</div>
+                <div className={`text-2xl sm:text-4xl font-bold ${getTextColor()} mb-2`}>{formatPrice(product.price || 0)}</div>
                 {product.oldPrice > product.price && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg text-gray-500 line-through">{formatPrice(product.oldPrice)}</span>
-                    <span className="px-2 py-1 rounded-lg text-sm font-medium" style={{ backgroundColor: colors.primaryLight, color: colors.primary }}>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-sm sm:text-lg text-gray-500 line-through">{formatPrice(product.oldPrice)}</span>
+                    <span className="px-2 py-0.5 sm:py-1 rounded-lg text-xs sm:text-sm font-medium" style={{ backgroundColor: colors.primaryLight, color: colors.primary }}>
                       {Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)}% {t('productDetail.off')}
                     </span>
                   </div>
@@ -317,22 +317,23 @@ const ProductDetail = () => {
 
               {/* Variant Selection */}
               {hasVariants && (
-                <div className={`space-y-6 transition-all duration-700 delay-400 ${pageLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+                <div className={`space-y-4 sm:space-y-6 transition-all duration-700 delay-400 ${pageLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
                   {uniqueColors.length > 0 && (
                     <div>
-                      <div className="flex items-center gap-2 mb-3">
-                        <Palette className="h-5 w-5" style={{ color: colors.primary }} />
-                        <label className={`text-sm font-medium ${getSecondaryTextColor()}`}>{t('productDetail.color')}:</label>
-                        <span className="text-sm font-semibold" style={{ color: colors.primary }}>{selectedColor || t('productDetail.select')}</span>
+                      <div className="flex items-center gap-2 mb-2 sm:mb-3">
+                        <Palette className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" style={{ color: colors.primary }} />
+                        <label className={`text-xs sm:text-sm font-medium ${getSecondaryTextColor()}`}>{t('productDetail.color')}:</label>
+                        <span className="text-xs sm:text-sm font-semibold truncate" style={{ color: colors.primary }}>{selectedColor || t('productDetail.select')}</span>
                       </div>
-                      <div className="flex flex-wrap gap-3">
-                        {uniqueColors.map(color => {
+                      <div className="flex flex-wrap gap-2 sm:gap-3">
+                        {uniqueColors.slice(0, 6).map(color => {
                           const isAvailable = product.variants.some(v => v.productColor === color && v.quantity > 0);
                           return (
                             <button key={color} onClick={() => setSelectedColor(color)} disabled={!isAvailable}
-                              className={`px-4 py-2 rounded-xl border-2 transition-all ${selectedColor === color ? 'text-white' : isAvailable ? 'text-gray-700 hover:border-gray-300' : 'border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed opacity-50'}`}
+                              className={`px-2 sm:px-4 py-1 sm:py-2 rounded-xl border-2 transition-all text-xs sm:text-sm ${selectedColor === color ? 'text-white' : isAvailable ? 'text-gray-700 hover:border-gray-300' : 'border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed opacity-50'}`}
                               style={selectedColor === color ? getGradientStyle(colors.primary, colors.secondary) : { borderColor: selectedColor === color ? colors.primary : colors.primaryLight }}>
-                              {color}{!isAvailable && <span className="ml-2 text-xs">({t('productDetail.out')})</span>}
+                              <span className="truncate">{color}</span>
+                              {!isAvailable && <span className="ml-1 text-[10px] sm:text-xs">({t('productDetail.out')})</span>}
                             </button>
                           );
                         })}
@@ -342,20 +343,20 @@ const ProductDetail = () => {
 
                   {availableSizes.length > 0 && (
                     <div>
-                      <div className="flex items-center gap-2 mb-3">
-                        <Ruler className="h-5 w-5" style={{ color: colors.primary }} />
-                        <label className={`text-sm font-medium ${getSecondaryTextColor()}`}>{t('productDetail.size')}:</label>
-                        <span className="text-sm font-semibold" style={{ color: colors.primary }}>{selectedSize || t('productDetail.select')}</span>
+                      <div className="flex items-center gap-2 mb-2 sm:mb-3">
+                        <Ruler className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" style={{ color: colors.primary }} />
+                        <label className={`text-xs sm:text-sm font-medium ${getSecondaryTextColor()}`}>{t('productDetail.size')}:</label>
+                        <span className="text-xs sm:text-sm font-semibold truncate" style={{ color: colors.primary }}>{selectedSize || t('productDetail.select')}</span>
                       </div>
-                      <div className="flex flex-wrap gap-3">
+                      <div className="flex flex-wrap gap-2 sm:gap-3">
                         {availableSizes.map(size => {
                           const variant = product.variants.find(v => v.productColor === selectedColor && v.productSize === size);
                           const isAvailable = variant?.quantity > 0;
                           return (
                             <button key={size} onClick={() => setSelectedSize(size)} disabled={!isAvailable}
-                              className={`px-4 py-2 rounded-xl border-2 transition-all ${selectedSize === size ? 'text-white' : isAvailable ? 'text-gray-700 hover:border-gray-300' : 'border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed opacity-50'}`}
+                              className={`px-2 sm:px-4 py-1 sm:py-2 rounded-xl border-2 transition-all text-xs sm:text-sm ${selectedSize === size ? 'text-white' : isAvailable ? 'text-gray-700 hover:border-gray-300' : 'border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed opacity-50'}`}
                               style={selectedSize === size ? getGradientStyle(colors.primary, colors.secondary) : { borderColor: colors.primaryLight }}>
-                              {size}{!isAvailable && <span className="ml-2 text-xs">({t('productDetail.out')})</span>}
+                              {size}{!isAvailable && <span className="ml-1 text-[10px] sm:text-xs">({t('productDetail.out')})</span>}
                             </button>
                           );
                         })}
@@ -364,12 +365,12 @@ const ProductDetail = () => {
                   )}
 
                   {selectedVariant && (
-                    <div className="rounded-xl p-4 transition-all duration-700" style={{ backgroundColor: colors.primaryLight }}>
-                      <div className="flex items-start gap-3">
-                        <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" style={{ color: colors.primary }} />
-                        <div>
-                          <p className="text-sm font-medium" style={{ color: colors.primary }}>{t('productDetail.selected')}: {selectedColor} {selectedSize && `/ ${selectedSize}`}</p>
-                          <p className="text-sm opacity-75" style={{ color: colors.primary }}>{availableStock} {t('productDetail.unitsAvailable')}</p>
+                    <div className="rounded-xl p-3 sm:p-4 transition-all duration-700" style={{ backgroundColor: colors.primaryLight }}>
+                      <div className="flex items-start gap-2 sm:gap-3">
+                        <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 mt-0.5" style={{ color: colors.primary }} />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs sm:text-sm font-medium break-words" style={{ color: colors.primary }}>{t('productDetail.selected')}: {selectedColor} {selectedSize && `/ ${selectedSize}`}</p>
+                          <p className="text-xs sm:text-sm opacity-75" style={{ color: colors.primary }}>{availableStock} {t('productDetail.unitsAvailable')}</p>
                         </div>
                       </div>
                     </div>
@@ -379,60 +380,59 @@ const ProductDetail = () => {
 
               {/* Description */}
               <div className={`transition-all duration-700 delay-500 ${pageLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                <h3 className={`text-lg font-semibold ${getTextColor()} mb-3`}>{t('productDetail.description')}</h3>
-                <p className={getSecondaryTextColor()}>{product.description || t('productDetail.noDescription')}</p>
+                <h3 className={`text-base sm:text-lg font-semibold ${getTextColor()} mb-2 sm:mb-3`}>{t('productDetail.description')}</h3>
+                <p className={`text-xs sm:text-sm ${getSecondaryTextColor()} break-words whitespace-pre-wrap`}>{product.description || t('productDetail.noDescription')}</p>
               </div>
 
               {/* Quantity Selector */}
               <div className={`transition-all duration-700 delay-600 ${pageLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                <label className={`block text-sm font-medium ${getSecondaryTextColor()} mb-2`}>{t('productDetail.quantity')}</label>
-                <div className="flex items-center space-x-4">
+                <label className={`block text-xs sm:text-sm font-medium ${getSecondaryTextColor()} mb-2`}>{t('productDetail.quantity')}</label>
+                <div className="flex flex-wrap items-center gap-3 sm:gap-4">
                   <div className={`flex items-center border rounded-lg ${themeType === 'MODERN' ? 'border-white/20' : 'border-gray-200'}`}>
-                    <button onClick={() => setQuantity(prev => Math.max(1, prev - 1))} disabled={quantity <= 1} className="h-12 w-12 flex items-center justify-center disabled:opacity-50">
-                      <div className='border-2 border-white w-6 h-7 p-4 flex flex-col justify-center items-center flex-shrink-0 rounded-2xl' style={{ backgroundColor: colors.primary }}>
-                        <span className="text-2xl text-white text-center flex justify-center items-center">-</span>
+                    <button onClick={() => setQuantity(prev => Math.max(1, prev - 1))} disabled={quantity <= 1} className="h-10 w-10 sm:h-12 sm:w-12 flex items-center justify-center disabled:opacity-50">
+                      <div className='w-7 h-7 sm:w-8 sm:h-8 flex flex-col justify-center items-center rounded-xl' style={{ backgroundColor: colors.primary }}>
+                        <span className="text-xl sm:text-2xl text-white">-</span>
                       </div>
                     </button>
-                    <span className={`h-12 w-16 flex items-center justify-center font-semibold ${getTextColor()}`}>{quantity}</span>
-                    <button onClick={() => setQuantity(prev => Math.min(availableStock, prev + 1))} disabled={quantity >= availableStock} className="h-12 w-12 flex items-center justify-center disabled:opacity-50">
-                      <div className='border-2 border-white w-6 h-7 p-4 flex flex-col justify-center items-center flex-shrink-0 rounded-2xl' style={{ backgroundColor: colors.primary }}>
-                        <span className="text-2xl text-white text-center flex justify-center items-center">+</span>
+                    <span className={`h-10 w-10 sm:h-12 sm:w-12 flex items-center justify-center font-semibold text-sm sm:text-base ${getTextColor()}`}>{quantity}</span>
+                    <button onClick={() => setQuantity(prev => Math.min(availableStock, prev + 1))} disabled={quantity >= availableStock} className="h-10 w-10 sm:h-12 sm:w-12 flex items-center justify-center disabled:opacity-50">
+                      <div className='w-7 h-7 sm:w-8 sm:h-8 flex flex-col justify-center items-center rounded-xl' style={{ backgroundColor: colors.primary }}>
+                        <span className="text-xl sm:text-2xl text-white">+</span>
                       </div>
                     </button>
                   </div>
-                  <div className={`text-sm ${getSecondaryTextColor()}`}>{t('productDetail.max')}: {availableStock} {t('productDetail.units')}</div>
+                  <div className={`text-xs sm:text-sm ${getSecondaryTextColor()}`}>{t('productDetail.max')}: {availableStock} {t('productDetail.units')}</div>
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex gap-4">
-                <button onClick={handleAddToCart} disabled={isOutOfStock || (hasVariants && !selectedVariant)} className={`flex-1 py-4 rounded-xl font-semibold text-lg transition-all ${!isOutOfStock && (!hasVariants || selectedVariant) ? 'text-white hover:opacity-90 shadow-lg' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`} style={!isOutOfStock && (!hasVariants || selectedVariant) ? getGradientStyle(colors.primary, colors.secondary) : {}}>
-                  {hasVariants && !selectedVariant ? t('productDetail.selectOptions') : isOutOfStock ? t('productDetail.outOfStock') : `${t('productDetail.addToCart')} - ${formatPrice((product.price || 0) * quantity)}`}
+              <div className="flex gap-2 sm:gap-4">
+                <button onClick={handleAddToCart} disabled={isOutOfStock || (hasVariants && !selectedVariant)} className={`flex-1 py-3 sm:py-4 rounded-xl font-semibold text-sm sm:text-lg transition-all ${!isOutOfStock && (!hasVariants || selectedVariant) ? 'text-white hover:opacity-90 shadow-lg' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`} style={!isOutOfStock && (!hasVariants || selectedVariant) ? getGradientStyle(colors.primary, colors.secondary) : {}}>
+                  <span className="truncate block px-1">{hasVariants && !selectedVariant ? t('productDetail.selectOptions') : isOutOfStock ? t('productDetail.outOfStock') : `${t('productDetail.addToCart')} - ${formatPrice((product.price || 0) * quantity)}`}</span>
                 </button>
                 
-                
+                {/* <button onClick={handleToggleWishlist} className={`p-3 sm:p-4 rounded-xl border-2 transition-all flex-shrink-0 ${isInWishlist ? 'text-white' : themeType === 'MODERN' ? 'border-white/20 text-white' : 'border-gray-200 text-gray-600'}`} style={isInWishlist ? { backgroundColor: colors.primary, borderColor: colors.primary } : {}}>
+                  <Heart className={`h-5 w-5 sm:h-6 sm:w-6 ${isInWishlist ? 'fill-current' : ''}`} />
+                </button> */}
               </div>
 
               {/* Store Info */}
-              <div className={`pt-8 border-t ${themeType === 'MODERN' ? 'border-white/10' : 'border-gray-200'} transition-all duration-700 delay-800 ${pageLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                <div className="flex items-center space-x-4">
-                  <div className="h-12 w-12 rounded-xl flex items-center justify-center overflow-hidden" style={{ backgroundColor: colors.primaryLight }}>
-                    {store?.logoUrl ? <img src={store.logoUrl} alt={store.storeName} className="h-full w-full object-cover" /> : <ShoppingBag className="h-6 w-6" style={{ color: colors.primary }} />}
+              <div className={`pt-4 sm:pt-8 border-t ${themeType === 'MODERN' ? 'border-white/10' : 'border-gray-200'} transition-all duration-700 delay-800 ${pageLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+                <div className="flex items-center space-x-3 sm:space-x-4">
+                  <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0" style={{ backgroundColor: colors.primaryLight }}>
+                    {store?.logoUrl ? <img src={store.logoUrl} alt={store.storeName} className="h-full w-full object-cover" /> : <ShoppingBag className="h-5 w-5 sm:h-6 sm:w-6" style={{ color: colors.primary }} />}
                   </div>
-                  <div>
-                    <div className={`font-semibold ${getTextColor()}`}>{t('productDetail.soldBy')} {store?.storeName}</div>
-                    <div className={`text-sm ${getSecondaryTextColor()}`}>{store?.storeDescription || t('productDetail.verifiedSeller')}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className={`font-semibold text-sm sm:text-base truncate ${getTextColor()}`}>{t('productDetail.soldBy')} {store?.storeName}</div>
+                    <div className={`text-xs sm:text-sm ${getSecondaryTextColor()} truncate`}>{store?.storeDescription || t('productDetail.verifiedSeller')}</div>
                     <div className="flex items-center gap-2 mt-1">
-                      <div className="h-3 w-3 rounded-full" style={{ backgroundColor: colors.primary }} />
-                      <div className="h-3 w-3 rounded-full" style={{ backgroundColor: colors.secondary }} />
-                      <span className={`text-xs ${getSecondaryTextColor()}`}>{t('productDetail.storeColors')}</span>
+                      <div className="h-2 w-2 sm:h-3 sm:w-3 rounded-full flex-shrink-0" style={{ backgroundColor: colors.primary }} />
+                      <div className="h-2 w-2 sm:h-3 sm:w-3 rounded-full flex-shrink-0" style={{ backgroundColor: colors.secondary }} />
+                      <span className={`text-[10px] sm:text-xs ${getSecondaryTextColor()} truncate`}>{t('productDetail.storeColors')}</span>
                     </div>
                   </div>
                 </div>
               </div>
-
-              {/* Features */}
-              
             </div>
           </div>
         </div>
