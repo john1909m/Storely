@@ -8,6 +8,8 @@ import com.spring.boot.repo.CategoryRepo;
 import com.spring.boot.repo.StoreRepo;
 import com.spring.boot.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -30,6 +32,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Cacheable(value = "categories-list",key = "#storeId")
     public List<CategoryDto> getCategoriesByStoreId(UUID storeId) {
         return categoryRepo.findByStore_Id(storeId).stream()
                 .map(categoryMapper::toCategoryDto)
@@ -37,6 +40,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Cacheable(value = "categories",key = "#id")
     public CategoryDto getCategoryById(UUID id) {
         return categoryRepo.findById(id)
                 .map(categoryMapper::toCategoryDto)
@@ -51,6 +55,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @CacheEvict(value = {"categories", "categories-list"},key = "#categoryDto.storeId")
     public CategoryDto addCategory(CategoryDto categoryDto) {
         Category category = categoryMapper.toCategoryEntity(categoryDto);
 
@@ -84,6 +89,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @CacheEvict(value = {"categories", "categories-list"},key = "#categoryDto.storeId")
     public CategoryDto updateCategory(CategoryDto categoryDto) {
         Category existingCategory = categoryRepo.findById(categoryDto.getId())
                 .orElseThrow(() -> new RuntimeException("category.not.found"));
@@ -112,6 +118,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @CacheEvict(value = "categories",key = "#id")
     public CategoryDto deleteCategory(UUID id) {
         // Check if category exists
         Category category = categoryRepo.findById(id)

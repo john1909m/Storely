@@ -6,6 +6,13 @@ spring:
   profiles:
     active: dev
 
+  data:
+  redis:
+    host: localhost
+    port: 6379
+    repositories:
+      enabled: false
+
 
   server:
     port: 8080

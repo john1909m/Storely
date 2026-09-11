@@ -1,46 +1,52 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { Languages } from 'lucide-react';
 
 const LanguageSwitcher = () => {
   const { i18n, t } = useTranslation();
 
   const current = i18n.language === 'ar' ? 'ar' : 'en';
+  const nextLang = current === 'ar' ? 'en' : 'ar';
 
   const setDir = (lng) => {
     const dir = lng === 'ar' ? 'rtl' : 'ltr';
     document.documentElement.dir = dir;
-    // Compatibility with existing code that reads `document.dir`
     document.dir = dir;
   };
 
-  const onChange = async (e) => {
-    const nextLang = e.target.value === 'ar' ? 'ar' : 'en';
+  const toggleLanguage = async () => {
     await i18n.changeLanguage(nextLang);
     try {
       localStorage.setItem('lang', nextLang);
     } catch {
-      // Ignore storage issues (e.g., privacy mode)
+      // Ignore storage issues
     }
     setDir(nextLang);
   };
 
   return (
-    <div className="fixed bottom-4 left-4 z-50">
-      <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl px-3 py-2 shadow-2xl">
-        <label className="block text-xs text-white/70 mb-1">{t('common.language')}</label>
-        <select
-          aria-label={t('common.language')}
-          value={current}
-          onChange={onChange}
-          className="w-36 bg-black/30 border border-white/10 text-white rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-blue-400"
-        >
-          <option value="en">{t('common.languages.en')}</option>
-          <option value="ar">{t('common.languages.ar')}</option>
-        </select>
-      </div>
-    </div>
+    <button
+      onClick={toggleLanguage}
+      aria-label={
+        nextLang === 'ar'
+          ? t('common.switchToArabic', 'Switch to Arabic')
+          : t('common.switchToEnglish', 'Switch to English')
+      }
+      title={
+        nextLang === 'ar'
+          ? t('common.switchToArabic', 'Switch to Arabic')
+          : t('common.switchToEnglish', 'Switch to English')
+      }
+      className="fixed bottom-4 left-4 z-50 group h-11 w-11 rounded-full bg-[#800020] hover:bg-[#6a001a] border border-white/20 flex items-center justify-center text-white transition-colors duration-200 shadow-lg shadow-black/20"
+    >
+      <Languages className="h-5 w-5" />
+
+      {/* Language badge — flips to white on burgundy button */}
+      <span className="absolute -bottom-0.5 -right-0.5 text-[9px] font-bold bg-white text-[#800020] rounded-full h-4 w-4 flex items-center justify-center uppercase leading-none border border-[#800020]/20">
+        {current}
+      </span>
+    </button>
   );
 };
 
 export default LanguageSwitcher;
-

@@ -8,7 +8,11 @@ import com.spring.boot.mapper.StoreMapper;
 import com.spring.boot.model.*;
 import com.spring.boot.repo.*;
 import com.spring.boot.service.StoreService;
+import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,6 +23,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class StoreServiceImpl implements StoreService {
     private StoreMapper storeMapper;
@@ -46,13 +51,17 @@ public class StoreServiceImpl implements StoreService {
     }
 
     @Override
+//    @Cacheable(value = "stores-list")
+    @Cacheable(value = "stores-list")
     public List<StoreDto> getAllStores() {
+        log.info("get all stores");
         return storeRepo.findAll().stream()
                 .map(storeMapper::toStoreDto)
                 .toList();
     }
 
     @Override
+//    @Cacheable(value = "stores",key = "#storeId")
     public StoreDto getStoreByStoreId(UUID storeId) {
         return storeRepo.findById(storeId)
                 .map(storeMapper::toStoreDto)
@@ -60,6 +69,7 @@ public class StoreServiceImpl implements StoreService {
     }
 
     @Override
+//    @Cacheable(value = "stores",key = "#storeName")
     public StoreDto getStoreByStoreName(String storeName) {
         return storeRepo.findStoreByStoreName(storeName)
                 .map(storeMapper::toStoreDto)
@@ -67,6 +77,7 @@ public class StoreServiceImpl implements StoreService {
     }
 
     @Override
+//    @Cacheable(value = "stores",key = "#vendorId")
     public StoreDto getStoreByVendorId(UUID vendorId) {
         return storeRepo.findStoreByVendor_Id(vendorId)
                 .map(storeMapper::toStoreDto)
@@ -74,6 +85,7 @@ public class StoreServiceImpl implements StoreService {
     }
 
     @Override
+//    @Cacheable(value = "stores",key = "#vendorName")
     public StoreDto getStoreByVendorName(String vendorName) {
         return storeRepo.findStoreByVendor_Name(vendorName)
                 .map(storeMapper::toStoreDto)
@@ -81,6 +93,7 @@ public class StoreServiceImpl implements StoreService {
     }
 
     @Override
+    @CacheEvict(value = {"stores", "stores-list"},allEntries = true)
     public StoreDto addStore(StoreDto storeDto) {
         if(storeDto.getStoreName().contains(" ")){
             throw new RuntimeException("store.must.not.have.spaces");
@@ -96,6 +109,7 @@ public class StoreServiceImpl implements StoreService {
 
     @Override
     @Transactional
+    @CacheEvict(value = {"stores", "stores-list"},allEntries = true)
     public StoreDto updateStore(StoreDto storeDto) {
         Store existingStore = storeRepo.findById(storeDto.getId())
                 .orElseThrow(() -> new RuntimeException("store.not.found"));
@@ -148,6 +162,7 @@ public class StoreServiceImpl implements StoreService {
     }
 
     @Override
+    @CacheEvict(value = {"stores", "stores-list"},allEntries = true)
     public void deleteStore(UUID storeId) {
         Optional<Store> optionalStore = storeRepo.findById(storeId);
         if (optionalStore.isEmpty()) {

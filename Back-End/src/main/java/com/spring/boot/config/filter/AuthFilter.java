@@ -36,7 +36,7 @@ public class AuthFilter extends OncePerRequestFilter {
 
         String token = null;
 
-        // ✅ Get token from cookie
+        // Get token from cookie
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
                 if ("access_token".equals(cookie.getName())) {

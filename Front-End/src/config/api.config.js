@@ -1,6 +1,6 @@
 // API Configuration
 // Update this with your Spring Boot backend URL
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.storely-eg.com';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 import Pricing from './../pages/vendor/Pricing';
 
 // API endpoints
@@ -34,10 +34,10 @@ export const API_ENDPOINTS = {
     GET_ALL: '/store/get/all',
     DELETE: (storeId) => `/store/delete/${storeId}`,
     UPLOAD_IMAGE: (storeId) => `/store/${storeId}/upload-image`,
-    UPDATE_DEPOSIT_SETTINGS:  `/deposit-settings/update`,
+    UPDATE_DEPOSIT_SETTINGS: `/deposit-settings/update`,
     GET_DEPOSIT_SETTINGS: (storeId) => `/deposit-settings/get/${storeId}`,
-      GET_VISITS: (storeId) => `/store/visits/${storeId}`,
-      incrementVisits: (storeId) => `/store/incVisit/${storeId}`,
+    GET_VISITS: (storeId) => `/store/visits/${storeId}`,
+    incrementVisits: (storeId) => `/store/incVisit/${storeId}`,
   },
   // Product
   PRODUCT: {
@@ -92,13 +92,13 @@ export const API_ENDPOINTS = {
     GET_BY_NAME: (categoryName, storeId) => `/category/get/name/${categoryName}/store/${storeId}`,
     DELETE: (categoryId) => `/category/delete/${categoryId}`,
   },
-  PRICING:{
+  PRICING: {
     GET_PLANS: '/subscription-plan/get/all',
     Add_PLAN: '/subscription-plan/add',
     DELETE_PLAN: (planId) => `/subscription-plan/delete/${planId}`,
     UPDATE_PLAN: '/subscription-plan/update',
     GET_PLAN_BY_ID: (planId) => `/subscription-plan/get/${planId}`,
-    
+
   },
 
   VENDOR_SUBSCRIPTION: {
@@ -109,15 +109,15 @@ export const API_ENDPOINTS = {
     UPDATE: '/vendor-subscription/update',
     DELETE: (id) => `/vendor-subscription/delete/${id}`,
   },
-  SHIPPING:{
-    GET_ALL:(storeId) => `/shipping-cost/store/${storeId}`,
-    ADD:'/shipping-cost/add',
-    UPDATE:'/shipping-cost/update',
-    
+  SHIPPING: {
+    GET_ALL: (storeId) => `/shipping-cost/store/${storeId}`,
+    ADD: '/shipping-cost/add',
+    UPDATE: '/shipping-cost/update',
+
   }
   ,
   GOVERNORATE: {
-    GET_ALL:() => '/shipping-cost/governorates',
+    GET_ALL: () => '/shipping-cost/governorates',
   },
   PaymentMethods: {
     GET_ALL: (storeId) => `/store-payment-methods/${storeId}`,

@@ -1,124 +1,17 @@
 // src/pages/customer/Contact.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Mail, MessageSquare, HelpCircle,
   CheckCircle, Send, Clock, Phone, MessageCircle,
-  Headphones, MapPin, Globe, Users, Award,
-  ChevronRight, Sparkles, Zap, Shield, Star,
-  Layers, Box, Compass, Heart, Gift, Rocket
+  Headphones, MapPin, Globe, Award,
+  ChevronRight, Zap, Shield, Star, Heart, Rocket, Gift
 } from 'lucide-react';
 import { useForm, ValidationError } from '@formspree/react';
 import Navbar from '../../components/Navbar';
 
-// إضافة أنماط CSS للـ 3D animations
-const contactStyles = `
-  @keyframes float-3d {
-    0%, 100% { transform: translateY(0px) rotateX(0deg) rotateY(0deg); }
-    25% { transform: translateY(-20px) rotateX(5deg) rotateY(5deg); }
-    75% { transform: translateY(20px) rotateX(-5deg) rotateY(-5deg); }
-  }
-
-  @keyframes float-particle {
-    0% { transform: translateY(0) translateX(0) scale(1); opacity: 0; }
-    10% { opacity: 1; }
-    90% { opacity: 1; }
-    100% { transform: translateY(-100vh) translateX(100px) scale(0); opacity: 0; }
-  }
-
-  @keyframes pulse-slow {
-    0%, 100% { transform: scale(1); opacity: 0.3; }
-    50% { transform: scale(1.2); opacity: 0.5; }
-  }
-
-  @keyframes shine-3d {
-    0% { background-position: -200px; transform: skewX(-15deg); }
-    100% { background-position: 200px; transform: skewX(-15deg); }
-  }
-
-  @keyframes glow-pulse {
-    0%, 100% { filter: brightness(1) blur(20px); }
-    50% { filter: brightness(1.5) blur(30px); }
-  }
-
-  .animate-float-3d {
-    animation: float-3d 8s ease-in-out infinite;
-    transform-style: preserve-3d;
-  }
-
-  .animate-float-particle {
-    animation: float-particle 8s linear infinite;
-  }
-
-  .animate-pulse-slow {
-    animation: pulse-slow 4s ease-in-out infinite;
-  }
-
-  .animate-shine-3d {
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-    background-size: 200px 100%;
-    animation: shine-3d 3s infinite;
-  }
-
-  .animate-glow-pulse {
-    animation: glow-pulse 3s ease-in-out infinite;
-  }
-
-  .animation-delay-2000 {
-    animation-delay: 2s;
-  }
-
-  .perspective-1000 {
-    perspective: 1000px;
-  }
-
-  .perspective-2000 {
-    perspective: 2000px;
-  }
-
-  .transform-gpu {
-    transform: translateZ(0);
-    backface-visibility: hidden;
-  }
-
-  .transform-style-3d {
-    transform-style: preserve-3d;
-  }
-
-  .hover-lift-3d {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-  .hover-lift-3d:hover {
-    transform: translateY(-5px) translateZ(20px) rotateX(2deg);
-    box-shadow: 0 30px 40px -20px rgba(79, 70, 229, 0.3);
-  }
-
-  .glass-card {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  .glass-card:hover {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.2);
-  }
-
-  .text-shadow-3d {
-    text-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 40px rgba(59,130,246,0.3);
-  }
-
-  .grid-3d {
-    background-image: 
-      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-    background-size: 50px 50px;
-  }
-`;
-
 const CustomerContact = () => {
-  // Formspree hook
   const [state, handleSubmit] = useForm("xvzbwzaw");
-  
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -127,12 +20,8 @@ const CustomerContact = () => {
     inquiryType: 'general'
   });
 
-  const [hoveredField, setHoveredField] = useState(null);
-  const [hoveredCard, setHoveredCard] = useState(null);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [focusedField, setFocusedField] = useState(null);
 
-  // بيانات التواصل
   const contactInfo = {
     phone: '+201069700293',
     whatsapp: '201035999541',
@@ -146,25 +35,17 @@ const CustomerContact = () => {
     }
   };
 
-  // FAQ data with 3D style
   const faqs = [
     {
       question: "How do I track my order?",
       answer: "You can track your order by logging into your account and visiting the 'My Orders' section. You'll receive email updates with tracking information once your order ships.",
-      color: "blue",
-      gradient: "from-blue-400 to-cyan-400"
     },
-    
     {
       question: "How can I become a vendor?",
       answer: "Visit our Pricing page and click 'Create Your Store'. You can start selling in minutes with our simple setup process.",
-      color: "green",
-      gradient: "from-green-400 to-emerald-400"
     },
-    
   ];
 
-  // Contact methods with 3D styling
   const contactMethods = [
     {
       icon: Mail,
@@ -172,9 +53,6 @@ const CustomerContact = () => {
       value: contactInfo.email,
       link: `mailto:${contactInfo.email}`,
       response: contactInfo.responseTime.email,
-      color: "blue",
-      gradient: "from-blue-400 to-cyan-400",
-      depth: 30
     },
     {
       icon: Phone,
@@ -182,9 +60,6 @@ const CustomerContact = () => {
       value: contactInfo.phone,
       link: `tel:${contactInfo.phone}`,
       response: contactInfo.supportHours,
-      color: "green",
-      gradient: "from-green-400 to-emerald-400",
-      depth: 40
     },
     {
       icon: MessageCircle,
@@ -192,9 +67,6 @@ const CustomerContact = () => {
       value: "Chat on WhatsApp",
       link: `https://wa.me/${contactInfo.whatsapp}`,
       response: contactInfo.responseTime.whatsapp,
-      color: "emerald",
-      gradient: "from-emerald-500 to-teal-400",
-      depth: 50
     },
     {
       icon: MapPin,
@@ -202,9 +74,6 @@ const CustomerContact = () => {
       value: contactInfo.address,
       link: null,
       response: "Headquarters",
-      color: "purple",
-      gradient: "from-purple-400 to-pink-400",
-      depth: 60
     }
   ];
 
@@ -213,29 +82,58 @@ const CustomerContact = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // لو الفورم اتقدم بنجاح
+  // ✅ Success state
   if (state.succeeded) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center p-4">
-        <div className="w-full max-w-md perspective-1000">
-          <div className="relative bg-white/10 backdrop-blur-2xl rounded-3xl p-10 text-center border border-white/20 shadow-2xl transform-gpu animate-float-3d">
-            {/* 3D Background Effects */}
-            <div className="absolute inset-0 bg-gradient-to-br from-green-400/20 via-transparent to-emerald-400/20 rounded-3xl blur-3xl animate-glow-pulse"></div>
-            
-            <div className="relative">
-              <div className="inline-flex items-center justify-center h-24 w-24 bg-gradient-to-r from-green-400 to-emerald-400 rounded-2xl mb-6 shadow-2xl transform-gpu hover:scale-110 hover:rotate-3 transition-all duration-300">
-                <CheckCircle className="h-12 w-12 text-white" />
+      <div className="min-h-screen relative flex items-center justify-center p-4 overflow-hidden bg-[#800020]">
+        {/* Background layers (matches Landing/Login) */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#800020] via-[#5c0017] to-[#2e000b]"></div>
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute -top-40 -left-40 w-[800px] h-[800px] bg-[radial-gradient(circle,rgba(255,255,255,0.08),transparent_70%)]"></div>
+          <div className="absolute -bottom-40 -right-40 w-[700px] h-[700px] bg-[radial-gradient(circle,rgba(255,255,255,0.05),transparent_70%)]"></div>
+        </div>
+        <div
+          className="absolute inset-0 pointer-events-none opacity-[0.06]"
+          style={{
+            backgroundImage: `
+              linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)
+            `,
+            backgroundSize: '60px 60px',
+            maskImage: 'radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%)',
+            WebkitMaskImage: 'radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%)',
+          }}
+        ></div>
+        <div
+          className="absolute inset-0 opacity-[0.025] pointer-events-none"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+          }}
+        ></div>
+        <div className="absolute top-1/4 -left-32 w-[500px] h-[500px] bg-[#a8002b]/30 rounded-full blur-[120px] pointer-events-none"></div>
+        <div className="absolute bottom-1/4 -right-32 w-[500px] h-[500px] bg-[#800020]/40 rounded-full blur-[120px] pointer-events-none"></div>
+
+        <div className="w-full max-w-md relative z-10">
+          <div className="relative bg-white rounded-2xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.6)] ring-1 ring-white/10 overflow-hidden">
+            <div className="h-1 bg-gradient-to-r from-[#800020] via-[#a8002b] to-[#800020]"></div>
+
+            <div className="p-10 text-center">
+              <div className="inline-flex items-center justify-center h-16 w-16 bg-[#800020] rounded-2xl mb-6 shadow-lg">
+                <CheckCircle className="h-8 w-8 text-white" />
               </div>
-              <h1 className="text-4xl font-bold text-white mb-4 text-shadow-3d">Message Received!</h1>
-              <p className="text-blue-100/70 mb-8">
+
+              <h1 className="text-3xl font-bold text-gray-900 mb-3 tracking-tight">
+                Message Received!
+              </h1>
+              <p className="text-gray-500 mb-8">
                 Thank you for contacting us. We'll get back to you within 24 hours.
               </p>
+
               <button
                 onClick={() => window.location.reload()}
-                className="w-full py-4 bg-gradient-to-r from-blue-400 to-purple-400 text-white rounded-xl hover:from-blue-500 hover:to-purple-500 transition-all shadow-2xl hover:shadow-3d relative overflow-hidden group"
+                className="w-full py-3.5 bg-[#800020] text-white font-semibold rounded-xl hover:bg-[#6a001a] transition-colors duration-200 shadow-sm hover:shadow-md"
               >
-                <span className="relative z-10">Send Another Message</span>
-                <div className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                Send Another Message
               </button>
             </div>
           </div>
@@ -246,115 +144,114 @@ const CustomerContact = () => {
 
   return (
     <>
-      <style>{contactStyles}</style>
       <Navbar />
-      
-      <div 
-        className="min-h-screen bg-black relative overflow-hidden"
-        onMouseMove={(e) => {
-          setMousePosition({
-            x: (e.clientX / window.innerWidth - 0.5) * 20,
-            y: (e.clientY / window.innerHeight - 0.5) * 20,
-          });
-        }}
-      >
-        {/* 3D Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-950 via-indigo-950/100 to-purple-950/60">
-          {/* Floating orbs */}
-          <div className="absolute top-20 left-20 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl animate-float-3d"></div>
-          <div className="absolute bottom-20 right-20 w-96 h-96 bg-purple-400/10 rounded-full blur-3xl animate-float-3d animation-delay-2000"></div>
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-indigo-400/10 rounded-full blur-3xl animate-pulse-slow"></div>
-          
-          {/* 3D Grid */}
-          <div className="absolute inset-0 opacity-20 grid-3d" style={{
-            transform: `perspective(500px) rotateX(60deg) scale(2)`,
-            transformOrigin: 'top',
-          }}></div>
-          
-          {/* Floating particles */}
-          {[...Array(40)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute w-1 h-1 bg-white/20 rounded-full animate-float-particle"
-              style={{
-                top: `${Math.random() * 100}%`,
-                left: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 5}s`,
-                animationDuration: `${3 + Math.random() * 5}s`,
-              }}
-            ></div>
-          ))}
+
+      <div className="min-h-screen relative overflow-hidden bg-[#800020] pt-20">
+
+        {/* ✅ Layer 1: Base gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#800020] via-[#5c0017] to-[#2e000b]"></div>
+
+        {/* ✅ Layer 2: Radial lights */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute -top-40 -left-40 w-[800px] h-[800px] bg-[radial-gradient(circle,rgba(255,255,255,0.08),transparent_70%)]"></div>
+          <div className="absolute -bottom-40 -right-40 w-[700px] h-[700px] bg-[radial-gradient(circle,rgba(255,255,255,0.05),transparent_70%)]"></div>
         </div>
 
-        <div className="container mx-auto px-4 py-12 md:py-16 relative z-10">
-          {/* Hero Section with 3D effect */}
-          <div className="text-center max-w-3xl mx-auto mb-12 perspective-1000">
-            <div 
-              className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-2xl text-blue-300 px-4 py-2 rounded-full mb-6 border border-white/20 shadow-2xl transform-gpu hover:scale-105 transition-all duration-300"
-              style={{
-                transform: `perspective(1000px) rotateX(${mousePosition.y}deg) rotateY(${mousePosition.x}deg)`,
-              }}
-            >
-              <Compass className="h-4 w-4" />
-              <span className="text-sm font-medium">3D Contact Experience</span>
+        {/* ✅ Layer 3: Grid pattern */}
+        <div
+          className="absolute inset-0 pointer-events-none opacity-[0.06]"
+          style={{
+            backgroundImage: `
+              linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)
+            `,
+            backgroundSize: '60px 60px',
+            maskImage: 'radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%)',
+            WebkitMaskImage: 'radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%)',
+          }}
+        ></div>
+
+        {/* ✅ Layer 4: Vignette */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: 'radial-gradient(ellipse 100% 100% at 50% 50%, transparent 50%, rgba(0,0,0,0.35) 100%)',
+          }}
+        ></div>
+
+        {/* ✅ Layer 5: Grain */}
+        <div
+          className="absolute inset-0 opacity-[0.025] pointer-events-none"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+          }}
+        ></div>
+
+        {/* ✅ Decorative circles */}
+        <div className="absolute top-1/4 -left-32 w-[500px] h-[500px] bg-[#a8002b]/30 rounded-full blur-[120px] pointer-events-none"></div>
+        <div className="absolute bottom-1/4 -right-32 w-[500px] h-[500px] bg-[#800020]/40 rounded-full blur-[120px] pointer-events-none"></div>
+
+        {/* ✅ Decorative rings */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] rounded-full border border-white/[0.04] pointer-events-none hidden lg:block"></div>
+
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 relative z-10">
+
+          {/* Hero Section */}
+          <div className="text-center max-w-3xl mx-auto mb-12">
+            <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/15 backdrop-blur-sm mb-6">
+              <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>
+              <span className="text-xs font-medium text-white/85 tracking-wide uppercase">
+                Contact Support
+              </span>
             </div>
-            
-            <h1 
-              className="text-4xl md:text-5xl font-bold mb-6 text-shadow-3d"
-            >
-              <span className="bg-gradient-to-r from-white via-blue-200 to-purple-200 bg-clip-text text-transparent block">
-                How Can We Help?
-              </span>
-              <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent block mt-2">
-                Get in Touch
-              </span>
+
+            <h1 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight leading-[1.1]">
+              <span className="block text-white">How Can We Help?</span>
+              <span className="block mt-2 text-white/60">Get in Touch</span>
             </h1>
-            
-            <p className="text-lg text-blue-100/70">
+
+            <div className="w-16 h-1 bg-white/30 rounded-full mb-6 mx-auto"></div>
+
+            <p className="text-lg text-white/70 leading-relaxed">
               Reach out to our support team or explore our FAQ for instant answers
             </p>
 
             {/* Quick Stats */}
-            <div className="flex flex-wrap justify-center gap-4 mt-8">
+            <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 mt-8">
               {[
-                { icon: Award, text: "5-Star Support", color: "blue" },
-                { icon: Zap, text: "Fast Response", color: "purple" },
-                { icon: Headphones, text: "24/7 Available", color: "green" }
+                { icon: Award, text: "5-Star Support" },
+                { icon: Zap, text: "Fast Response" },
+                { icon: Headphones, text: "24/7 Available" }
               ].map((stat, index) => (
-                <div 
-                  key={index}
-                  className="flex items-center space-x-2 bg-white/5 backdrop-blur-sm px-4 py-2 rounded-full border border-white/10"
-                >
-                  <stat.icon className={`h-4 w-4 text-${stat.color}-400`} />
-                  <span className="text-sm text-gray-300">{stat.text}</span>
+                <div key={index} className="flex items-center space-x-2">
+                  <div className="h-6 w-6 rounded-md bg-white/10 border border-white/15 flex items-center justify-center">
+                    <stat.icon className="h-3.5 w-3.5 text-white/90" />
+                  </div>
+                  <span className="text-sm text-white/75 font-medium">{stat.text}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-8 perspective-2000">
-            {/* Contact Form - الجانب الأيسر */}
+          <div className="grid lg:grid-cols-3 gap-6">
+
+            {/* Contact Form — Left (2 cols) */}
             <div className="lg:col-span-2">
-              <div 
-                className="relative transform-gpu transition-all duration-500"
-                style={{
-                  transform: `perspective(1000px) rotateY(${mousePosition.x * 0.5}deg) rotateX(${-mousePosition.y * 0.5}deg)`,
-                }}
-              >
-                <div className="relative bg-white/10 backdrop-blur-2xl rounded-3xl p-8 border border-white/20 shadow-2xl overflow-hidden">
-                  {/* 3D Lighting */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-black/20"></div>
-                  
-                  <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
-                    <MessageSquare className="h-6 w-6 mr-2 text-blue-400" />
+              <div className="relative bg-white rounded-2xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.6)] ring-1 ring-white/10 overflow-hidden">
+                <div className="h-1 bg-gradient-to-r from-[#800020] via-[#a8002b] to-[#800020]"></div>
+
+                <div className="p-8">
+                  <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+                    <MessageSquare className="h-5 w-5 mr-2 text-[#800020]" />
                     Send us a Message
                   </h2>
-                  
-                  <form onSubmit={handleSubmit} className="space-y-6">
+
+                  <form onSubmit={handleSubmit} className="space-y-5">
+
                     {/* Name & Email */}
-                    <div className="grid md:grid-cols-2 gap-6">
+                    <div className="grid md:grid-cols-2 gap-5">
                       <div>
-                        <label className="block text-sm font-medium text-blue-200 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
                           Your Name
                         </label>
                         <input
@@ -364,24 +261,26 @@ const CustomerContact = () => {
                           onChange={handleChange}
                           onFocus={() => setFocusedField('name')}
                           onBlur={() => setFocusedField(null)}
-                          onMouseEnter={() => setHoveredField('name')}
-                          onMouseLeave={() => setHoveredField(null)}
                           required
-                          className={`w-full px-4 py-3 bg-white/5 border rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent outline-none transition-all text-white placeholder-gray-400 ${
-                            focusedField === 'name' ? 'border-blue-400 bg-white/10' : 'border-white/10'
+                          className={`w-full px-4 py-3 bg-white border rounded-xl outline-none transition-all text-gray-900 placeholder-gray-400 ${
+                            focusedField === 'name'
+                              ? 'border-[#800020] ring-2 ring-[#800020]/10'
+                              : 'border-gray-200 hover:border-gray-300'
                           }`}
                           placeholder="John Doe"
-                          style={{
-                            transform: hoveredField === 'name' ? 'translateZ(20px)' : 'translateZ(0)',
-                          }}
                         />
                       </div>
+
                       <div>
-                        <label className="block text-sm font-medium text-blue-200 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
                           Email Address
                         </label>
                         <div className="relative">
-                          <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                          <Mail
+                            className={`absolute left-3.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 transition-colors duration-200 ${
+                              focusedField === 'email' ? 'text-[#800020]' : 'text-gray-400'
+                            }`}
+                          />
                           <input
                             type="email"
                             name="email"
@@ -389,16 +288,13 @@ const CustomerContact = () => {
                             onChange={handleChange}
                             onFocus={() => setFocusedField('email')}
                             onBlur={() => setFocusedField(null)}
-                            onMouseEnter={() => setHoveredField('email')}
-                            onMouseLeave={() => setHoveredField(null)}
                             required
-                            className={`w-full pl-12 pr-4 py-3 bg-white/5 border rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent outline-none transition-all text-white placeholder-gray-400 ${
-                              focusedField === 'email' ? 'border-blue-400 bg-white/10' : 'border-white/10'
+                            className={`w-full pl-11 pr-4 py-3 bg-white border rounded-xl outline-none transition-all text-gray-900 placeholder-gray-400 ${
+                              focusedField === 'email'
+                                ? 'border-[#800020] ring-2 ring-[#800020]/10'
+                                : 'border-gray-200 hover:border-gray-300'
                             }`}
                             placeholder="customer@example.com"
-                            style={{
-                              transform: hoveredField === 'email' ? 'translateZ(20px)' : 'translateZ(0)',
-                            }}
                           />
                         </div>
                       </div>
@@ -406,27 +302,27 @@ const CustomerContact = () => {
 
                     {/* Inquiry Type */}
                     <div>
-                      <label className="block text-sm font-medium text-blue-200 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
                         What can we help you with?
                       </label>
                       <select
                         name="inquiryType"
                         value={formData.inquiryType}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent outline-none text-white"
+                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl outline-none text-gray-900 focus:border-[#800020] focus:ring-2 focus:ring-[#800020]/10 hover:border-gray-300 transition-all"
                       >
-                        <option value="general" className="bg-gray-900">General Inquiry</option>
-                        <option value="order" className="bg-gray-900">Orders Issue</option>
-                        <option value="product" className="bg-gray-900">Product Question</option>
-                        <option value="returns" className="bg-gray-900">Returns & Refunds</option>
-                        <option value="account" className="bg-gray-900">Account Help</option>
-                        <option value="vendor" className="bg-gray-900">Become a Vendor</option>
+                        <option value="general">General Inquiry</option>
+                        <option value="order">Orders Issue</option>
+                        <option value="product">Product Question</option>
+                        <option value="returns">Returns & Refunds</option>
+                        <option value="account">Account Help</option>
+                        <option value="vendor">Become a Vendor</option>
                       </select>
                     </div>
 
                     {/* Subject */}
                     <div>
-                      <label className="block text-sm font-medium text-blue-200 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
                         Subject
                       </label>
                       <input
@@ -436,22 +332,19 @@ const CustomerContact = () => {
                         onChange={handleChange}
                         onFocus={() => setFocusedField('subject')}
                         onBlur={() => setFocusedField(null)}
-                        onMouseEnter={() => setHoveredField('subject')}
-                        onMouseLeave={() => setHoveredField(null)}
                         required
-                        className={`w-full px-4 py-3 bg-white/5 border rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent outline-none transition-all text-white placeholder-gray-400 ${
-                          focusedField === 'subject' ? 'border-blue-400 bg-white/10' : 'border-white/10'
+                        className={`w-full px-4 py-3 bg-white border rounded-xl outline-none transition-all text-gray-900 placeholder-gray-400 ${
+                          focusedField === 'subject'
+                            ? 'border-[#800020] ring-2 ring-[#800020]/10'
+                            : 'border-gray-200 hover:border-gray-300'
                         }`}
                         placeholder="Brief description of your inquiry"
-                        style={{
-                          transform: hoveredField === 'subject' ? 'translateZ(20px)' : 'translateZ(0)',
-                        }}
                       />
                     </div>
 
                     {/* Message */}
                     <div>
-                      <label className="block text-sm font-medium text-blue-200 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
                         Your Message
                       </label>
                       <textarea
@@ -460,159 +353,141 @@ const CustomerContact = () => {
                         onChange={handleChange}
                         onFocus={() => setFocusedField('message')}
                         onBlur={() => setFocusedField(null)}
-                        onMouseEnter={() => setHoveredField('message')}
-                        onMouseLeave={() => setHoveredField(null)}
                         required
                         rows={5}
-                        className={`w-full px-4 py-3 bg-white/5 border rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent outline-none transition-all resize-none text-white placeholder-gray-400 ${
-                          focusedField === 'message' ? 'border-blue-400 bg-white/10' : 'border-white/10'
+                        className={`w-full px-4 py-3 bg-white border rounded-xl outline-none transition-all resize-none text-gray-900 placeholder-gray-400 ${
+                          focusedField === 'message'
+                            ? 'border-[#800020] ring-2 ring-[#800020]/10'
+                            : 'border-gray-200 hover:border-gray-300'
                         }`}
                         placeholder="Please provide details about your inquiry..."
-                        style={{
-                          transform: hoveredField === 'message' ? 'translateZ(20px)' : 'translateZ(0)',
-                        }}
                       />
                     </div>
 
                     {/* Validation Errors */}
-                    <ValidationError 
-                      prefix="Email" 
+                    <ValidationError
+                      prefix="Email"
                       field="email"
                       errors={state.errors}
-                      className="text-sm text-red-400 mt-1"
+                      className="text-sm text-red-600 mt-1"
                     />
-                    <ValidationError 
-                      prefix="Message" 
+                    <ValidationError
+                      prefix="Message"
                       field="message"
                       errors={state.errors}
-                      className="text-sm text-red-400 mt-1"
+                      className="text-sm text-red-600 mt-1"
                     />
 
-                    {/* Submit Button */}
+                    {/* Submit */}
                     <button
                       type="submit"
                       disabled={state.submitting}
-                      className="w-full py-4 bg-gradient-to-r from-blue-400 to-purple-400 text-white font-semibold rounded-xl hover:from-blue-500 hover:to-purple-500 transition-all shadow-2xl hover:shadow-3d disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 group relative overflow-hidden"
+                      className="w-full py-3.5 bg-[#800020] text-white font-semibold rounded-xl hover:bg-[#6a001a] transition-colors duration-200 shadow-sm hover:shadow-md disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                     >
-                      <div className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
                       {state.submitting ? (
                         <>
-                          <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                          <span className="relative z-10">Sending Message...</span>
+                          <div className="h-4.5 w-4.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          <span>Sending Message...</span>
                         </>
                       ) : (
                         <>
-                          <Send className="h-5 w-5 group-hover:translate-x-1 transition-transform relative z-10" />
-                          <span className="relative z-10">Send Message</span>
+                          <Send className="h-4.5 w-4.5" />
+                          <span>Send Message</span>
                         </>
                       )}
                     </button>
                   </form>
-
-                  {/* 3D Corner decoration */}
-                  <div className="absolute top-4 right-4 opacity-20">
-                    <Layers className="h-8 w-8 text-blue-400" />
-                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Contact Info & FAQ - الجانب الأيمن */}
+            {/* Right column — Contact Methods + FAQ + Trust */}
             <div className="space-y-6">
-              {/* Contact Methods Cards */}
+
+              {/* Contact Methods */}
               {contactMethods.map((method, index) => (
                 <div
                   key={index}
-                  className="relative transform-gpu transition-all duration-500"
-                  style={{
-                    transform: `perspective(1000px) rotateY(${mousePosition.x * 0.3}deg) rotateX(${-mousePosition.y * 0.3}deg) translateZ(${hoveredCard === index ? method.depth : 0}px)`,
-                  }}
-                  onMouseEnter={() => setHoveredCard(index)}
-                  onMouseLeave={() => setHoveredCard(null)}
+                  className="bg-white rounded-xl shadow-[0_15px_40px_-15px_rgba(0,0,0,0.5)] ring-1 ring-white/10 p-5 hover:-translate-y-0.5 transition-transform duration-300"
                 >
-                  <div className="relative bg-white/10 backdrop-blur-2xl rounded-2xl p-5 border border-white/20 shadow-xl overflow-hidden group">
-                    {/* Floating particles on hover */}
-                    <div className={`absolute inset-0 transition-opacity duration-500 ${hoveredCard === index ? 'opacity-100' : 'opacity-0'}`}>
-                      <div className="absolute top-0 left-0 w-32 h-32 bg-white/20 rounded-full blur-3xl animate-float-3d"></div>
-                      <div className="absolute bottom-0 right-0 w-32 h-32 bg-white/20 rounded-full blur-3xl animate-float-3d animation-delay-2000"></div>
+                  <div className="flex items-start space-x-3.5">
+                    <div className="h-11 w-11 rounded-lg bg-[#800020]/10 flex items-center justify-center flex-shrink-0">
+                      <method.icon className="h-5 w-5 text-[#800020]" />
                     </div>
-
-                    <div className="flex items-start space-x-4 relative z-10">
-                      <div className={`h-14 w-14 rounded-xl bg-gradient-to-r ${method.gradient} flex items-center justify-center shadow-2xl group-hover:scale-110 group-hover:rotate-3 transition-all duration-300`}>
-                        <method.icon className="h-7 w-7 text-white" />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-gray-900 mb-1 text-sm">
+                        {method.title}
                       </div>
-                      <div className="flex-1">
-                        <div className="font-semibold text-white mb-1">{method.title}</div>
-                        {method.link ? (
-                          <a 
-                            href={method.link}
-                            target={method.link.startsWith('http') ? "_blank" : undefined}
-                            rel={method.link.startsWith('http') ? "noopener noreferrer" : undefined}
-                            className={`text-sm text-${method.color}-300 hover:text-white transition-colors break-all`}
-                          >
-                            {method.value}
-                          </a>
-                        ) : (
-                          <p className={`text-sm text-${method.color}-300`}>{method.value}</p>
-                        )}
-                        <div className="text-xs text-gray-400 mt-2 flex items-center">
-                          <Clock className="h-3 w-3 mr-1" />
-                          {method.response}
-                        </div>
+                      {method.link ? (
+                        <a
+                          href={method.link}
+                          target={method.link.startsWith('http') ? "_blank" : undefined}
+                          rel={method.link.startsWith('http') ? "noopener noreferrer" : undefined}
+                          className="text-sm text-[#800020] hover:text-[#660019] transition-colors break-all"
+                        >
+                          {method.value}
+                        </a>
+                      ) : (
+                        <p className="text-sm text-gray-600">{method.value}</p>
+                      )}
+                      <div className="text-xs text-gray-400 mt-2 flex items-center">
+                        <Clock className="h-3 w-3 mr-1" />
+                        {method.response}
                       </div>
-                    </div>
-
-                    {/* 3D Corner decoration */}
-                    <div className={`absolute bottom-2 right-2 opacity-10 group-hover:opacity-30 transition-opacity`}>
-                      <Gift className={`h-6 w-6 text-${method.color}-400`} />
                     </div>
                   </div>
                 </div>
               ))}
 
-              {/* FAQ Section */}
-              <div className="relative bg-white/10 backdrop-blur-2xl rounded-3xl p-6 border border-white/20 shadow-2xl">
-                <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-                  <HelpCircle className="h-5 w-5 mr-2 text-purple-400" />
-                  Quick Answers
-                </h3>
-                
-                <div className="space-y-4">
-                  {faqs.map((faq, index) => (
-                    <div
-                      key={index}
-                      className="group relative p-3 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 transition-all cursor-pointer"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-white mb-1">{faq.question}</p>
-                          <p className="text-xs text-gray-400">{faq.answer}</p>
+              {/* FAQ */}
+              <div className="bg-white rounded-2xl shadow-[0_20px_50px_-15px_rgba(0,0,0,0.5)] ring-1 ring-white/10 overflow-hidden">
+                <div className="h-1 bg-gradient-to-r from-[#800020] via-[#a8002b] to-[#800020]"></div>
+                <div className="p-6">
+                  <h3 className="text-base font-bold text-gray-900 mb-4 flex items-center">
+                    <HelpCircle className="h-4.5 w-4.5 mr-2 text-[#800020]" />
+                    Quick Answers
+                  </h3>
+
+                  <div className="space-y-3">
+                    {faqs.map((faq, index) => (
+                      <div
+                        key={index}
+                        className="group p-3 rounded-xl bg-gray-50 border border-gray-100 hover:border-[#800020]/20 hover:bg-[#800020]/5 transition-colors duration-200 cursor-pointer"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-gray-900 mb-1">
+                              {faq.question}
+                            </p>
+                            <p className="text-xs text-gray-500 leading-relaxed">
+                              {faq.answer}
+                            </p>
+                          </div>
+                          <ChevronRight className="h-4 w-4 text-[#800020] opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 mt-0.5" />
                         </div>
-                        <ChevronRight className={`h-4 w-4 text-${faq.color}-400 opacity-0 group-hover:opacity-100 transition-all transform group-hover:translate-x-1`} />
                       </div>
-                      
-                      {/* Gradient line on hover */}
-                      <div className={`absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r ${faq.gradient} transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left`}></div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               </div>
 
               {/* Trust Badges */}
-              <div className="relative bg-gradient-to-r from-blue-600/20 to-purple-600/20 backdrop-blur-2xl rounded-2xl p-6 border border-white/20 shadow-xl">
+              <div className="bg-white rounded-2xl shadow-[0_15px_40px_-15px_rgba(0,0,0,0.5)] ring-1 ring-white/10 p-5">
                 <div className="flex items-center space-x-2 mb-4">
-                  <Shield className="h-5 w-5 text-blue-400" />
-                  <span className="font-semibold text-white">Why choose us?</span>
+                  <Shield className="h-4.5 w-4.5 text-[#800020]" />
+                  <span className="font-semibold text-gray-900 text-sm">Why choose us?</span>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-3">
                   {[
-                    { icon: Star, text: "24/7 Support", color: "yellow" },
-                    { icon: Zap, text: "Fast Response", color: "blue" },
-                    { icon: Award, text: "5-Star Rating", color: "purple" }
+                    { icon: Star, text: "24/7 Support" },
+                    { icon: Zap, text: "Fast Response" },
+                    { icon: Award, text: "5-Star Rating" }
                   ].map((badge, index) => (
-                    <div key={index} className="flex items-center space-x-2">
-                      <badge.icon className={`h-4 w-4 text-${badge.color}-400`} />
-                      <span className="text-xs text-gray-300">{badge.text}</span>
+                    <div key={index} className="flex items-center space-x-2.5">
+                      <div className="h-7 w-7 rounded-md bg-[#800020]/10 flex items-center justify-center flex-shrink-0">
+                        <badge.icon className="h-3.5 w-3.5 text-[#800020]" />
+                      </div>
+                      <span className="text-sm text-gray-600">{badge.text}</span>
                     </div>
                   ))}
                 </div>
@@ -620,25 +495,26 @@ const CustomerContact = () => {
             </div>
           </div>
 
-          {/* 3D Stats Bar */}
-          <div className="mt-12 relative perspective-1000">
-            <div className="bg-white/5 backdrop-blur-2xl rounded-3xl border border-white/20 p-6 transform-gpu hover:translate-z-10 transition-all duration-300">
-              <div className="flex flex-wrap justify-center items-center gap-8">
+          {/* Bottom Stats Bar */}
+          <div className="mt-12">
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/15 p-6">
+              <div className="flex flex-wrap justify-center items-center gap-x-8 gap-y-4">
                 {[
-                  { icon: Globe, text: "Serving vendors worldwide", color: "blue" },
-                  { icon: Heart, text: "Made with ❤️ in Egypt", color: "red" },
-                  { icon: Rocket, text: "24/7 Support Available", color: "purple" }
+                  { icon: Globe, text: "Serving vendors worldwide" },
+                  { icon: Heart, text: "Made with ❤️ in Egypt" },
+                  { icon: Rocket, text: "24/7 Support Available" }
                 ].map((item, index) => (
-                  <div key={index} className="flex items-center space-x-2 group">
-                    <div className={`p-2 rounded-lg bg-${item.color}-400/10 border border-${item.color}-400/20 group-hover:scale-110 transition-transform`}>
-                      <item.icon className={`h-4 w-4 text-${item.color}-400`} />
+                  <div key={index} className="flex items-center space-x-2">
+                    <div className="h-7 w-7 rounded-md bg-white/10 border border-white/15 flex items-center justify-center">
+                      <item.icon className="h-3.5 w-3.5 text-white/90" />
                     </div>
-                    <span className="text-sm text-gray-300">{item.text}</span>
+                    <span className="text-sm text-white/75 font-medium">{item.text}</span>
                   </div>
                 ))}
               </div>
             </div>
           </div>
+
         </div>
       </div>
     </>

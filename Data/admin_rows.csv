@@ -1,0 +1,2 @@
+created_at,id,user_id,email,name,password,phone_number,role
+,f1ef8d23-6e91-48c3-809d-12ee5bebb356,37816607-f859-4e05-8f2f-5bf5c0d07839,johnemil21@yahoo.com,john,$2a$12$35w6mNW6HEtviZAO/8mCNettU/xbhJjLsv3VPkZDxV6iZ1yvd1dBi,01200158852,ADMIN

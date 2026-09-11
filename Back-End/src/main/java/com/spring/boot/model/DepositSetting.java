@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Getter
@@ -16,6 +18,8 @@ public class DepositSetting {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(length = 36)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     private Long id;
 
     @OneToOne

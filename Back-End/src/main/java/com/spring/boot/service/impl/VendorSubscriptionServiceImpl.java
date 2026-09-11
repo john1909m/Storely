@@ -5,6 +5,8 @@ import com.spring.boot.mapper.VendorSubscriptionMapper;
 import com.spring.boot.model.VendorSubscription;
 import com.spring.boot.repo.VendorSubscriptionRepo;
 import com.spring.boot.service.VendorSubscriptionService;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -37,12 +39,16 @@ public class VendorSubscriptionServiceImpl implements VendorSubscriptionService 
 
     @Override
     public VendorSubscriptionDto findVendorSubscriptionByVendorId(UUID id) {
-        VendorSubscription vendorSubscription =
-                vendorSubscriptionRepo.findByVendorId(id)
-                        .orElseThrow(() ->
-                                new RuntimeException("vendor.subscription.not.found"));
+//        VendorSubscription vendorSubscription =
+//                vendorSubscriptionRepo.findByVendorId(id)
+//                        .orElseThrow(() ->
+//                                new RuntimeException("vendor.subscription.not.found"));
+//
+//        return vendorSubscriptionMapper.toDto(vendorSubscription);
 
-        return vendorSubscriptionMapper.toDto(vendorSubscription);
+        return vendorSubscriptionRepo.findByVendorId(id)
+                .map(vendorSubscriptionMapper::toDto)
+                .orElse(null);
     }
 
     @Override

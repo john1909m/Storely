@@ -1,23 +1,17 @@
 // Vendor Analytics Dashboard
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   TrendingUp, TrendingDown, DollarSign, ShoppingBag, Users,
-  Package, Truck, CheckCircle, XCircle, Clock, AlertCircle,
+  Package, XCircle, AlertCircle, CheckCircle,
   ArrowLeft, Calendar, Download, RefreshCw, BarChart,
-  PieChart, LineChart, Activity, Target, Award,
-  Zap, Shield, CreditCard, MapPin, Mail, Phone,
-  ChevronDown, ChevronUp, Filter, Search, Eye,
-  Printer, FileText, Percent, Star, ThumbsUp,ArrowRight ,
-  Smartphone, Laptop, Globe, ShoppingCart, Sparkles,
-  Lock, Crown, Rocket, Gift, TrendingUp as TrendUp
+  PieChart, LineChart, Target,
+  CreditCard, ChevronDown, Star, ArrowRight,
+  ShoppingCart, Lock, Rocket
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { orderAPI } from '../../api/order.api';
-import { productAPI } from '../../api/product.api';
-import { customerAPI } from '../../api/customer.api';
 import { subscriptionAPI } from '../../api/subscription.api';
 import { storeAPI } from '../../api/store.api';
 import { useErrorHandler } from '../../hooks/useErrorHandler';
@@ -45,12 +39,11 @@ const VendorAnalytics = () => {
     start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     end: new Date().toISOString().split('T')[0]
   });
-  
+
   const { vendor } = useAuth();
   const navigate = useNavigate();
-    const { handleError } = useErrorHandler();
-      const {authInialized,isAuthenticated} = useAuthStore();
-
+  const { handleError } = useErrorHandler();
+  const { authInialized, isAuthenticated } = useAuthStore();
 
   useEffect(() => {
     if (vendor?.id && authInialized) {
@@ -63,24 +56,21 @@ const VendorAnalytics = () => {
     if (hasAnalyticsAccess && store?.id) {
       fetchAnalyticsData();
     }
-  }, [hasAnalyticsAccess, store, timeRange, dateRange]);
+  }, [hasAnalyticsAccess, store?.id, timeRange, dateRange]);
 
   const checkAnalyticsAccess = async () => {
     try {
       setIsLoading(true);
-      // Fetch vendor's subscription
       const vendorSubscription = await subscriptionAPI.getVendorSubscriptionByVendorId(vendor.id);
       setSubscription(vendorSubscription);
-      
-      // Check if analytics is enabled
+
       if (vendorSubscription) {
-        // Check if analytics is explicitly true or if it's a pro/business plan
-        const hasAnalytics = 
-          vendorSubscription.analytics === true || 
+        const hasAnalytics =
+          vendorSubscription.analytics === true ||
           vendorSubscription.planName?.toLowerCase().includes('pro') ||
           vendorSubscription.planName?.toLowerCase().includes('business') ||
           vendorSubscription.planName?.toLowerCase().includes('enterprise');
-        
+
         setHasAnalyticsAccess(hasAnalytics);
       } else {
         setHasAnalyticsAccess(false);
@@ -93,15 +83,14 @@ const VendorAnalytics = () => {
     }
   };
 
+  // ---------- Single source of truth: store API ----------
   const fetchStoreData = async () => {
     try {
-      // Fetch vendor's store
       const vendorStores = await storeAPI.getByVendorId(vendor.id);
       const vendorStore = Array.isArray(vendorStores) ? vendorStores[0] : vendorStores;
       setStore(vendorStore);
     } catch (err) {
       handleError(err);
-      
     }
   };
 
@@ -110,32 +99,29 @@ const VendorAnalytics = () => {
       setIsLoading(true);
       setError(null);
 
-      // Fetch orders
-      const storeOrders = await orderAPI.getByStore(store.id);
-      const ordersList = Array.isArray(storeOrders) ? storeOrders : [];
-      
-      // Fetch products
-      const storeProducts = await productAPI.getAll(store.id);
-      const productsList = Array.isArray(storeProducts) ? storeProducts : [];
-      
+      // Single API call — orders + products + categories all nested in store
+      const fullStore = await storeAPI.getByVendorId(vendor.id);
+      const storeObj = Array.isArray(fullStore) ? fullStore[0] : fullStore;
+
+      const ordersList = storeObj?.orders || [];
+      const productsList = storeObj?.products || [];
+
       // Filter orders by date range
       const filteredOrders = filterOrdersByDateRange(ordersList, dateRange);
-      
-      // Fetch customers for orders
-      const customersMap = await fetchCustomersData(filteredOrders);
-      
-      // Calculate analytics
+
+      // Compute analytics — no customer API, no separate product fetch
       const analytics = calculateAnalytics(
         filteredOrders,
         productsList,
-        customersMap,
         ordersList,
-        dateRange
+        dateRange,
+        storeObj
       );
-      
+
       setAnalyticsData(analytics);
     } catch (err) {
       handleError(err);
+      setError(err.message || 'Failed to load analytics');
     } finally {
       setIsLoading(false);
     }
@@ -143,186 +129,152 @@ const VendorAnalytics = () => {
 
   const filterOrdersByDateRange = (orders, range) => {
     const startDate = new Date(range.start);
+    startDate.setHours(0, 0, 0, 0);
     const endDate = new Date(range.end);
     endDate.setHours(23, 59, 59, 999);
-    
+
     return orders.filter(order => {
-      const orderDate = new Date(order.orderDate || order.createdAt || order.date);
+      const orderDate = new Date(order.createdAt);
+      if (isNaN(orderDate.getTime())) return false;
       return orderDate >= startDate && orderDate <= endDate;
     });
   };
 
-  const fetchCustomersData = async (orders) => {
-    const customerIds = [...new Set(orders.map(o => o.customerId).filter(Boolean))];
-    const customerMap = {};
-    
-    // Fetch in batches to avoid too many requests
-    const batchSize = 5;
-    for (let i = 0; i < customerIds.length; i += batchSize) {
-      const batch = customerIds.slice(i, i + batchSize);
-      await Promise.all(batch.map(async (id) => {
-        try {
-          const customer = await customerAPI.getById(id);
-          if (customer) {
-            customerMap[id] = customer;
-          }
-        } catch (err) {
-          handleError(err);
-        }
-      }));
-    }
-    
-    return customerMap;
-  };
-
-  const calculateAnalytics = (orders, products, customersMap, allOrders, dateRange) => {
+  const calculateAnalytics = (orders, products, allOrders, dateRange, storeObj) => {
     // Basic metrics
     const totalOrders = orders.length;
-    const totalRevenue = orders.reduce((sum, order) => 
-      sum + (order.totalPrice || order.total || order.amount || 0), 0
-    );
-    
+    const totalRevenue = orders.reduce((sum, order) => sum + (order.totalPrice || 0), 0);
     const totalProducts = products.length;
-    const totalCustomers = Object.keys(customersMap).length;
-    
-    // Order status breakdown
+
+    // Unique customers from nested order.customer.id
+    const uniqueCustomerIds = [...new Set(orders.map(o => o.customer?.id).filter(Boolean))];
+    const totalCustomers = uniqueCustomerIds.length;
+
+    // Order status breakdown — exact match on order.status
     const orderStatusBreakdown = {
-      pending: orders.filter(o => (o.orderStatus || o.status)?.toUpperCase() === 'PENDING').length,
-      confirmed: orders.filter(o => (o.orderStatus || o.status)?.toUpperCase() === 'CONFIRMED').length,
-      shipped: orders.filter(o => (o.orderStatus || o.status)?.toUpperCase() === 'SHIPPED').length,
-      delivered: orders.filter(o => (o.orderStatus || o.status)?.toUpperCase() === 'DELIVERED').length,
-      cancelled: orders.filter(o => (o.orderStatus || o.status)?.toUpperCase() === 'CANCELLED').length
+      pending:   orders.filter(o => o.status === 'PENDING').length,
+      confirmed: orders.filter(o => o.status === 'CONFIRMED').length,
+      shipped:   orders.filter(o => o.status === 'SHIPPED').length,
+      delivered: orders.filter(o => o.status === 'DELIVERED').length,
+      cancelled: orders.filter(o => o.status === 'CANCELLED').length
     };
-    
-    // Payment method breakdown
+
+    // Payment method breakdown — order.paymentMethodName
     const paymentMethods = {};
     orders.forEach(order => {
-      const method = order.paymentMethod || 'Cash on Delivery';
+      const method = order.paymentMethodName || 'Unknown';
       paymentMethods[method] = (paymentMethods[method] || 0) + 1;
     });
-    
+
     // Average order value
     const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
-    
-    // Top products
+
+    // Top products — resolve image via products array
     const productSales = {};
     orders.forEach(order => {
-      const items = order.items || order.orderItems || [];
+      const items = order.orderItems || [];
       items.forEach(item => {
-        const productId = item.productId || item.id;
-        const productName = item.productName || item.name || `Product ${productId}`;
+        const productId = item.productId;
+        const productObj = products.find(p => p.id === productId);
+        const productName = item.productName || productObj?.name || `Product ${productId}`;
         const quantity = item.quantity || 1;
         const revenue = (item.price || 0) * quantity;
-        
+
         if (!productSales[productId]) {
           productSales[productId] = {
             id: productId,
             name: productName,
             quantity: 0,
             revenue: 0,
-            image: item.image
+            image: productObj?.imageUrls?.[0] || null
           };
         }
         productSales[productId].quantity += quantity;
         productSales[productId].revenue += revenue;
       });
     });
-    
+
     const topProducts = Object.values(productSales)
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 5);
-    
-    // Sales by day
+
+    // Sales by day — use order.createdAt
     const salesByDay = {};
     orders.forEach(order => {
-      const date = new Date(order.orderDate || order.createdAt || order.date);
+      const date = new Date(order.createdAt);
+      if (isNaN(date.getTime())) return;
       const day = date.toISOString().split('T')[0];
-      
+
       if (!salesByDay[day]) {
-        salesByDay[day] = {
-          date: day,
-          revenue: 0,
-          orders: 0,
-          items: 0
-        };
+        salesByDay[day] = { date: day, revenue: 0, orders: 0, items: 0 };
       }
-      
-      const orderTotal = order.totalPrice || order.total || order.amount || 0;
-      salesByDay[day].revenue += orderTotal;
+
+      salesByDay[day].revenue += order.totalPrice || 0;
       salesByDay[day].orders += 1;
-      
-      const items = order.items || order.orderItems || [];
+
+      const items = order.orderItems || [];
       salesByDay[day].items += items.reduce((sum, item) => sum + (item.quantity || 1), 0);
     });
-    
-    // Category distribution
+
+    // Category distribution — product.categoryName
     const categoryDistribution = {};
     products.forEach(product => {
-      const category = product.category?.name || product.category || 'Uncategorized';
+      const category = product.categoryName || 'Uncategorized';
       if (!categoryDistribution[category]) {
-        categoryDistribution[category] = {
-          count: 0,
-          revenue: 0
-        };
+        categoryDistribution[category] = { count: 0, revenue: 0 };
       }
       categoryDistribution[category].count += 1;
     });
-    
-    // Calculate revenue by category from orders
+
+    // Category revenue from orders
     orders.forEach(order => {
-      const items = order.items || order.orderItems || [];
+      const items = order.orderItems || [];
       items.forEach(item => {
-        const product = products.find(p => 
-          p.id === item.productId || p.name === item.productName
-        );
+        const product = products.find(p => p.id === item.productId);
         if (product) {
-          const category = product.category?.name || product.category || 'Uncategorized';
+          const category = product.categoryName || 'Uncategorized';
           if (categoryDistribution[category]) {
             categoryDistribution[category].revenue += (item.price || 0) * (item.quantity || 1);
           }
         }
       });
     });
-    
-    // Growth metrics (compare with previous period)
-    const previousPeriodStart = new Date(dateRange.start);
-    previousPeriodStart.setDate(previousPeriodStart.getDate() - 30);
-    const previousPeriodEnd = new Date(dateRange.start);
-    previousPeriodEnd.setDate(previousPeriodEnd.getDate() - 1);
-    
-    const previousOrders = allOrders.filter(order => {
-      const orderDate = new Date(order.orderDate || order.createdAt || order.date);
-      return orderDate >= previousPeriodStart && orderDate <= previousPeriodEnd;
-    });
-    
-    const previousRevenue = previousOrders.reduce((sum, order) => 
-      sum + (order.totalPrice || order.total || order.amount || 0), 0
+
+    // Growth — dynamic period based on selected date range
+    const periodDays = Math.round(
+      (new Date(dateRange.end) - new Date(dateRange.start)) / (1000 * 60 * 60 * 24)
     );
-    
-    const revenueGrowth = previousRevenue > 0 
-      ? ((totalRevenue - previousRevenue) / previousRevenue) * 100 
+    const prevStart = new Date(dateRange.start);
+    prevStart.setDate(prevStart.getDate() - periodDays);
+    const prevEnd = new Date(dateRange.start);
+    prevEnd.setDate(prevEnd.getDate() - 1);
+
+    const previousOrders = allOrders.filter(order => {
+      const d = new Date(order.createdAt);
+      if (isNaN(d.getTime())) return false;
+      return d >= prevStart && d <= prevEnd;
+    });
+
+    const previousRevenue = previousOrders.reduce(
+      (sum, order) => sum + (order.totalPrice || 0), 0
+    );
+
+    const revenueGrowth = previousRevenue > 0
+      ? ((totalRevenue - previousRevenue) / previousRevenue) * 100
       : totalRevenue > 0 ? 100 : 0;
-    
+
     const orderGrowth = previousOrders.length > 0
       ? ((totalOrders - previousOrders.length) / previousOrders.length) * 100
       : totalOrders > 0 ? 100 : 0;
-    
-    // Customer metrics
-    const returningCustomers = orders.reduce((acc, order) => {
-      if (customersMap[order.customerId]?.orderCount > 1) {
-        return acc + 1;
-      }
-      return acc;
-    }, 0);
-    
-    const customerRetentionRate = totalCustomers > 0 
-      ? (returningCustomers / totalCustomers) * 100 
-      : 0;
-    
-    // Conversion rate (assuming 1000 visits per day average)
-    const estimatedVisits = 30 * 1000;
-    const conversionRate = estimatedVisits > 0 ? (totalOrders / estimatedVisits) * 100 : 0;
-    
+
+    // Customer metrics — no orderCount field, so set to 0
+    const returningCustomers = 0;
+    const customerRetentionRate = 0;
+
+    // Conversion rate — use store.totalVisits if available
+    const totalVisits = storeObj?.totalVisits || 0;
+    const conversionRate = totalVisits > 0 ? (totalOrders / totalVisits) * 100 : 0;
+
     return {
       totalOrders,
       totalRevenue,
@@ -343,35 +295,26 @@ const VendorAnalytics = () => {
       customerRetentionRate,
       returningCustomers,
       conversionRate,
-      recentOrders: orders
-        .sort((a, b) => new Date(b.orderDate || b.createdAt || b.date) - new Date(a.orderDate || a.createdAt || a.date))
+      recentOrders: [...orders]
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
         .slice(0, 10)
     };
   };
 
   const handleTimeRangeChange = (range) => {
     setTimeRange(range);
-    
+
     const end = new Date();
     let start = new Date();
-    
+
     switch (range) {
-      case '7days':
-        start.setDate(start.getDate() - 7);
-        break;
-      case '30days':
-        start.setDate(start.getDate() - 30);
-        break;
-      case '90days':
-        start.setDate(start.getDate() - 90);
-        break;
-      case '12months':
-        start.setMonth(start.getMonth() - 12);
-        break;
-      default:
-        break;
+      case '7days':    start.setDate(start.getDate() - 7); break;
+      case '30days':   start.setDate(start.getDate() - 30); break;
+      case '90days':   start.setDate(start.getDate() - 90); break;
+      case '12months': start.setMonth(start.getMonth() - 12); break;
+      default: break;
     }
-    
+
     setDateRange({
       start: start.toISOString().split('T')[0],
       end: end.toISOString().split('T')[0]
@@ -387,13 +330,19 @@ const VendorAnalytics = () => {
     }).format(amount || 0);
   };
 
-  const formatPercentage = (value) => {
-    return `${(value || 0).toFixed(1)}%`;
-  };
+  const formatPercentage = (value) => `${(value || 0).toFixed(1)}%`;
+  const formatNumber = (value) => new Intl.NumberFormat('en-US').format(value || 0);
 
-  const formatNumber = (value) => {
-    return new Intl.NumberFormat('en-US').format(value || 0);
-  };
+  // Memoize the max bar value so it isn't recalculated inside the map
+  const salesByDayMax = useMemo(() => {
+    return Math.max(
+      ...(analyticsData.salesByDay || []).map(d =>
+        selectedMetric === 'revenue' ? d.revenue :
+        selectedMetric === 'orders' ? d.orders : d.items
+      ),
+      1
+    );
+  }, [analyticsData.salesByDay, selectedMetric]);
 
   // Loading State
   if (isLoading) {
@@ -415,7 +364,6 @@ const VendorAnalytics = () => {
   if (!hasAnalyticsAccess) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        {/* Header */}
         <div className="bg-white/80 backdrop-blur-md shadow-sm border-b border-gray-200 sticky top-0 z-10">
           <div className="container mx-auto px-4 py-6">
             <div className="flex items-center space-x-4">
@@ -433,43 +381,38 @@ const VendorAnalytics = () => {
           </div>
         </div>
 
-        {/* Upgrade Required */}
         <div className="container mx-auto px-4 py-12">
           <div className="max-w-5xl mx-auto">
-            {/* Hero Upgrade Card */}
             <div className="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-3xl shadow-2xl overflow-hidden mb-8 transform hover:scale-[1.02] transition-transform duration-300">
               <div className="relative p-12 text-center">
-                {/* Background Pattern */}
                 <div className="absolute inset-0 opacity-10">
                   <div className="absolute top-0 left-0 w-64 h-64 bg-white rounded-full blur-3xl"></div>
                   <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl"></div>
                 </div>
-                
-                {/* Content */}
+
                 <div className="relative">
                   <div className="inline-flex items-center justify-center h-24 w-24 bg-white/20 backdrop-blur-lg rounded-3xl mb-8 ring-4 ring-white/30">
                     <Lock className="h-12 w-12 text-white" />
                   </div>
-                  
+
                   <h2 className="text-5xl font-bold text-white mb-4">
                     Analytics Locked
                   </h2>
-                  
+
                   <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-                    Your current plan doesn't include access to advanced analytics. 
+                    Your current plan doesn't include access to advanced analytics.
                     Upgrade to unlock powerful insights and grow your business.
                   </p>
-                  
-                  {/* Features Grid */}
+
                   <div className="grid md:grid-cols-3 gap-6 max-w-3xl mx-auto mb-10">
                     <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 text-left border border-white/20">
                       <div className="h-12 w-12 bg-white/20 rounded-xl flex items-center justify-center mb-4">
-                        <TrendUp className="h-6 w-6 text-white" />
+                        <TrendingUp className="h-6 w-6 text-white" />
                       </div>
                       <h3 className="text-white font-semibold mb-2">Sales Analytics</h3>
                       <p className="text-white/70 text-sm">Track revenue, orders, and growth trends in real-time</p>
                     </div>
-                    
+
                     <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 text-left border border-white/20">
                       <div className="h-12 w-12 bg-white/20 rounded-xl flex items-center justify-center mb-4">
                         <Users className="h-6 w-6 text-white" />
@@ -477,7 +420,7 @@ const VendorAnalytics = () => {
                       <h3 className="text-white font-semibold mb-2">Customer Insights</h3>
                       <p className="text-white/70 text-sm">Understand behavior, retention, and lifetime value</p>
                     </div>
-                    
+
                     <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 text-left border border-white/20">
                       <div className="h-12 w-12 bg-white/20 rounded-xl flex items-center justify-center mb-4">
                         <Package className="h-6 w-6 text-white" />
@@ -486,8 +429,7 @@ const VendorAnalytics = () => {
                       <p className="text-white/70 text-sm">Identify top sellers and optimize your inventory</p>
                     </div>
                   </div>
-                  
-                  {/* CTA Buttons */}
+
                   <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                     <Link
                       to="/vendor/pricing"
@@ -496,7 +438,7 @@ const VendorAnalytics = () => {
                       <Rocket className="h-5 w-5 mr-2" />
                       Upgrade Now
                     </Link>
-                    
+
                     <Link
                       to="/vendor/dashboard"
                       className="inline-flex items-center px-8 py-4 bg-transparent border-2 border-white text-white text-lg font-bold rounded-xl hover:bg-white/10 transition-all"
@@ -507,9 +449,6 @@ const VendorAnalytics = () => {
                 </div>
               </div>
             </div>
-
-            {/* Current Subscription Card */}
-            
           </div>
         </div>
       </div>
@@ -519,7 +458,6 @@ const VendorAnalytics = () => {
   // Main Analytics Dashboard
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* Header with Glassmorphism */}
       <div className="bg-white/80 backdrop-blur-md shadow-sm border-b border-gray-200 sticky top-0 z-10">
         <div className="container mx-auto px-4 py-6">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -541,9 +479,8 @@ const VendorAnalytics = () => {
                 </p>
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-3">
-              {/* Time Range Selector */}
               <div className="relative">
                 <select
                   value={timeRange}
@@ -557,7 +494,7 @@ const VendorAnalytics = () => {
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
               </div>
-              
+
               <button
                 onClick={fetchAnalyticsData}
                 className="px-4 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all flex items-center space-x-2 shadow-md hover:shadow-lg"
@@ -565,7 +502,7 @@ const VendorAnalytics = () => {
                 <RefreshCw className="h-5 w-5" />
                 <span className="hidden sm:inline">Refresh</span>
               </button>
-              
+
               <button
                 onClick={() => window.print()}
                 className="px-4 py-3 bg-white border border-gray-200 text-gray-700 rounded-xl hover:border-indigo-300 hover:bg-indigo-50 transition-all flex items-center space-x-2"
@@ -579,7 +516,6 @@ const VendorAnalytics = () => {
       </div>
 
       <div className="container mx-auto px-4 py-8">
-        {/* Error State */}
         {error && (
           <div className="mb-6 animate-slide-down">
             <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-2xl flex items-center justify-between">
@@ -587,8 +523,8 @@ const VendorAnalytics = () => {
                 <AlertCircle className="h-5 w-5 mr-3 text-red-600" />
                 <span className="font-medium">{error}</span>
               </div>
-              <button 
-                onClick={() => setError(null)} 
+              <button
+                onClick={() => setError(null)}
                 className="text-red-800 hover:text-red-900"
               >
                 <XCircle className="h-5 w-5" />
@@ -599,16 +535,13 @@ const VendorAnalytics = () => {
 
         {/* Key Metrics Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {/* Revenue Card */}
           <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-xl transition-all transform hover:-translate-y-1">
             <div className="flex items-center justify-between mb-4">
               <div className="h-14 w-14 bg-gradient-to-br from-green-100 to-emerald-100 rounded-xl flex items-center justify-center">
                 <DollarSign className="h-7 w-7 text-green-600" />
               </div>
               <div className={`flex items-center px-3 py-1.5 rounded-full ${
-                analyticsData.revenueGrowth >= 0 
-                  ? 'bg-green-50 text-green-700' 
-                  : 'bg-red-50 text-red-700'
+                analyticsData.revenueGrowth >= 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
               }`}>
                 {analyticsData.revenueGrowth >= 0 ? (
                   <TrendingUp className="h-4 w-4 mr-1" />
@@ -629,17 +562,14 @@ const VendorAnalytics = () => {
               Avg: {formatCurrency(analyticsData.averageOrderValue)} per order
             </div>
           </div>
-          
-          {/* Orders Card */}
+
           <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-xl transition-all transform hover:-translate-y-1">
             <div className="flex items-center justify-between mb-4">
               <div className="h-14 w-14 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-xl flex items-center justify-center">
                 <ShoppingBag className="h-7 w-7 text-blue-600" />
               </div>
               <div className={`flex items-center px-3 py-1.5 rounded-full ${
-                analyticsData.orderGrowth >= 0 
-                  ? 'bg-green-50 text-green-700' 
-                  : 'bg-red-50 text-red-700'
+                analyticsData.orderGrowth >= 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
               }`}>
                 {analyticsData.orderGrowth >= 0 ? (
                   <TrendingUp className="h-4 w-4 mr-1" />
@@ -660,8 +590,7 @@ const VendorAnalytics = () => {
               {analyticsData.orderStatusBreakdown?.delivered || 0} delivered
             </div>
           </div>
-          
-          {/* Customers Card */}
+
           <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-xl transition-all transform hover:-translate-y-1">
             <div className="flex items-center justify-between mb-4">
               <div className="h-14 w-14 bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl flex items-center justify-center">
@@ -683,8 +612,7 @@ const VendorAnalytics = () => {
               {analyticsData.returningCustomers || 0} returning
             </div>
           </div>
-          
-          {/* Products Card */}
+
           <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-xl transition-all transform hover:-translate-y-1">
             <div className="flex items-center justify-between mb-4">
               <div className="h-14 w-14 bg-gradient-to-br from-amber-100 to-orange-100 rounded-xl flex items-center justify-center">
@@ -710,7 +638,6 @@ const VendorAnalytics = () => {
 
         {/* Charts Row */}
         <div className="grid lg:grid-cols-2 gap-6 mb-8">
-          {/* Revenue Trend Chart */}
           <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-lg transition-all">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-gray-900 flex items-center">
@@ -727,26 +654,17 @@ const VendorAnalytics = () => {
                 <option value="items">Items Sold</option>
               </select>
             </div>
-            
+
             <div className="h-80 flex items-end justify-between gap-2">
               {analyticsData.salesByDay?.slice(-14).map((day, index) => {
-                const maxValue = Math.max(...analyticsData.salesByDay.map(d => 
-                  selectedMetric === 'revenue' ? d.revenue : 
-                  selectedMetric === 'orders' ? d.orders : d.items
-                ), 1);
-                
-                // const value = selectedMetric === 'revenue' ? d.revenue :
-                //              selectedMetric === 'orders' ? d.orders : d.items;
-                
-                const value = selectedMetric === 'revenue' ? day.revenue : 
+                const value = selectedMetric === 'revenue' ? day.revenue :
                               selectedMetric === 'orders' ? day.orders : day.items;
-                const height = maxValue > 0 ? (value / maxValue) * 100 : 0;
-                
-                // Color gradient based on value
+                const height = salesByDayMax > 0 ? (value / salesByDayMax) * 100 : 0;
+
                 const getBarColor = () => {
                   if (selectedMetric === 'revenue') {
-                    return index % 2 === 0 
-                      ? 'from-indigo-500 to-indigo-600' 
+                    return index % 2 === 0
+                      ? 'from-indigo-500 to-indigo-600'
                       : 'from-purple-500 to-purple-600';
                   } else if (selectedMetric === 'orders') {
                     return 'from-blue-500 to-blue-600';
@@ -754,17 +672,16 @@ const VendorAnalytics = () => {
                     return 'from-green-500 to-green-600';
                   }
                 };
-                
+
                 return (
                   <div key={day.date} className="flex-1 flex flex-col items-center group">
                     <div className="relative w-full flex justify-center">
-                      <div 
+                      <div
                         className={`w-full max-w-[40px] bg-gradient-to-t ${getBarColor()} rounded-t-lg group-hover:from-indigo-600 group-hover:to-purple-600 transition-all cursor-pointer shadow-lg`}
                         style={{ height: `${Math.max(height, 4)}%`, minHeight: '4px' }}
                       >
-                        {/* Tooltip */}
                         <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs rounded-lg px-3 py-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 shadow-xl">
-                          {selectedMetric === 'revenue' ? formatCurrency(value) : 
+                          {selectedMetric === 'revenue' ? formatCurrency(value) :
                            selectedMetric === 'orders' ? `${value} orders` : `${value} items`}
                           <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
                         </div>
@@ -777,7 +694,7 @@ const VendorAnalytics = () => {
                 );
               })}
             </div>
-            
+
             {analyticsData.salesByDay?.length === 0 && (
               <div className="h-80 flex flex-col items-center justify-center text-gray-500">
                 <BarChart className="h-16 w-16 text-gray-300 mb-4" />
@@ -787,20 +704,19 @@ const VendorAnalytics = () => {
             )}
           </div>
 
-          {/* Order Status Breakdown */}
           <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-lg transition-all">
             <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
               <PieChart className="h-6 w-6 mr-2 text-indigo-600" />
               Order Status Breakdown
             </h3>
-            
+
             <div className="space-y-5">
               {[
-                { key: 'pending', label: 'Pending', color: 'bg-yellow-400', count: analyticsData.orderStatusBreakdown?.pending || 0 },
+                { key: 'pending',   label: 'Pending',   color: 'bg-yellow-400', count: analyticsData.orderStatusBreakdown?.pending || 0 },
                 { key: 'confirmed', label: 'Confirmed', color: 'bg-purple-400', count: analyticsData.orderStatusBreakdown?.confirmed || 0 },
-                { key: 'shipped', label: 'Shipped', color: 'bg-blue-400', count: analyticsData.orderStatusBreakdown?.shipped || 0 },
-                { key: 'delivered', label: 'Delivered', color: 'bg-green-400', count: analyticsData.orderStatusBreakdown?.delivered || 0 },
-                { key: 'cancelled', label: 'Cancelled', color: 'bg-red-400', count: analyticsData.orderStatusBreakdown?.cancelled || 0 }
+                { key: 'shipped',   label: 'Shipped',   color: 'bg-blue-400',   count: analyticsData.orderStatusBreakdown?.shipped || 0 },
+                { key: 'delivered', label: 'Delivered', color: 'bg-green-400',  count: analyticsData.orderStatusBreakdown?.delivered || 0 },
+                { key: 'cancelled', label: 'Cancelled', color: 'bg-red-400',    count: analyticsData.orderStatusBreakdown?.cancelled || 0 }
               ].map((status) => (
                 <div key={status.key} className="group hover:bg-gray-50 p-2 rounded-lg transition-colors">
                   <div className="flex items-center justify-between mb-2">
@@ -811,18 +727,17 @@ const VendorAnalytics = () => {
                     <div className="flex items-center space-x-4">
                       <span className="font-bold text-gray-900">{status.count}</span>
                       <span className="text-sm text-gray-500 w-16 text-right font-medium">
-                        {analyticsData.totalOrders > 0 
+                        {analyticsData.totalOrders > 0
                           ? `${((status.count / analyticsData.totalOrders) * 100).toFixed(1)}%`
-                          : '0%'
-                        }
+                          : '0%'}
                       </span>
                     </div>
                   </div>
                   <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-                    <div 
+                    <div
                       className={`h-2 rounded-full ${status.color} transition-all duration-500 group-hover:scale-x-105`}
-                      style={{ 
-                        width: analyticsData.totalOrders > 0 
+                      style={{
+                        width: analyticsData.totalOrders > 0
                           ? `${(status.count / analyticsData.totalOrders) * 100}%`
                           : '0%',
                         transformOrigin: 'left'
@@ -831,7 +746,7 @@ const VendorAnalytics = () => {
                   </div>
                 </div>
               ))}
-              
+
               <div className="mt-6 pt-6 border-t border-gray-100">
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-gray-900 text-lg">Total Orders</span>
@@ -846,13 +761,12 @@ const VendorAnalytics = () => {
 
         {/* Top Products & Categories */}
         <div className="grid lg:grid-cols-2 gap-6 mb-8">
-          {/* Top Selling Products */}
           <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-lg transition-all">
             <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
               <Star className="h-6 w-6 mr-2 text-yellow-500" />
               Top Selling Products
             </h3>
-            
+
             {analyticsData.topProducts?.length > 0 ? (
               <div className="space-y-4">
                 {analyticsData.topProducts.map((product, index) => (
@@ -863,9 +777,9 @@ const VendorAnalytics = () => {
                       </div>
                       <div className="h-14 w-14 bg-gray-100 rounded-xl overflow-hidden shadow-sm">
                         {product.image ? (
-                          <img 
-                            src={product.image} 
-                            alt={product.name} 
+                          <img
+                            src={product.image}
+                            alt={product.name}
                             className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-300"
                           />
                         ) : (
@@ -889,10 +803,9 @@ const VendorAnalytics = () => {
                         {formatCurrency(product.revenue)}
                       </div>
                       <div className="text-sm text-gray-500">
-                        {analyticsData.totalRevenue > 0 
+                        {analyticsData.totalRevenue > 0
                           ? `${((product.revenue / analyticsData.totalRevenue) * 100).toFixed(1)}%`
-                          : '0%'
-                        }
+                          : '0%'}
                       </div>
                     </div>
                   </div>
@@ -907,41 +820,40 @@ const VendorAnalytics = () => {
                 <p className="text-sm">Start selling to see your top products</p>
               </div>
             )}
-            
+
             {analyticsData.topProducts?.length > 0 && (
               <div className="mt-6 pt-6 border-t border-gray-100">
-                <Link 
+                <Link
                   to="/vendor/products"
                   className="text-indigo-600 hover:text-indigo-700 text-sm font-medium flex items-center justify-center group"
                 >
-                  View all products 
+                  View all products
                   <ArrowRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </div>
             )}
           </div>
 
-          {/* Category Performance */}
           <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-lg transition-all">
             <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
               <PieChart className="h-6 w-6 mr-2 text-indigo-600" />
               Category Performance
             </h3>
-            
+
             {analyticsData.categoryDistribution?.length > 0 ? (
               <div className="space-y-5">
-                {analyticsData.categoryDistribution
+                {[...analyticsData.categoryDistribution]
                   .sort((a, b) => b.revenue - a.revenue)
                   .slice(0, 5)
                   .map((category, index) => {
                     const colors = [
                       { bar: 'bg-indigo-500', dot: 'bg-indigo-500', text: 'text-indigo-600' },
                       { bar: 'bg-purple-500', dot: 'bg-purple-500', text: 'text-purple-600' },
-                      { bar: 'bg-pink-500', dot: 'bg-pink-500', text: 'text-pink-600' },
-                      { bar: 'bg-green-500', dot: 'bg-green-500', text: 'text-green-600' },
+                      { bar: 'bg-pink-500',   dot: 'bg-pink-500',   text: 'text-pink-600' },
+                      { bar: 'bg-green-500',  dot: 'bg-green-500',  text: 'text-green-600' },
                       { bar: 'bg-orange-500', dot: 'bg-orange-500', text: 'text-orange-600' }
                     ];
-                    
+
                     return (
                       <div key={category.category} className="group hover:bg-gray-50 p-2 rounded-lg transition-colors">
                         <div className="flex items-center justify-between mb-2">
@@ -952,18 +864,17 @@ const VendorAnalytics = () => {
                           <div className="flex items-center space-x-4">
                             <span className="font-bold text-gray-900">{formatCurrency(category.revenue)}</span>
                             <span className={`text-sm font-medium w-16 text-right ${colors[index].text}`}>
-                              {analyticsData.totalRevenue > 0 
+                              {analyticsData.totalRevenue > 0
                                 ? `${((category.revenue / analyticsData.totalRevenue) * 100).toFixed(1)}%`
-                                : '0%'
-                              }
+                                : '0%'}
                             </span>
                           </div>
                         </div>
                         <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-                          <div 
+                          <div
                             className={`h-2 rounded-full ${colors[index].bar} transition-all duration-500 group-hover:scale-x-105`}
-                            style={{ 
-                              width: analyticsData.totalRevenue > 0 
+                            style={{
+                              width: analyticsData.totalRevenue > 0
                                 ? `${(category.revenue / analyticsData.totalRevenue) * 100}%`
                                 : '0%',
                               transformOrigin: 'left'
@@ -987,7 +898,7 @@ const VendorAnalytics = () => {
                 <p className="text-sm">Add categories to your products</p>
               </div>
             )}
-            
+
             <div className="mt-6 pt-6 border-t border-gray-100">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-600 font-medium">Total Products</span>
@@ -1006,7 +917,7 @@ const VendorAnalytics = () => {
               <ShoppingCart className="h-6 w-6 mr-2 text-indigo-600" />
               Recent Orders
             </h3>
-            <Link 
+            <Link
               to="/vendor/orders"
               className="text-indigo-600 hover:text-indigo-700 text-sm font-medium flex items-center group"
             >
@@ -1014,7 +925,7 @@ const VendorAnalytics = () => {
               <ArrowRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
-          
+
           {analyticsData.recentOrders?.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -1030,37 +941,40 @@ const VendorAnalytics = () => {
                 </thead>
                 <tbody>
                   {analyticsData.recentOrders.map((order) => {
-                    const status = order.orderStatus || order.status || 'PENDING';
+                    const status = order.status || 'PENDING';
                     const statusColors = {
-                      PENDING: 'bg-yellow-100 text-yellow-800 border border-yellow-200',
+                      PENDING:   'bg-yellow-100 text-yellow-800 border border-yellow-200',
                       CONFIRMED: 'bg-blue-100 text-blue-800 border border-blue-200',
-                      SHIPPED: 'bg-purple-100 text-purple-800 border border-purple-200',
+                      SHIPPED:   'bg-purple-100 text-purple-800 border border-purple-200',
                       DELIVERED: 'bg-green-100 text-green-800 border border-green-200',
                       CANCELLED: 'bg-red-100 text-red-800 border border-red-200'
                     };
-                    
+
+                    const customerName = [order.customer?.firstName, order.customer?.lastName]
+                      .filter(Boolean).join(' ') || 'Unknown';
+
                     return (
                       <tr key={order.id} className="border-b border-gray-100 hover:bg-gradient-to-r hover:from-indigo-50/30 hover:to-purple-50/30 transition-colors">
                         <td className="p-4 font-medium text-indigo-600">
-                          #{order.orderNumber || order.id.slice(-8)}
+                          #{order.id.slice(-8)}
                         </td>
                         <td className="p-4 text-gray-700">
-                          {new Date(order.orderDate || order.createdAt || order.date).toLocaleDateString()}
+                          {new Date(order.createdAt).toLocaleDateString()}
                         </td>
                         <td className="p-4 text-gray-700">
                           <div className="flex items-center">
                             <Users className="h-4 w-4 text-gray-400 mr-2" />
-                            Customer #{order.customerId?.slice(-6) || 'N/A'}
+                            {customerName}
                           </div>
                         </td>
                         <td className="p-4 text-gray-700">
                           <div className="flex items-center">
                             <Package className="h-4 w-4 text-gray-400 mr-2" />
-                            {(order.items || order.orderItems || []).length} items
+                            {(order.orderItems || []).length} items
                           </div>
                         </td>
                         <td className="p-4 font-bold text-gray-900">
-                          {formatCurrency(order.totalPrice || order.total || order.amount || 0)}
+                          {formatCurrency(order.totalPrice || 0)}
                         </td>
                         <td className="p-4">
                           <span className={`px-3 py-1.5 rounded-full text-xs font-medium ${statusColors[status] || 'bg-gray-100 text-gray-800 border border-gray-200'}`}>
@@ -1090,7 +1004,7 @@ const VendorAnalytics = () => {
             <CreditCard className="h-6 w-6 mr-2 text-indigo-600" />
             Payment Methods
           </h3>
-          
+
           {Object.keys(analyticsData.paymentMethods || {}).length > 0 ? (
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {Object.entries(analyticsData.paymentMethods).map(([method, count], index) => {
@@ -1100,7 +1014,7 @@ const VendorAnalytics = () => {
                   'bg-gradient-to-br from-pink-500 to-pink-600',
                   'bg-gradient-to-br from-green-500 to-green-600'
                 ];
-                
+
                 return (
                   <div key={method} className={`${colors[index % colors.length]} rounded-xl p-6 text-white shadow-lg transform hover:scale-105 transition-all`}>
                     <div className="text-3xl font-bold mb-2">{count}</div>
@@ -1108,17 +1022,16 @@ const VendorAnalytics = () => {
                     <div className="flex items-center justify-between">
                       <span className="text-white/80 text-sm">Orders</span>
                       <span className="text-white font-bold">
-                        {analyticsData.totalOrders > 0 
+                        {analyticsData.totalOrders > 0
                           ? `${((count / analyticsData.totalOrders) * 100).toFixed(1)}%`
-                          : '0%'
-                        }
+                          : '0%'}
                       </span>
                     </div>
                     <div className="mt-3 w-full bg-white/20 rounded-full h-1.5">
-                      <div 
+                      <div
                         className="bg-white h-1.5 rounded-full"
-                        style={{ 
-                          width: analyticsData.totalOrders > 0 
+                        style={{
+                          width: analyticsData.totalOrders > 0
                             ? `${(count / analyticsData.totalOrders) * 100}%`
                             : '0%'
                         }}
@@ -1144,13 +1057,11 @@ const VendorAnalytics = () => {
 const formatDate = (dateString) => {
   if (!dateString) return 'N/A';
   const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', { 
-    year: 'numeric', 
-    month: 'short', 
-    day: 'numeric' 
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
   });
 };
-
-
 
 export default VendorAnalytics;

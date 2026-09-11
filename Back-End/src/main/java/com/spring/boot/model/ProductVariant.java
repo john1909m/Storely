@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.util.UUID;
 
@@ -15,14 +17,16 @@ public class ProductVariant {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(length = 36)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     private UUID id;
 
-    private String productColor;   // black, white
-    private String productSize;    // S, M, L
+    private String productColor;
+    private String productSize;
 
     private Integer quantity;
 
-    private Double price;   // optional override
+    private Double price;
 
     @ManyToOne
     @JoinColumn(name = "product_id")

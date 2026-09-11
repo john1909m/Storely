@@ -11,6 +11,9 @@ import com.spring.boot.model.*;
 import com.spring.boot.repo.*;
 import com.spring.boot.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -64,6 +67,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Cacheable(value = "orders",key = "#storeId")
     public List<OrderDto> getAllOrdersByStore(UUID storeId) {
         return orderRepo.findByStore_Id(storeId).stream()
                 .map(orderMapper::toOrderDto)
@@ -78,6 +82,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @CacheEvict(value = "orders",key = "#orderDto.storeId")
     public OrderDto addOrder(OrderDto orderDto) {
         Order order = orderMapper.toOrderEntity(orderDto);
 
@@ -152,6 +157,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "orders",key = "#orderDto.storeId")
     public OrderDto updateOrder(OrderDto orderDto) {
 
         Order existingOrder = orderRepo.findById(orderDto.getId())
@@ -161,9 +167,9 @@ public class OrderServiceImpl implements OrderService {
         OrderStatus newStatus = OrderStatus.valueOf(orderDto.getStatus());
 
         // ❌ validate sequence
-        if (!isValidStatusTransition(oldStatus, newStatus)) {
-            throw new RuntimeException("invalid.status.transition");
-        }
+//        if (!isValidStatusTransition(oldStatus, newStatus)) {
+//            throw new RuntimeException("invalid.status.transition");
+//        }
 
         // ✅ restore stock لو اتلغى
         if (oldStatus != OrderStatus.CANCELLED &&
@@ -225,6 +231,7 @@ public class OrderServiceImpl implements OrderService {
 
 
     @Override
+    @CacheEvict(value = "orders", allEntries = true)
     public void deleteOrder(UUID orderId) {
         // Check if order exists
         Order order = orderRepo.findById(orderId)
@@ -334,6 +341,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional
     @Override
+    @CacheEvict(value = "orders",key = "#dto.storeId")
     public OrderDto checkout(CheckoutDto dto) {
 
         // =========================
@@ -510,6 +518,7 @@ public class OrderServiceImpl implements OrderService {
 
 
     @Override
+    @CacheEvict(value = "orders", allEntries = true)
     public OrderDto uploadDeposit(UUID orderId, MultipartFile screenshot) {
         Order order = orderRepo.findById(orderId).orElseThrow(() -> new RuntimeException("order.not.found"));
         String objectKey = "orders/" + orderId + "/";

@@ -129,15 +129,12 @@ const ManageStores = () => {
       for (let i = 0; i < vendorIds.length; i += batchSize) {
         const batch = vendorIds.slice(i, i + batchSize);
         const subscriptionsPromises = batch.map(vendorId =>
-          subscriptionAPI.getVendorSubscriptionByVendorId(vendorId).catch(err => {
-            console.error(`Error fetching subscription for vendor ${vendorId}:`, err);
-            return null;
-          })
+          subscriptionAPI.getVendorSubscriptionByVendorId(vendorId).catch(() => null) // ✅ أي error يرجع null
         );
         
         const results = await Promise.all(subscriptionsPromises);
         results.forEach((subscription, index) => {
-          if (subscription) {
+          if (subscription && subscription.id) { // ✅ تأكد إن فيه id فعلاً
             subscriptionMap[batch[index]] = subscription;
           }
         });
@@ -147,11 +144,12 @@ const ManageStores = () => {
     } catch (err) {
       console.error('Error fetching subscriptions:', err);
     }
-  };
+};
 
   const fetchPlans = async () => {
     try {
       const plansData = await pricingAPI.getPlans();
+      console.log('Plans data:', plansData);
       setPlans(Array.isArray(plansData) ? plansData : []);
     } catch (err) {
       console.error('Error fetching plans:', err);
@@ -199,6 +197,11 @@ const ManageStores = () => {
   };
 
   const openSubscriptionModal = (vendor, store) => {
+console.log('vendor.id:', vendor.id);
+    console.log('subscriptions:', subscriptions);
+    console.log('found:', subscriptions[vendor.id]);
+    console.log('store received:', store);
+
     setSelectedVendor({ ...vendor, store });
     
     // Find vendor's current subscription if exists
@@ -304,7 +307,8 @@ const ManageStores = () => {
         
         setShowSubscriptionModal(false);
         setSelectedVendor(null);
-        await fetchVendorSubscriptions([selectedVendor.id], {});
+        await fetchSubscriptionsBatch([selectedVendor.id]);
+        await fetchSubscriptionsBatch(stores);
       }
     } catch (err) {
       alert(`Failed to ${subscriptions[selectedVendor.id] ? 'update' : 'create'} subscription: ${err.message}`);
@@ -708,7 +712,12 @@ const ManageStores = () => {
                           <Eye className="h-4 w-4" />
                         </button>
                         <button
-                          onClick={() => vendor && openSubscriptionModal(vendor, store)}
+                          onClick={() => {
+                            console.log('vendor:', vendor);
+                          console.log('store:', store);
+                          console.log('vendors map:', vendors);
+                          console.log('store.vendorId:', store.vendorId);
+                            vendor && openSubscriptionModal(vendor, store)}}
                           className={`p-2 rounded-lg transition-colors ${
                             subscription 
                               ? 'text-purple-600 hover:bg-purple-50' 

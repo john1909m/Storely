@@ -1,354 +1,193 @@
-// components/Hero.jsx (Vision Pro AR Style with Gyroscope support)
-import React, { useState, useEffect } from 'react';
-import { ArrowRight, Store, Sparkles, Rocket, Zap, Shield, Globe, Eye,  } from 'lucide-react';
+// components/Hero.jsx
+import React from 'react';
+import { Store, Rocket, Zap, Shield, Globe, Eye, ArrowRight, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-
-
 const Hero = () => {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [gyroscopePosition, setGyroscopePosition] = useState({ x: 0, y: 0 });
-  const [hoveredCard, setHoveredCard] = useState(null);
-  const [isMobile, setIsMobile] = useState(false);
-  const [gyroscopeAvailable, setGyroscopeAvailable] = useState(false);
   const { t } = useTranslation();
 
-  // Detect mobile device
-  useEffect(() => {
-    const checkMobile = () => {
-      const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-      const mobileRegex = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i;
-      return mobileRegex.test(userAgent);
-    };
-    
-    setIsMobile(checkMobile());
-  }, []);
+  const stats = [
+    { label: t('landing.hero.dashboardCard.stats.ordersToday'), value: '124', change: '+12%', percentage: 75 },
+    { label: t('landing.hero.dashboardCard.stats.revenue'), value: `${t('landing.hero.dashboardCard.amountPrefix')}2,450`, change: '+8%', percentage: 60 },
+  ];
 
-  // Request gyroscope permission and setup
-  useEffect(() => {
-    if (isMobile && window.DeviceOrientationEvent) {
-      // Check if we need to request permission (iOS 13+)
-      if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-        // iOS devices need permission
-        DeviceOrientationEvent.requestPermission()
-          .then(permissionState => {
-            if (permissionState === 'granted') {
-              window.addEventListener('deviceorientation', handleGyroscope);
-              setGyroscopeAvailable(true);
-            }
-          })
-          .catch(console.error);
-      } else {
-        // Android and older iOS
-        window.addEventListener('deviceorientation', handleGyroscope);
-        setGyroscopeAvailable(true);
-      }
-    }
-
-    return () => {
-      if (gyroscopeAvailable) {
-        window.removeEventListener('deviceorientation', handleGyroscope);
-      }
-    };
-  }, [isMobile]);
-
-  // Handle mouse movement (desktop)
-  useEffect(() => {
-    if (!isMobile) {
-      const handleMouseMove = (e) => {
-        setMousePosition({
-          x: (e.clientX / window.innerWidth - 0.5) * 20,
-          y: (e.clientY / window.innerHeight - 0.5) * 20,
-        });
-      };
-      window.addEventListener('mousemove', handleMouseMove);
-      return () => window.removeEventListener('mousemove', handleMouseMove);
-    }
-  }, [isMobile]);
-
-  // Handle gyroscope movement (mobile)
-  const handleGyroscope = (event) => {
-    // beta = front-to-back tilt in degrees (-180 to 180)
-    // gamma = left-to-right tilt in degrees (-90 to 90)
-    const { beta, gamma } = event;
-    
-    if (beta !== null && gamma !== null) {
-      // Normalize values to be between -10 and 10 for smoother effect
-      const normalizedBeta = Math.max(-10, Math.min(10, (beta / 9) || 0));
-      const normalizedGamma = Math.max(-10, Math.min(10, (gamma / 4.5) || 0));
-      
-      setGyroscopePosition({
-        x: normalizedGamma,
-        y: -normalizedBeta, // Invert for natural feel
-      });
-    }
-  };
-
-  // Get current transform values based on device
-  const getTransform = () => {
-    if (isMobile && gyroscopeAvailable) {
-      return `perspective(1000px) rotateX(${gyroscopePosition.y * 0.5}deg) rotateY(${gyroscopePosition.x * 0.5}deg)`;
-    }
-    return `perspective(1000px) rotateX(${mousePosition.y * 0.5}deg) rotateY(${mousePosition.x * 0.5}deg)`;
-  };
+  const orders = [
+    { id: '1234', items: 2, customer: t('landing.hero.dashboardCard.customerJohn'), amount: 89.99 },
+    { id: '1235', items: 3, customer: t('landing.hero.dashboardCard.customerJane'), amount: 129.99 },
+  ];
 
   return (
-    <div className='bg-black/90'>
-      <section 
-      className="relative min-h-screen pt-32 pb-20 overflow-hidden bg-black"
-      aria-label={t('landing.hero.ariaLabel')}
-      style={{
-        
-        transition: 'transform 0.1s ease-out',
-      }}
-    >
-      {/* Show gyroscope indicator on mobile */}
-      {isMobile && gyroscopeAvailable && (
-        <div className="fixed bottom-4 left-4 z-50 bg-white/10 backdrop-blur-xl px-3 py-1.5 rounded-full border border-white/20 text-xs text-white/60">
-          <span className="flex items-center">
-            {t('landing.hero.moveDevice')}
-          </span>
-        </div>
-      )}
+    <section className="relative min-h-screen pt-32 pb-20 overflow-hidden" aria-label={t('landing.hero.ariaLabel')}>
 
-      {/* 3D Floating Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-950 via-indigo-950/50 to-purple-950/50">
-        {/* Floating orbs */}
-        <div className="absolute top-20 left-20 w-96 h-96 bg-blue-400/20 rounded-full blur-3xl animate-float-3d"></div>
-        <div className="absolute bottom-20 right-20 w-96 h-96 bg-purple-400/20 rounded-full blur-3xl animate-float-3d animation-delay-2000"></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-indigo-400/10 rounded-full blur-3xl animate-pulse-slow"></div>
-        
-        {/* 3D Grid */}
-        <div className="absolute inset-0" style={{
-          backgroundImage: `linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-                           linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)`,
-          backgroundSize: '50px 50px',
-          transform: `perspective(500px) rotateX(60deg) scale(2)`,
-          transformOrigin: 'top',
-        }}></div>
-        
-        {/* Floating particles */}
-        {[...Array(20)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute w-1 h-1 bg-white/20 rounded-full animate-float-particle"
-            style={{
-              top: `${Math.random() * 100}%`,
-              left: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 5}s`,
-              animationDuration: `${3 + Math.random() * 5}s`,
-            }}
-          ></div>
-        ))}
-      </div>
+      {/* ✅ Decorative blurred circles — static, behind content */}
+      <div className="absolute top-1/4 -left-32 w-[500px] h-[500px] bg-[#a8002b]/30 rounded-full blur-[120px] pointer-events-none"></div>
+      <div className="absolute bottom-1/4 -right-32 w-[450px] h-[450px] bg-[#800020]/40 rounded-full blur-[120px] pointer-events-none"></div>
+
+      {/* ✅ Decorative ring — thin circle */}
+      <div className="absolute top-1/3 right-1/4 w-[400px] h-[400px] rounded-full border border-white/[0.06] pointer-events-none hidden lg:block"></div>
+      <div className="absolute top-1/3 right-1/4 w-[600px] h-[600px] rounded-full border border-white/[0.04] pointer-events-none hidden lg:block -translate-y-[100px]"></div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="max-w-6xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-            {/* Left Content with 3D effects */}
+
+            {/* Left Content */}
             <div className="text-center lg:text-left">
-              {/* 3D Badge */}
-              
-              
-              {/* 3D Text with depth */}
-              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6">
-                <span className="block transform-gpu hover:translate-z-10 transition-transform duration-300" style={{
-                  textShadow: '0 10px 30px rgba(0,0,0,0.5), 0 0 40px rgba(59,130,246,0.3)',
-                }}>
-                  <span className="bg-gradient-to-r from-white via-blue-200 to-purple-200 bg-clip-text text-transparent">
-                    {t('landing.hero.headline.launchYour')}
-                  </span>
+              {/* Eyebrow badge */}
+              <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/15 backdrop-blur-sm mb-8">
+                <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>
+                <span className="text-xs font-medium text-white/85 tracking-wide uppercase">
+                  {t('landing.hero.badge', 'Launch in minutes')}
                 </span>
-                <span className="block transform-gpu hover:translate-z-20 transition-transform duration-300 mt-2" style={{
-                  textShadow: '0 15px 40px rgba(0,0,0,0.5), 0 0 60px rgba(168,85,247,0.3)',
-                }}>
-                  <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                    {t('landing.hero.headline.onlineStore')}
-                  </span>
-                </span>
-                <span className="block transform-gpu hover:translate-z-5 transition-transform duration-300 mt-2" style={{
-                  textShadow: '0 5px 20px rgba(0,0,0,0.5)',
-                }}>
-                  <span className="bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
-                    {t('landing.hero.headline.inMinutes')}
-                  </span>
-                </span>
+              </div>
+
+              {/* Headline */}
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-[4.25rem] font-bold mb-6 tracking-tight leading-[1.05]">
+                <span className="block text-white">{t('landing.hero.headline.launchYour')}</span>
+                <span className="block mt-2 text-white/95">{t('landing.hero.headline.onlineStore')}</span>
+                <span className="block mt-2 text-white/60">{t('landing.hero.headline.inMinutes')}</span>
               </h1>
-              
-              <p className="text-lg sm:text-xl text-blue-100/70 mb-10 leading-relaxed max-w-xl mx-auto lg:mx-0 drop-shadow-2xl">
+
+              <div className="w-16 h-1 bg-white/30 rounded-full mb-6 mx-auto lg:mx-0"></div>
+
+              <p className="text-lg sm:text-xl text-white/70 mb-10 leading-relaxed max-w-xl mx-auto lg:mx-0">
                 {t('landing.hero.description')}
               </p>
-              
-              {/* 3D Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 mb-12 justify-center lg:justify-start">
+
+              {/* Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 mb-12 justify-center lg:justify-start">
                 <Link to="/signup" className="w-full sm:w-auto">
-                  <button 
-                    className="group relative w-full sm:w-auto px-8 py-4 rounded-2xl overflow-hidden transform-gpu hover:scale-105 hover:rotate-1 transition-all duration-300"
-                    onMouseEnter={() => setHoveredCard('cta1')}
-                    onMouseLeave={() => setHoveredCard(null)}
-                  >
-                    {/* 3D Gradient layers */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 opacity-90"></div>
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:translate-x-full transition-transform duration-1000"></div>
-                    
-                    {/* Floating particles */}
-                    <div className={`absolute inset-0 transition-opacity duration-500 ${hoveredCard === 'cta1' ? 'opacity-100' : 'opacity-0'}`}>
-                      <div className="absolute top-0 left-0 w-20 h-20 bg-white/20 rounded-full blur-2xl animate-float"></div>
-                      <div className="absolute bottom-0 right-0 w-20 h-20 bg-white/20 rounded-full blur-2xl animate-float animation-delay-2000"></div>
-                    </div>
-                    
-                    <span className="relative z-10 flex items-center justify-center space-x-2 text-white font-semibold">
-                      <span>{t('landing.hero.buttons.startNow')}</span>
-                      <Rocket className="h-5 w-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                    </span>
+                  <button className="group w-full sm:w-auto px-7 py-3.5 rounded-xl bg-white text-[#800020] font-semibold hover:bg-gray-50 transition-all duration-300 shadow-lg shadow-black/10 hover:shadow-xl flex items-center justify-center space-x-2">
+                    <span>{t('landing.hero.buttons.startNow')}</span>
+                    <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
                   </button>
                 </Link>
-                
+
                 <Link to="/pricing" className="w-full sm:w-auto">
-                  <button 
-                    className="group relative w-full sm:w-auto px-8 py-4 rounded-2xl overflow-hidden transform-gpu hover:scale-105 hover:-rotate-1 transition-all duration-300"
-                    onMouseEnter={() => setHoveredCard('cta2')}
-                    onMouseLeave={() => setHoveredCard(null)}
-                  >
-                    <div className="absolute inset-0 bg-white/10 backdrop-blur-2xl border border-white/20"></div>
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:translate-x-full transition-transform duration-1000"></div>
-                    
-                    <span className="relative z-10 text-white font-semibold">{t('landing.hero.buttons.viewPricing')}</span>
+                  <button className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-white/5 text-white font-semibold border border-white/20 hover:bg-white/10 hover:border-white/30 transition-all duration-300 backdrop-blur-sm">
+                    {t('landing.hero.buttons.viewPricing')}
                   </button>
                 </Link>
               </div>
-              
-              {/* 3D Trust indicators */}
-              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-8">
+
+              {/* Trust indicators */}
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-x-6 gap-y-3">
                 {[
-                  { icon: Zap, text: t('landing.hero.trust.noCode'), color: 'blue' },
-                  { icon: Shield, text: t('landing.hero.trust.secure'), color: 'green' },
-                  { icon: Globe, text: t('landing.hero.trust.global'), color: 'purple' },
+                  { icon: Zap, text: t('landing.hero.trust.noCode') },
+                  { icon: Shield, text: t('landing.hero.trust.secure') },
+                  { icon: Globe, text: t('landing.hero.trust.global') },
                 ].map((item, index) => (
-                  <div
-                    key={index}
-                    className="group relative transform-gpu hover:scale-110 hover:-translate-y-2 transition-all duration-300"
-                    style={{ transitionDelay: `${index * 100}ms` }}
-                    onMouseEnter={() => setHoveredCard(`trust-${index}`)}
-                    onMouseLeave={() => setHoveredCard(null)}
-                  >
-                    <div className={`absolute inset-0 bg-${item.color}-400/20 blur-xl transition-opacity duration-500 rounded-full ${
-                      hoveredCard === `trust-${index}` ? 'opacity-100' : 'opacity-0'
-                    }`}></div>
-                    
-                    <div className="relative flex items-center space-x-2 bg-white/5 backdrop-blur-xl px-4 py-2 rounded-2xl border border-white/10">
-                      <item.icon className={`h-4 w-4 text-${item.color}-400`} />
-                      <span className="text-sm text-gray-300">{item.text}</span>
+                  <div key={index} className="flex items-center space-x-2">
+                    <div className="h-6 w-6 rounded-md bg-white/10 border border-white/15 flex items-center justify-center">
+                      <item.icon className="h-3.5 w-3.5 text-white/90" />
                     </div>
+                    <span className="text-sm text-white/75 font-medium">{item.text}</span>
                   </div>
                 ))}
               </div>
             </div>
-            
-            {/* Right 3D Illustration */}
-            <div className="relative hidden lg:block perspective-1000">
-              <div 
-                className="relative z-10 transform-gpu transition-all duration-300"
-                style={{
-                  transform: `perspective(1000px) rotateY(${isMobile ? gyroscopePosition.x : mousePosition.x}deg) rotateX(${isMobile ? -gyroscopePosition.y : -mousePosition.y}deg) translateZ(50px)`,
-                }}
-              >
-                {/* Main 3D Card */}
-                <div className="bg-white/10 backdrop-blur-2xl rounded-3xl border border-white/20 p-6 shadow-2xl relative overflow-hidden">
-                  {/* 3D Lighting effect */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-black/20"></div>
-                  
-                  {/* Floating elements inside card */}
-                  <div className="absolute top-10 right-10 w-32 h-32 bg-blue-400/20 rounded-full blur-3xl animate-float-3d"></div>
-                  <div className="absolute bottom-10 left-10 w-32 h-32 bg-purple-400/20 rounded-full blur-3xl animate-float-3d animation-delay-2000"></div>
-                  
-                  <div className="relative z-10">
-                    {/* Card Header */}
-                    <div className="flex items-center justify-between mb-6">
-                      <div className="flex items-center space-x-3">
-                        <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-400 to-purple-400 flex items-center justify-center shadow-2xl transform-gpu hover:rotate-12 transition-transform duration-300">
-                          <Store className="h-6 w-6 text-white" />
-                        </div>
-                        <div>
-                          <div className="text-white font-semibold text-lg">{t('landing.hero.dashboardCard.storeDashboard')}</div>
-                        <div className="text-sm text-blue-200/70">{t('landing.hero.dashboardCard.storeUrl')}</div>
-                        </div>
+
+            {/* Right Dashboard Card */}
+            <div className="relative hidden lg:block">
+              {/* Glow behind card */}
+              <div className="absolute -inset-8 bg-[#a8002b]/20 rounded-[40px] blur-3xl"></div>
+
+              <div className="relative bg-white rounded-2xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.6)] ring-1 ring-white/10 overflow-hidden">
+                <div className="h-1 bg-gradient-to-r from-[#800020] via-[#a8002b] to-[#800020]"></div>
+
+                <div className="p-6">
+                  {/* Header */}
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center space-x-3">
+                      <div className="h-11 w-11 rounded-xl bg-[#800020] flex items-center justify-center shadow-sm">
+                        <Store className="h-5 w-5 text-white" />
                       </div>
-                      <div className="px-3 py-1.5 bg-green-400/20 border border-green-400/30 rounded-full backdrop-blur-sm">
-                        <span className="text-xs text-green-300 font-medium flex items-center">
-                          <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse mr-1.5"></span>
-                          {t('landing.hero.dashboardCard.live')}
-                        </span>
+                      <div>
+                        <div className="text-gray-900 font-semibold text-[15px]">
+                          {t('landing.hero.dashboardCard.storeDashboard')}
+                        </div>
+                        <div className="text-xs text-gray-400">
+                          {t('landing.hero.dashboardCard.storeUrl')}
+                        </div>
                       </div>
                     </div>
-                    
-                    {/* 3D Stats Cards */}
-                    <div className="grid grid-cols-2 gap-4 mb-6">
-                      {[
-                        { label: t('landing.hero.dashboardCard.stats.ordersToday'), value: '124', color: 'blue', percentage: 75 },
-                        { label: t('landing.hero.dashboardCard.stats.revenue'), value: `${t('landing.hero.dashboardCard.amountPrefix')}2,450`, color: 'purple', percentage: 60 },
-                      ].map((stat, index) => (
-                        <div
-                          key={index}
-                          className="group relative transform-gpu hover:scale-105 hover:-translate-y-2 transition-all duration-300"
-                          style={{ transitionDelay: `${index * 100}ms` }}
-                        >
-                          <div className={`absolute inset-0 bg-${stat.color}-400/20 blur-xl rounded-2xl`}></div>
-                          <div className="relative bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10 overflow-hidden">
-                            <div className="text-2xl font-bold text-white mb-1">{stat.value}</div>
-                            <div className="text-sm text-gray-300 mb-3">{stat.label}</div>
-                            <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-                              <div 
-                                className={`h-full bg-gradient-to-r from-${stat.color}-400 to-${stat.color}-300 rounded-full transition-all duration-1000`}
-                                style={{ width: `${stat.percentage}%` }}
-                              ></div>
+                    <div className="px-2.5 py-1 bg-emerald-50 border border-emerald-100 rounded-full">
+                      <span className="text-[11px] text-emerald-600 font-medium flex items-center">
+                        <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-1.5"></span>
+                        {t('landing.hero.dashboardCard.live')}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Stats */}
+                  <div className="grid grid-cols-2 gap-3 mb-5">
+                    {stats.map((stat, index) => (
+                      <div key={index} className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="text-xl font-bold text-gray-900">{stat.value}</div>
+                          <div className="flex items-center text-[11px] font-medium text-emerald-600">
+                            <TrendingUp className="h-3 w-3 mr-0.5" />
+                            {stat.change}
+                          </div>
+                        </div>
+                        <div className="text-xs text-gray-500 mb-3">{stat.label}</div>
+                        <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
+                          <div className="h-full bg-gradient-to-r from-[#800020] to-[#a8002b] rounded-full" style={{ width: `${stat.percentage}%` }}></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Orders */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide flex items-center">
+                        <Eye className="h-3.5 w-3.5 mr-2 text-[#800020]" />
+                        {t('landing.hero.dashboardCard.recentOrders')}
+                      </h3>
+                      <span className="text-[11px] text-gray-400 font-medium">
+                        {orders.length} {t('landing.hero.dashboardCard.newLabel', 'new')}
+                      </span>
+                    </div>
+
+                    <div className="space-y-2">
+                      {orders.map((order, index) => (
+                        <div key={index} className="bg-gray-50 rounded-xl p-3 border border-gray-100 flex items-center justify-between hover:bg-gray-100 transition-colors duration-200">
+                          <div>
+                            <div className="text-sm text-gray-900 font-medium">
+                              {t('landing.hero.dashboardCard.orderPrefix', { id: order.id })}
+                            </div>
+                            <div className="text-[11px] text-gray-400">
+                              {t('landing.hero.dashboardCard.orderMeta', { items: order.items, customer: order.customer })}
                             </div>
                           </div>
+                          <span className="text-sm text-[#800020] font-semibold">
+                            {t('landing.hero.dashboardCard.amountPrefix')}{order.amount}
+                          </span>
                         </div>
                       ))}
                     </div>
-                    
-                    {/* 3D Order List */}
-                    <div className="space-y-3">
-                      <h3 className="text-sm font-medium text-gray-300 flex items-center">
-                        <Eye className="h-4 w-4 mr-2 text-blue-400" />
-                        {t('landing.hero.dashboardCard.recentOrders')}
-                      </h3>
-                      <div className="space-y-2">
-                        {[
-                          { id: '1234', items: 2, customer: t('landing.hero.dashboardCard.customerJohn'), amount: 89.99 },
-                          { id: '1235', items: 3, customer: t('landing.hero.dashboardCard.customerJane'), amount: 129.99 },
-                        ].map((order, index) => (
-                          <div
-                            key={index}
-                            className="group relative transform-gpu hover:scale-105 hover:-translate-y-1 transition-all duration-300"
-                          >
-                            <div className="absolute inset-0 bg-white/5 blur-xl rounded-xl"></div>
-                            <div className="relative bg-white/5 backdrop-blur-sm rounded-xl p-3 border border-white/10 flex items-center justify-between">
-                              <div>
-                                <span className="text-white font-medium">{t('landing.hero.dashboardCard.orderPrefix', { id: order.id })}</span>
-                                <div className="text-xs text-gray-400">{t('landing.hero.dashboardCard.orderMeta', { items: order.items, customer: order.customer })}</div>
-                              </div>
-                              <span className="text-green-400 font-medium">{t('landing.hero.dashboardCard.amountPrefix')}{order.amount}</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
                   </div>
                 </div>
-                
-                {/* Floating 3D elements around card */}
-                <div className="absolute -top-6 -right-6 w-32 h-32 bg-gradient-to-br from-blue-400 to-purple-400 rounded-2xl rotate-12 opacity-30 blur-2xl animate-float-3d"></div>
-                <div className="absolute -bottom-6 -left-6 w-40 h-40 bg-gradient-to-br from-purple-400 to-pink-400 rounded-2xl -rotate-12 opacity-30 blur-2xl animate-float-3d animation-delay-2000"></div>
+              </div>
+
+              {/* Floating mini-card */}
+              <div className="absolute -bottom-6 -left-6 bg-white rounded-xl shadow-2xl shadow-black/40 p-3 border border-gray-100 flex items-center space-x-2.5">
+                <div className="h-9 w-9 rounded-lg bg-[#800020] flex items-center justify-center">
+                  <Rocket className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <div className="text-[10px] text-gray-400 font-medium leading-tight uppercase tracking-wide">Faster launch</div>
+                  <div className="text-base font-bold text-gray-900 leading-tight">10x</div>
+                </div>
               </div>
             </div>
+
           </div>
         </div>
       </div>
     </section>
-    </div>
   );
 };
 
