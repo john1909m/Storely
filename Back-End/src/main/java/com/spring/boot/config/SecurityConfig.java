@@ -1,6 +1,7 @@
 package com.spring.boot.config;
 
 import com.spring.boot.config.filter.AuthFilter;
+import com.spring.boot.config.rateLimiting.RateLimitFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,9 +28,11 @@ import java.util.List;
 @EnableMethodSecurity
 public class SecurityConfig {
     private final AuthFilter authFilter;
+    private final RateLimitFilter rateLimitFilter;
 
     @Autowired
-    public SecurityConfig(AuthFilter authFilter) {
+    public SecurityConfig(AuthFilter authFilter,RateLimitFilter rateLimitFilter) {
+        this.rateLimitFilter=rateLimitFilter;
         this.authFilter = authFilter;
     }
 
@@ -43,6 +46,7 @@ public class SecurityConfig {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
+                .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 

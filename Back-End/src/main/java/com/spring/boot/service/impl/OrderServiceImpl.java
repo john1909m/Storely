@@ -509,7 +509,11 @@ public class OrderServiceImpl implements OrderService {
 
         Order savedOrder = orderRepo.save(order);
 
-        sendNewOrderEmail(savedOrder);
+        try {
+            sendNewOrderEmail(savedOrder);
+        } catch (Exception e) {
+            // مش بنعمل throw — الـ order اتحفظ بنجاح
+        }
 
         return orderMapper.toOrderDto(savedOrder);
     }
